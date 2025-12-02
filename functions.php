@@ -2509,3 +2509,50 @@ function get_friends_list($request) {
     return new WP_REST_Response(['success' => true, 'friends' => $friends, 'count' => count($friends)], 200);
 }
 
+// REST API endpoint: Like a post
+add_action('rest_api_init', function() {
+    register_rest_route('kate/v1', '/like-post', array(
+        'methods' => 'POST',
+        'callback' => 'handle_like_post',
+        'permission_callback' => function() {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+function handle_like_post($request) {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    $post_id = $request->get_param('post_id');
+    
+    if (empty($post_id) || !is_numeric($post_id)) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Invalid post ID'], 400);
+    }
+    
+    // Tjek om post eksisterer
+    $post = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}rtf_platform_posts WHERE id = %d",
+        $post_id
+    ));
+    
+    if (!$post) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Post not found'], 404);
+    }
+    
+    // Increment likes
+    $updated = $wpdb->query($wpdb->prepare(
+        "UPDATE {$wpdb->prefix}rtf_platform_posts SET likes = likes + 1 WHERE id = %d",
+        $post_id
+    ));
+    
+    if ($updated !== false) {
+        $new_likes = $wpdb->get_var($wpdb->prepare(
+            "SELECT likes FROM {$wpdb->prefix}rtf_platform_posts WHERE id = %d",
+            $post_id
+        ));
+        return new WP_REST_Response(['success' => true, 'likes' => $new_likes], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Failed to like post'], 500);
+}
+

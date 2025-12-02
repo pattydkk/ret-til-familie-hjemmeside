@@ -31,9 +31,9 @@ if ($viewing_own_profile) {
     exit;
 }
 
-// Hent brugerdata
+// Hent brugerdata fra rtf_platform_users
 $viewed_user = $wpdb->get_row($wpdb->prepare(
-    "SELECT * FROM {$wpdb->users} WHERE ID = %d",
+    "SELECT * FROM {$wpdb->prefix}rtf_platform_users WHERE id = %d",
     $view_user_id
 ));
 
@@ -42,16 +42,16 @@ if (!$viewed_user) {
     exit;
 }
 
-// Hent user meta
-$profile_image = get_user_meta($view_user_id, 'profile_image', true);
-$cover_image = get_user_meta($view_user_id, 'cover_image', true);
-$full_name = get_user_meta($view_user_id, 'full_name', true) ?: $viewed_user->display_name;
-$bio = get_user_meta($view_user_id, 'bio', true);
-$age = get_user_meta($view_user_id, 'age', true);
-$country = get_user_meta($view_user_id, 'country', true);
-$city = get_user_meta($view_user_id, 'city', true);
-$case_type = get_user_meta($view_user_id, 'case_type', true);
-$is_public_profile = get_user_meta($view_user_id, 'is_public_profile', true);
+// Hent data fra rtf_platform_users tabel
+$profile_image = $viewed_user->profile_image;
+$cover_image = $viewed_user->cover_image;
+$full_name = $viewed_user->full_name ?: $viewed_user->username;
+$bio = $viewed_user->bio;
+$age = $viewed_user->age;
+$country = $viewed_user->country;
+$city = $viewed_user->city;
+$case_type = $viewed_user->case_type;
+$is_public_profile = $viewed_user->is_public_profile;
 
 // Tjek om profilen er offentlig
 if (!$is_public_profile) {
