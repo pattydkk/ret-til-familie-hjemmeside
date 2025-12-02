@@ -132,13 +132,118 @@ $topics = $wpdb->get_results(
     <div class="container" style="max-width: 900px; margin: 40px auto; padding: 20px;">
         <h1 style="margin-bottom: 30px; color: var(--rtf-text);">Forum</h1>
 
+        <!-- Filter sektion -->
+        <div style="background: var(--rtf-card); padding: 25px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px;">
+            <h3 style="margin: 0 0 20px 0; color: var(--rtf-text);">
+                🎯 <?php echo $lang === 'da' ? 'Filtrer Emner' : 'Filtrera Ämnen'; ?>
+            </h3>
+            
+            <form method="get" action="" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <input type="hidden" name="lang" value="<?php echo esc_attr($lang); ?>">
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-muted); font-size: 0.9em;">
+                        🌍 <?php echo $lang === 'da' ? 'Land' : 'Land'; ?>
+                    </label>
+                    <select name="filter_country" style="width: 100%; padding: 10px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; background: white;">
+                        <option value=""><?php echo $lang === 'da' ? 'Alle lande' : 'Alla länder'; ?></option>
+                        <option value="DK" <?php selected($filter_country, 'DK'); ?>>🇩🇰 Danmark</option>
+                        <option value="SE" <?php selected($filter_country, 'SE'); ?>>🇸🇪 Sverige</option>
+                        <option value="NO" <?php selected($filter_country, 'NO'); ?>>🇳🇴 Norge</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-muted); font-size: 0.9em;">
+                        📍 <?php echo $lang === 'da' ? 'By' : 'Stad'; ?>
+                    </label>
+                    <input type="text" name="filter_city" value="<?php echo esc_attr($filter_city); ?>" 
+                           placeholder="<?php echo $lang === 'da' ? 'Indtast bynavn' : 'Ange stad'; ?>" 
+                           style="width: 100%; padding: 10px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-muted); font-size: 0.9em;">
+                        📁 <?php echo $lang === 'da' ? 'Sagstype' : 'Ärendetyp'; ?>
+                    </label>
+                    <select name="filter_case_type" style="width: 100%; padding: 10px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; background: white;">
+                        <option value=""><?php echo $lang === 'da' ? 'Alle sagstyper' : 'Alla ärendetyper'; ?></option>
+                        <option value="forældremyndighed" <?php selected($filter_case_type, 'forældremyndighed'); ?>><?php echo $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad'; ?></option>
+                        <option value="samvær" <?php selected($filter_case_type, 'samvær'); ?>><?php echo $lang === 'da' ? 'Samvær' : 'Umgänge'; ?></option>
+                        <option value="anbringelse" <?php selected($filter_case_type, 'anbringelse'); ?>><?php echo $lang === 'da' ? 'Anbringelse' : 'Placering'; ?></option>
+                        <option value="tvangsfjernelse" <?php selected($filter_case_type, 'tvangsfjernelse'); ?>><?php echo $lang === 'da' ? 'Tvangsfjernelse' : 'Tvångsomhändertagande'; ?></option>
+                        <option value="børnebidrag" <?php selected($filter_case_type, 'børnebidrag'); ?>><?php echo $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag'; ?></option>
+                        <option value="skilsmisse" <?php selected($filter_case_type, 'skilsmisse'); ?>><?php echo $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa'; ?></option>
+                        <option value="andet" <?php selected($filter_case_type, 'andet'); ?>><?php echo $lang === 'da' ? 'Andet' : 'Annat'; ?></option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; align-items: flex-end; gap: 10px;">
+                    <button type="submit" style="flex: 1; padding: 10px 20px; background: linear-gradient(135deg, #60a5fa, #2563eb); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+                        🔍 <?php echo $lang === 'da' ? 'Søg' : 'Sök'; ?>
+                    </button>
+                    <a href="<?php echo home_url('/platform-forum/?lang=' . $lang); ?>" 
+                       style="padding: 10px 20px; background: #f0f0f0; color: #555; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; text-decoration: none; text-align: center; transition: background 0.2s;">
+                        🔄
+                    </a>
+                </div>
+            </form>
+            
+            <?php if (!empty($filter_country) || !empty($filter_city) || !empty($filter_case_type)): ?>
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0f2fe;">
+                    <p style="margin: 0; color: var(--rtf-muted); font-size: 0.9em;">
+                        <strong><?php echo $lang === 'da' ? 'Aktive filtre:' : 'Aktiva filter:'; ?></strong>
+                        <?php if (!empty($filter_country)): ?>
+                            <span style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-left: 5px; font-size: 0.85em;">
+                                <?php echo $filter_country === 'DK' ? '🇩🇰 Danmark' : ($filter_country === 'SE' ? '🇸🇪 Sverige' : '🇳🇴 Norge'); ?>
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($filter_city)): ?>
+                            <span style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-left: 5px; font-size: 0.85em;">
+                                📍 <?php echo esc_html($filter_city); ?>
+                            </span>
+                        <?php endif; ?>
+                        <?php if (!empty($filter_case_type)): ?>
+                            <span style="display: inline-block; background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 12px; margin-left: 5px; font-size: 0.85em;">
+                                📁 <?php echo esc_html(ucfirst($filter_case_type)); ?>
+                            </span>
+                        <?php endif; ?>
+                    </p>
+                </div>
+            <?php endif; ?>
+        </div>
+
         <div style="background: var(--rtf-card); padding: 30px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px;">
-            <h3 style="margin-bottom: 20px;">Opret Nyt Emne</h3>
+            <h3 style="margin-bottom: 20px;"><?php echo $lang === 'da' ? 'Opret Nyt Emne' : 'Skapa Nytt Ämne'; ?></h3>
             <form method="POST" action="">
                 <?php wp_nonce_field('rtf_create_topic'); ?>
-                <input type="text" name="title" placeholder="Titel" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; margin-bottom: 15px;">
-                <textarea name="content" rows="5" placeholder="Indhold..." required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-family: inherit; margin-bottom: 15px;"></textarea>
-                <button type="submit" class="btn-primary">Opret Emne</button>
+                <input type="text" name="title" placeholder="<?php echo $lang === 'da' ? 'Titel' : 'Titel'; ?>" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; margin-bottom: 15px;">
+                <textarea name="content" rows="5" placeholder="<?php echo $lang === 'da' ? 'Indhold...' : 'Innehåll...'; ?>" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-family: inherit; margin-bottom: 15px;"></textarea>
+                
+                <!-- Metadata for filtering -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                    <select name="country" style="padding: 10px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
+                        <option value=""><?php echo $lang === 'da' ? 'Vælg land' : 'Välj land'; ?></option>
+                        <option value="DK">🇩🇰 Danmark</option>
+                        <option value="SE">🇸🇪 Sverige</option>
+                        <option value="NO">🇳🇴 Norge</option>
+                    </select>
+                    
+                    <input type="text" name="city" placeholder="<?php echo $lang === 'da' ? 'By (valgfri)' : 'Stad (valfritt)'; ?>" style="padding: 10px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
+                    
+                    <select name="case_type" style="padding: 10px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
+                        <option value=""><?php echo $lang === 'da' ? 'Sagstype' : 'Ärendetyp'; ?></option>
+                        <option value="forældremyndighed"><?php echo $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad'; ?></option>
+                        <option value="samvær"><?php echo $lang === 'da' ? 'Samvær' : 'Umgänge'; ?></option>
+                        <option value="anbringelse"><?php echo $lang === 'da' ? 'Anbringelse' : 'Placering'; ?></option>
+                        <option value="tvangsfjernelse"><?php echo $lang === 'da' ? 'Tvangsfjernelse' : 'Tvångsomhändertagande'; ?></option>
+                        <option value="børnebidrag"><?php echo $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag'; ?></option>
+                        <option value="skilsmisse"><?php echo $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa'; ?></option>
+                        <option value="andet"><?php echo $lang === 'da' ? 'Andet' : 'Annat'; ?></option>
+                    </select>
+                </div>
+                
+                <button type="submit" name="create_topic" class="btn-primary"><?php echo $lang === 'da' ? 'Opret Emne' : 'Skapa Ämne'; ?></button>
             </form>
         </div>
 
