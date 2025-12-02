@@ -143,111 +143,39 @@ if (isset($_GET['logout'])) {
 ?>
 
 <main class="platform-profil">
-    <div class="container" style="max-width: 1200px; margin: 40px auto; padding: 20px;">
+    <div class="platform-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
         
-        <div style="display: grid; grid-template-columns: 300px 1fr; gap: 30px;">
-            
-            <!-- SIDEBAR -->
-            <div class="sidebar" style="position: sticky; top: 80px; height: fit-content;">
-                <div class="profile-card" style="background: var(--rtf-card); border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 20px; overflow: hidden; text-align: center;">
-                    <!-- Cover Image -->
-                    <div class="cover-image" style="position: relative; height: 120px; background: <?php echo $current_user->cover_image ? 'url(' . esc_url($current_user->cover_image) . ') center/cover' : 'linear-gradient(135deg, #60a5fa, #2563eb)'; ?>;">
-                        <label for="coverUpload" style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;">
-                            <svg style="width: 16px; height: 16px; fill: currentColor; display: inline; vertical-align: middle;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                            <?php echo $lang === 'da' ? 'Skift' : 'Byt'; ?>
+        <?php get_template_part('template-parts/platform-sidebar'); ?>
+        
+        <div class="platform-content" style="min-width: 0;">
+            <!-- Profile Card (at top of content area) -->
+            <div class="profile-card" style="background: var(--rtf-card); border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px; overflow: hidden; text-align: center;">
+                <!-- Cover Image -->
+                <div class="cover-image" style="position: relative; height: 120px; background: <?php echo $current_user->cover_image ? 'url(' . esc_url($current_user->cover_image) . ') center/cover' : 'linear-gradient(135deg, #60a5fa, #2563eb)'; ?>;">
+                    <label for="coverUpload" style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;">
+                        <svg style="width: 16px; height: 16px; fill: currentColor; display: inline; vertical-align: middle;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        <?php echo $lang === 'da' ? 'Skift' : 'Byt'; ?>
+                    </label>
+                    <input type="file" id="coverUpload" accept="image/*" style="display: none;">
+                </div>
+                
+                <!-- Profile Avatar -->
+                <div style="position: relative; margin-top: -50px; padding: 0 30px 20px;">
+                    <div class="profile-avatar" style="position: relative; width: 100px; height: 100px; background: <?php echo $current_user->profile_image ? 'url(' . esc_url($current_user->profile_image) . ') center/cover' : 'linear-gradient(135deg, #60a5fa, #2563eb)'; ?>; border: 4px solid var(--rtf-card); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">
+                        <?php if (!$current_user->profile_image): ?>
+                            <?php echo strtoupper(substr($current_user->username, 0, 1)); ?>
+                        <?php endif; ?>
+                        <label for="profileUpload" style="position: absolute; bottom: 0; right: 0; background: #0ea5e9; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                            <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
                         </label>
-                        <input type="file" id="coverUpload" accept="image/*" style="display: none;">
+                        <input type="file" id="profileUpload" accept="image/*" style="display: none;">
                     </div>
-                    
-                    <!-- Profile Avatar -->
-                    <div style="position: relative; margin-top: -50px; padding: 0 30px 20px;">
-                        <div class="profile-avatar" style="position: relative; width: 100px; height: 100px; background: <?php echo $current_user->profile_image ? 'url(' . esc_url($current_user->profile_image) . ') center/cover' : 'linear-gradient(135deg, #60a5fa, #2563eb)'; ?>; border: 4px solid var(--rtf-card); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">
-                            <?php if (!$current_user->profile_image): ?>
-                                <?php echo strtoupper(substr($current_user->username, 0, 1)); ?>
-                            <?php endif; ?>
-                            <label for="profileUpload" style="position: absolute; bottom: 0; right: 0; background: #0ea5e9; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
-                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                            </label>
-                            <input type="file" id="profileUpload" accept="image/*" style="display: none;">
-                        </div>
-                        <h2 style="margin: 15px 0 10px; color: var(--rtf-text);"><?php echo esc_html($current_user->full_name); ?></h2>
-                        <p style="color: var(--rtf-muted); margin-bottom: 15px;">@<?php echo esc_html($current_user->username); ?></p>
-                        <div class="subscription-badge" style="display: inline-block; padding: 8px 20px; background: <?php echo $current_user->subscription_status === 'active' ? 'linear-gradient(135deg, #38bdf8, #0ea5e9)' : '#e0f2fe'; ?>; color: <?php echo $current_user->subscription_status === 'active' ? '#ffffff' : '#1e3a8a'; ?>; border-radius: 20px; font-weight: 600;">
-                            <?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?>
-                        </div>
+                    <h2 style="margin: 15px 0 10px; color: var(--rtf-text);"><?php echo esc_html($current_user->full_name); ?></h2>
+                    <p style="color: var(--rtf-muted); margin-bottom: 15px;">@<?php echo esc_html($current_user->username); ?></p>
+                    <div class="subscription-badge" style="display: inline-block; padding: 8px 20px; background: <?php echo $current_user->subscription_status === 'active' ? 'linear-gradient(135deg, #38bdf8, #0ea5e9)' : '#e0f2fe'; ?>; color: <?php echo $current_user->subscription_status === 'active' ? '#ffffff' : '#1e3a8a'; ?>; border-radius: 20px; font-weight: 600;">
+                        <?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?>
                     </div>
                 </div>
-
-                <nav class="platform-nav" style="background: var(--rtf-card); padding: 20px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10);">
-                    <h3 style="margin-bottom: 20px; color: var(--rtf-text);"><?php echo esc_html($txt['platform_menu']); ?></h3>
-                    <a href="<?php echo home_url('/platform-vaeg/?lang=' . $lang); ?>" class="nav-link active" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; background: #e0f2fe; color: #1e3a8a; text-decoration: none; font-weight: 600;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-                        <?php echo esc_html($txt['wall']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-find-borgere/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M16.5 12c1.93 0 3.5-1.57 3.5-3.5S18.43 5 16.5 5 13 6.57 13 8.5s1.57 3.5 3.5 3.5zm-9 0c1.93 0 3.5-1.57 3.5-3.5S9.43 5 7.5 5 4 6.57 4 8.5 5.57 12 7.5 12zm0 2C5.01 14 0 15.24 0 17.75V20h15v-2.25C15 15.24 9.99 14 7.5 14zm9 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h9v-2.25c0-2.51-5.01-3.75-7.5-3.75z"/></svg>
-                        <?php echo $lang === 'da' ? 'Find Borgere' : 'Hitta Medborgare'; ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-chat/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none; position: relative;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-                        <?php echo esc_html($txt['messages']); ?>
-                        <span id="unreadBadge" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: #ef4444; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;"></span>
-                    </a>
-                    <a href="<?php echo home_url('/platform-billeder/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                        <?php echo esc_html($txt['images']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-dokumenter/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
-                        <?php echo esc_html($txt['documents']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-nyheder/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
-                        <?php echo esc_html($txt['news']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-forum/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
-                        <?php echo esc_html($txt['forum']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-sagshjælp/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-                        <?php echo esc_html($txt['legal_help']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-kate-ai/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                        <?php echo esc_html($txt['kate_ai']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-klagegenerator/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                        <?php echo esc_html($txt['complaint_gen']); ?>
-                    </a>
-                    <a href="<?php echo home_url('/platform-indstillinger/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-                        <?php echo esc_html($txt['settings']); ?>
-                    </a>
-                    <?php if (rtf_is_admin_user()): ?>
-                    <a href="<?php echo home_url('/platform-admin/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; background: linear-gradient(135deg, #60a5fa, #2563eb); color: #ffffff; text-decoration: none; font-weight: 600;">
-                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-                        <?php echo esc_html($txt['admin_panel']); ?>
-                    </a>
-                    <?php endif; ?>
-                </nav>
-                
-                <script>
-                // Load unread count for badge
-                fetch('/wp-json/kate/v1/messages/unread-count', {
-                    credentials: 'same-origin'
-                })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.unread_count > 0) {
-                        const badge = document.getElementById('unreadBadge');
-                        badge.textContent = data.unread_count;
-                        badge.style.display = 'inline-block';
-                    }
-                })
-                .catch(err => console.error('Error loading unread count:', err));
-                </script>
             </div>
 
             <!-- MAIN CONTENT -->
@@ -544,10 +472,8 @@ if (isset($_GET['logout'])) {
                         </div>
                     </div>
                 </div>
-            </div>
-
-        </div>
-    </div>
+            </div><!-- .platform-content -->
+        </div><!-- .platform-container -->
 </main>
 
 <style>
