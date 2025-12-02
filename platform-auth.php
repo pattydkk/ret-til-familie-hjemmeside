@@ -78,11 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     global $wpdb;
     $table = $wpdb->prefix . 'rtf_platform_users';
     
-    $username = sanitize_text_field($_POST['username']);
+    $username_or_email = sanitize_text_field($_POST['username']);
     $password = $_POST['password'];
     
     if ($debug_mode) {
-        $debug_messages[] = "Attempting login for username: $username";
+        $debug_messages[] = "Attempting login for: $username_or_email";
         $debug_messages[] = "Table: $table";
     }
     
@@ -94,13 +94,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $debug_messages[] = "ERROR: Table does not exist!";
         }
     } else {
-        $user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE username = %s AND is_active = 1", $username));
+        // Try to find user by username OR email
+        $user = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table WHERE (username = %s OR email = %s) AND is_active = 1",
+            $username_or_email,
+            $username_or_email
+        ));
         
         if ($debug_mode) {
             $debug_messages[] = "User found: " . ($user ? 'YES' : 'NO');
             if ($user) {
                 $debug_messages[] = "User ID: " . $user->id;
+                $debug_messages[] = "Username: " . $user->username;
+                $debug_messages[] = "Email: " . $user->email;
                 $debug_messages[] = "Password hash exists: " . (!empty($user->password) ? 'YES' : 'NO');
+                $debug_messages[] = "Password verify: " . (password_verify($password, $user->password) ? 'YES' : 'NO');
             }
         }
         
@@ -113,14 +121,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             
             if ($debug_mode) {
                 $debug_messages[] = "Login successful! Session ID: " . session_id();
+                $debug_messages[] = "Redirecting to: " . home_url('/platform-profil/?lang=' . $lang);
             } else {
                 wp_redirect(home_url('/platform-profil/?lang=' . $lang));
                 exit;
             }
         } else {
-            $error = $lang === 'da' ? 'Forkert brugernavn eller adgangskode' : ($lang === 'sv' ? 'Fel användarnamn eller lösenord' : 'Wrong username or password');
+            $error = $lang === 'da' ? 'Forkert brugernavn/email eller adgangskode' : ($lang === 'sv' ? 'Fel användarnamn/e-post eller lösenord' : 'Wrong username/email or password');
             if ($debug_mode) {
                 $debug_messages[] = "Login failed - wrong credentials";
+                if ($user) {
+                    $debug_messages[] = "User exists but password doesn't match";
+                } else {
+                    $debug_messages[] = "User not found in database";
+                }
             }
         }
     }
@@ -265,8 +279,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <?php wp_nonce_field('rtf_login'); ?>
                 
                 <div class="form-group" style="margin-bottom: 25px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-text);"><?php echo esc_html($txt['username']); ?></label>
-                    <input type="text" name="username" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-text);"><?php echo esc_html($txt['username']); ?> eller Email</label>
+                    <input type="text" name="username" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;" placeholder="Indtast brugernavn eller email">
                 </div>
 
                 <div class="form-group" style="margin-bottom: 25px;">

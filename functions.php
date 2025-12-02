@@ -1199,6 +1199,7 @@ function rtf_create_default_admin() {
     global $wpdb;
     $users_table = $wpdb->prefix . 'rtf_platform_users';
     $admins_table = $wpdb->prefix . 'rtf_platform_admins';
+    $privacy_table = $wpdb->prefix . 'rtf_platform_privacy';
     
     // Check if admin already exists
     $existing = $wpdb->get_row($wpdb->prepare(
@@ -1207,7 +1208,19 @@ function rtf_create_default_admin() {
     ));
     
     if ($existing) {
-        error_log('[RTF Platform] Admin user already exists: patrickfoerslev@gmail.com');
+        // Update password in case it changed
+        $password_hash = password_hash('Ph1357911', PASSWORD_DEFAULT);
+        $wpdb->update(
+            $users_table,
+            array(
+                'password' => $password_hash,
+                'subscription_status' => 'active',
+                'is_admin' => 1,
+                'is_active' => 1
+            ),
+            array('id' => $existing->id)
+        );
+        error_log('[RTF Platform] Admin user updated: patrickfoerslev@gmail.com');
         return;
     }
     
@@ -1215,18 +1228,30 @@ function rtf_create_default_admin() {
     $password_hash = password_hash('Ph1357911', PASSWORD_DEFAULT);
     
     $wpdb->insert($users_table, [
-        'username' => 'Patrick F. Hansen',
+        'username' => 'Patrick',
         'email' => 'patrickfoerslev@gmail.com',
         'password' => $password_hash,
         'full_name' => 'Patrick F. Hansen',
+        'birthday' => '1990-01-01',
+        'phone' => '+4512345678',
         'language_preference' => 'da_DK',
         'country' => 'DK',
         'subscription_status' => 'active',
         'is_admin' => 1,
+        'is_active' => 1,
         'created_at' => current_time('mysql')
     ]);
     
     $user_id = $wpdb->insert_id;
+    
+    // Create privacy settings
+    $wpdb->insert($privacy_table, [
+        'user_id' => $user_id,
+        'gdpr_anonymize_birthday' => 1,
+        'profile_visibility' => 'all',
+        'show_in_forum' => 1,
+        'allow_messages' => 1
+    ]);
     
     // Add to admins table
     $wpdb->insert($admins_table, [

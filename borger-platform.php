@@ -17,70 +17,70 @@ if ($logged_in) {
 $t = array(
     'da' => array(
         'title' => 'Velkommen til Borger Platformen',
-        'subtitle' => 'Et trygt fællesskab for forældre der kæmper for deres børn',
-        'desc' => 'Få adgang til juridisk vejledning, støtte fra andre forældre, og værktøjer der hjælper dig gennem systemet.',
+        'subtitle' => 'Et trygt fællesskab for borgere med sociale sager',
+        'desc' => 'Få adgang til juridisk vejledning, støtte fra andre borgere, og værktøjer der hjælper dig gennem systemet. Tag sagen i egen hånd - saml dokumenter, analyser din sag og opret klager og skrivelser.',
         'features' => 'Funktioner',
         'feature1' => 'Social Væg',
         'feature1_desc' => 'Del dine oplevelser og få støtte fra fællesskabet',
         'feature2' => 'Juridisk Hjælp',
-        'feature2_desc' => 'Få adgang til sagshjælp og klage generator',
+        'feature2_desc' => 'Få adgang til sagshjælp, klage generator og skrivelser',
         'feature3' => 'Kate AI Assistent',
-        'feature3_desc' => 'Chat med vores AI der forstår familieretlige spørgsmål',
+        'feature3_desc' => 'Chat med vores AI der forstår sociale sager og lovgivning',
         'feature4' => 'Sikker Dokumentdeling',
-        'feature4_desc' => 'Upload og del dokumenter med fuld GDPR beskyttelse',
+        'feature4_desc' => 'Saml og del dokumenter med fuld GDPR beskyttelse',
         'feature5' => 'Forum & Nyheder',
         'feature5_desc' => 'Deltag i diskussioner og hold dig opdateret',
-        'feature6' => 'Billede Galleri',
-        'feature6_desc' => 'Del billeder med automatisk ansigts-sløring',
+        'feature6' => 'Sags Analyse',
+        'feature6_desc' => 'Analyser din sag og få konkret hjælp til næste skridt',
         'pricing' => 'Pris',
         'price' => '49 DKK/måned',
-        'price_desc' => 'Fuld adgang til alle funktioner og fællesskabet',
+        'price_desc' => 'Fuld adgang til alle funktioner og fællesskabet. For både danske og svenske borgere.',
         'cta' => 'Kom i Gang',
         'login' => 'Allerede medlem? Log ind her'
     ),
     'sv' => array(
         'title' => 'Välkommen till Medborgarplattformen',
-        'subtitle' => 'Ett tryggt samfund för föräldrar som kämpar för sina barn',
-        'desc' => 'Få tillgång till juridisk vägledning, stöd från andra föräldrar och verktyg som hjälper dig genom systemet.',
+        'subtitle' => 'Ett tryggt samfund för medborgare med sociala ärenden',
+        'desc' => 'Få tillgång till juridisk vägledning, stöd från andra medborgare och verktyg som hjälper dig genom systemet. Ta ärendet i egna händer - samla dokument, analysera ditt ärende och skapa klagomål och skrivelser.',
         'features' => 'Funktioner',
         'feature1' => 'Social Vägg',
         'feature1_desc' => 'Dela dina upplevelser och få stöd från samfundet',
         'feature2' => 'Juridisk Hjälp',
-        'feature2_desc' => 'Få tillgång till ärendehjälp och klagomålsgenerator',
+        'feature2_desc' => 'Få tillgång till ärendehjälp, klagomålsgenerator och skrivelser',
         'feature3' => 'Kate AI Assistent',
-        'feature3_desc' => 'Chatta med vår AI som förstår familjerättsliga frågor',
+        'feature3_desc' => 'Chatta med vår AI som förstår sociala ärenden och lagstiftning',
         'feature4' => 'Säker Dokumentdelning',
-        'feature4_desc' => 'Ladda upp och dela dokument med fullt GDPR-skydd',
+        'feature4_desc' => 'Samla och dela dokument med fullt GDPR-skydd',
         'feature5' => 'Forum & Nyheter',
         'feature5_desc' => 'Delta i diskussioner och håll dig uppdaterad',
-        'feature6' => 'Bildgalleri',
-        'feature6_desc' => 'Dela bilder med automatisk ansiktssuddning',
+        'feature6' => 'Ärendeanalys',
+        'feature6_desc' => 'Analysera ditt ärende och få konkret hjälp till nästa steg',
         'pricing' => 'Pris',
         'price' => '49 DKK/månad',
-        'price_desc' => 'Full tillgång till alla funktioner och samfundet',
+        'price_desc' => 'Full tillgång till alla funktioner och samfundet. För både danska och svenska medborgare.',
         'cta' => 'Kom Igång',
         'login' => 'Redan medlem? Logga in här'
     ),
     'en' => array(
         'title' => 'Welcome to the Citizen Platform',
-        'subtitle' => 'A safe community for parents fighting for their children',
-        'desc' => 'Get access to legal guidance, support from other parents, and tools that help you through the system.',
+        'subtitle' => 'A safe community for citizens with social cases',
+        'desc' => 'Get access to legal guidance, support from other citizens, and tools that help you through the system. Take control of your case - collect documents, analyze your situation and create complaints and letters.',
         'features' => 'Features',
         'feature1' => 'Social Wall',
         'feature1_desc' => 'Share your experiences and get support from the community',
         'feature2' => 'Legal Help',
-        'feature2_desc' => 'Access case help and complaint generator',
+        'feature2_desc' => 'Access case help, complaint generator and letters',
         'feature3' => 'Kate AI Assistant',
-        'feature3_desc' => 'Chat with our AI that understands family law questions',
+        'feature3_desc' => 'Chat with our AI that understands social cases and legislation',
         'feature4' => 'Secure Document Sharing',
-        'feature4_desc' => 'Upload and share documents with full GDPR protection',
+        'feature4_desc' => 'Collect and share documents with full GDPR protection',
         'feature5' => 'Forum & News',
         'feature5_desc' => 'Participate in discussions and stay updated',
-        'feature6' => 'Photo Gallery',
-        'feature6_desc' => 'Share photos with automatic face blurring',
+        'feature6' => 'Case Analysis',
+        'feature6_desc' => 'Analyze your case and get concrete help for next steps',
         'pricing' => 'Pricing',
         'price' => '49 DKK/month',
-        'price_desc' => 'Full access to all features and the community',
+        'price_desc' => 'Full access to all features and the community. For both Danish and Swedish citizens.',
         'cta' => 'Get Started',
         'login' => 'Already a member? Log in here'
     )
@@ -88,19 +88,22 @@ $t = array(
 $txt = $t[$lang];
 ?>
 
-<main class="platform-landing">
-    <div class="hero-section" style="padding: 100px 20px; text-align: center; background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 50%, #fefce8 100%);">
+<main class="platform-landing" style="background: linear-gradient(135deg, #eef2ff 0%, #f9fafb 50%, #e5e7eb 100%); min-height: calc(100vh - 120px);">
+    <div class="hero-section" style="padding: 100px 20px; text-align: center;">
         <div class="container" style="max-width: 900px; margin: 0 auto;">
-            <h1 style="font-size: 3em; margin-bottom: 20px; color: var(--rtf-text);"><?php echo esc_html($txt['title']); ?></h1>
-            <p style="font-size: 1.5em; margin-bottom: 15px; color: var(--rtf-muted);"><?php echo esc_html($txt['subtitle']); ?></p>
-            <p style="font-size: 1.2em; margin-bottom: 40px; color: var(--rtf-text); line-height: 1.6;"><?php echo esc_html($txt['desc']); ?></p>
-            <a href="<?php echo esc_url(home_url('/platform-auth/?lang=' . $lang)); ?>" class="btn-primary" style="display: inline-block; padding: 18px 40px; font-size: 1.2em;"><?php echo esc_html($txt['cta']); ?></a>
+            <h1 style="font-size: 3em; margin-bottom: 20px; color: var(--rtf-text); font-weight: 700;"><?php echo esc_html($txt['title']); ?></h1>
+            <p style="font-size: 1.5em; margin-bottom: 15px; color: #475569; font-weight: 500;"><?php echo esc_html($txt['subtitle']); ?></p>
+            <p style="font-size: 1.2em; margin-bottom: 40px; color: var(--rtf-text); line-height: 1.6; max-width: 700px; margin-left: auto; margin-right: auto;"><?php echo esc_html($txt['desc']); ?></p>
+            <a href="<?php echo esc_url(home_url('/platform-auth/?lang=' . $lang)); ?>" class="btn-primary" style="display: inline-flex; align-items: center; gap: 8px; padding: 18px 40px; font-size: 1.2em; box-shadow: 0 10px 25px rgba(37,99,235,0.3); transition: all 0.2s ease;">
+                <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M13 7h9v2h-9v9h-2v-9H2V7h9V2h2v5z"/></svg>
+                <?php echo esc_html($txt['cta']); ?>
+            </a>
         </div>
     </div>
 
     <div class="features-section" style="padding: 80px 20px; background: var(--rtf-card);">
         <div class="container" style="max-width: 1200px; margin: 0 auto;">
-            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 60px; color: var(--rtf-text);"><?php echo esc_html($txt['features']); ?></h2>
+            <h2 style="text-align: center; font-size: 2.5em; margin-bottom: 60px; color: var(--rtf-text); font-weight: 700;"><?php echo esc_html($txt['features']); ?></h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
                 
                 <div class="feature-card" style="background: var(--rtf-card); padding: 30px; border-radius: 16px; border: 1px solid var(--rtf-border); box-shadow: 0 8px 20px rgba(15,23,42,0.06);">
