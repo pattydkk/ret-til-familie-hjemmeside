@@ -130,7 +130,10 @@ $t = array(
 $txt = $t[$lang];
 ?>
 
-<main class="platform-vaeg">
+<div class="platform-layout" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <?php get_template_part('template-parts/platform-sidebar'); ?>
+    
+    <main class="platform-vaeg" style="min-width: 0;">
     <div class="container" style="max-width: 800px; margin: 40px auto; padding: 20px;">
         
         <h1 style="margin-bottom: 30px; color: var(--rtf-text);"><?php echo esc_html($txt['title']); ?></h1>
@@ -252,5 +255,7 @@ async function shareContent(type, id) {
     }
 }
 </script>
+
+</div>
 
 <?php get_footer(); ?>
