@@ -102,6 +102,7 @@ wp_head();
         <li><?php echo rtf_link('om-os', ($rtf_lang==='sv' ? 'Om oss' : ($rtf_lang==='en' ? 'About' : 'Om os')), $rtf_lang); ?></li>
         <li><?php echo rtf_link('ydelser', ($rtf_lang==='sv' ? 'Tjänster' : ($rtf_lang==='en' ? 'Services' : 'Ydelser')), $rtf_lang); ?></li>
         <li><?php echo rtf_link('akademiet', ($rtf_lang==='sv' ? 'Akademiet' : ($rtf_lang==='en' ? 'Academy' : 'Akademiet')), $rtf_lang); ?></li>
+        <li><?php echo rtf_link('borger-platform', ($rtf_lang==='sv' ? 'Medborgarplattform' : ($rtf_lang==='en' ? 'Citizen Platform' : 'Borgerplatform')), $rtf_lang); ?></li>
         <li><?php echo rtf_link('kontakt', ($rtf_lang==='sv' ? 'Kontakt' : ($rtf_lang==='en' ? 'Contact' : 'Kontakt')), $rtf_lang); ?></li>
         <li><?php echo rtf_link('stoet-os', ($rtf_lang==='sv' ? 'Stöd oss' : ($rtf_lang==='en' ? 'Support us' : 'Støt os')), $rtf_lang); ?></li>
       </ul>
