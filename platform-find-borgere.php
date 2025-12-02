@@ -196,30 +196,44 @@ get_header();
                     $friend_status = isset($existing_requests[$user->ID]) ? $existing_requests[$user->ID]->status : null;
                     $profile_url = home_url('/platform-profil-view/?user_id=' . $user->ID . '&lang=' . $lang);
                     
-                    // Hent profilbillede
-                    $profile_image = !empty($user->profile_image) ? $user->profile_image : 'https://via.placeholder.com/150';
+                    // Get profile image (generate initials badge if no image)
+                    $profile_image = !empty($user->profile_image) ? $user->profile_image : '';
+                    $initials = '';
+                    if (empty($profile_image)) {
+                        $name_parts = explode(' ', $user->display_name);
+                        $initials = strtoupper(substr($name_parts[0], 0, 1));
+                        if (isset($name_parts[1])) {
+                            $initials .= strtoupper(substr($name_parts[1], 0, 1));
+                        }
+                    }
                     
-                    // Afkort bio
+                    // Truncate bio
                     $bio_preview = !empty($user->bio) ? mb_substr($user->bio, 0, 120) : ($lang === 'en' ? 'No bio available' : 'Ingen beskrivelse tilgængelig');
                     if (mb_strlen($user->bio) > 120) {
                         $bio_preview .= '...';
                     }
                     
-                    // Land flag
+                    // Country flag
                     $country_flag = $user->country === 'DK' ? '🇩🇰' : ($user->country === 'SE' ? '🇸🇪' : ($user->country === 'NO' ? '🇳🇴' : '🌍'));
                 ?>
                     <div style="background: white; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" 
                          onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 30px rgba(0,0,0,0.15)';" 
                          onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)';">
                         
-                        <!-- Profil header med billede -->
+                        <!-- Profile header with image or initials -->
                         <div style="position: relative; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px;">
-                            <img src="<?php echo esc_url($profile_image); ?>" 
-                                 alt="<?php echo esc_attr($user->display_name); ?>" 
-                                 style="width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; object-fit: cover; position: relative; z-index: 2;">
+                            <?php if (!empty($profile_image)): ?>
+                                <img src="<?php echo esc_url($profile_image); ?>" 
+                                     alt="<?php echo esc_attr($user->display_name); ?>" 
+                                     style="width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; object-fit: cover; position: relative; z-index: 2;">
+                            <?php else: ?>
+                                <div style="width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; background: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: white; position: relative; z-index: 2;">
+                                    <?php echo $initials; ?>
+                                </div>
+                            <?php endif; ?>
                         </div>
                         
-                        <!-- Bruger info -->
+                        <!-- User info -->
                         <div style="padding: 80px 25px 25px; margin-top: -60px;">
                             <h3 style="margin: 0 0 10px 0; font-size: 1.4em; color: #333; text-align: center;">
                                 <?php echo esc_html($user->display_name); ?>
