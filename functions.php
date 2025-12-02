@@ -937,8 +937,37 @@ add_action('after_switch_theme', 'rtf_create_pages_menu_on_switch');
 add_action('wp_ajax_rtf_force_create_pages', 'rtf_force_create_pages');
 add_action('wp_ajax_nopriv_rtf_force_create_pages', 'rtf_force_create_pages');
 function rtf_force_create_pages() {
+    echo '<html><head><meta charset="utf-8"><title>RTF Setup</title></head><body style="font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px;">';
+    echo '<h1 style="color: #2563eb;">🚀 RTF Platform Setup</h1>';
+    echo '<div style="background: #dbeafe; padding: 20px; border-left: 4px solid #2563eb; margin: 20px 0;">';
+    
+    echo '<p><strong>📊 Opretter database tabeller...</strong></p>';
+    rtf_create_platform_tables();
+    echo '<p style="color: green;">✅ Database tabeller oprettet</p>';
+    
+    echo '<p><strong>📄 Opretter alle sider...</strong></p>';
     rtf_create_pages_menu_on_switch();
-    wp_send_json_success('Alle sider er oprettet!');
+    echo '<p style="color: green;">✅ 24 sider oprettet</p>';
+    
+    echo '<p><strong>👤 Opretter admin bruger...</strong></p>';
+    rtf_create_default_admin();
+    echo '<p style="color: green;">✅ Admin bruger oprettet (username: admin, password: admin123)</p>';
+    
+    echo '<p><strong>🔄 Flusher permalinks...</strong></p>';
+    flush_rewrite_rules();
+    echo '<p style="color: green;">✅ Permalinks flushed</p>';
+    
+    echo '</div>';
+    echo '<h2 style="color: green;">✅ SETUP GENNEMFØRT!</h2>';
+    echo '<p><strong>Test disse sider nu:</strong></p>';
+    echo '<ul>';
+    echo '<li><a href="' . home_url('/') . '" target="_blank">Forside</a></li>';
+    echo '<li><a href="' . home_url('/borger-platform/') . '" target="_blank">Borgerplatform</a></li>';
+    echo '<li><a href="' . home_url('/platform-auth/') . '" target="_blank">Login/Registrering</a></li>';
+    echo '<li><a href="' . home_url('/om-os/') . '" target="_blank">Om os</a></li>';
+    echo '</ul>';
+    echo '</body></html>';
+    exit;
 }
 
 // ============================================================================
