@@ -60,23 +60,104 @@ define('RTF_GITHUB_BRANCH', 'main');
 require_once get_template_directory() . '/translations.php';
 
 // ============================================================================
-// KATE AI INITIALIZATION - COMPLETELY DISABLED FOR NOW
+// KATE AI INITIALIZATION
 // ============================================================================
-// Kate AI will be re-enabled once vendor dependencies are properly installed
+// Requires RTF Vendor Loader plugin to be activated
 
-/*
 function rtf_get_kate_ai_instances() {
-    // DISABLED - Returns null until vendor/ is properly installed
-    return null;
+    global $rtf_kate_ai_initialized;
+    static $instances = null;
+    
+    // Return cached instances if already initialized
+    if ($instances !== null) {
+        return $instances;
+    }
+    
+    // Check if vendor is loaded via plugin
+    if (!defined('RTF_VENDOR_LOADED') || !RTF_VENDOR_LOADED) {
+        error_log('Kate AI: Vendor not loaded. Activate RTF Vendor Loader plugin.');
+        return null;
+    }
+    
+    // CRITICAL: Don't initialize if theme not activated yet
+    if (!get_option('rtf_theme_activated', false)) {
+        return null;
+    }
+    
+    // Load Kate AI classes
+    $kate_ai_file = get_template_directory() . '/kate-ai/kate-ai.php';
+    if (file_exists($kate_ai_file)) {
+        require_once $kate_ai_file;
+    }
+    
+    // Only initialize if Kate AI classes are loaded
+    if (!class_exists('\KateAI\Core\KateKernel')) {
+        return null;
+    }
+    
+    try {
+        // Initialize Kate AI components
+        $kate_config = new \KateAI\Core\Config([
+            'language' => 'da',
+            'intent_threshold' => 0.3,
+            'max_response_length' => 2000,
+            'log_enabled' => true,
+            'log_level' => 'info',
+            'disclaimer' => 'Kate AI giver juridisk vejledning, men erstatter ikke professionel juridisk rådgivning.'
+        ]);
+        
+        $knowledge_base_path = get_template_directory() . '/kate-ai/data';
+        if (!file_exists($knowledge_base_path)) {
+            wp_mkdir_p($knowledge_base_path);
+        }
+        $knowledge_base = new \KateAI\Core\KnowledgeBase($knowledge_base_path);
+        
+        global $wpdb;
+        $logger = new \KateAI\Core\Logger($kate_config, $wpdb);
+        $database_manager = new \KateAI\Core\DatabaseManager();
+        
+        $cache_dir = get_template_directory() . '/kate-ai/cache';
+        if (!is_dir($cache_dir)) {
+            wp_mkdir_p($cache_dir);
+        }
+        $web_searcher = new \KateAI\Core\WebSearcher($logger, $cache_dir);
+        
+        $language_detector = new \KateAI\Core\LanguageDetector($database_manager, $logger);
+        $law_database = new \KateAI\Core\LawDatabase($database_manager, $logger);
+        
+        $kernel = new \KateAI\Core\KateKernel($kate_config, $knowledge_base, $logger, $web_searcher, $database_manager, $language_detector, $law_database);
+        $advanced_features = new \KateAI\Core\AdvancedFeatures($web_searcher, $knowledge_base, $database_manager);
+        $guidance_generator = new \KateAI\Core\LegalGuidanceGenerator($knowledge_base, $web_searcher, $database_manager, $logger);
+        $law_explainer = new \KateAI\Core\LawExplainer($knowledge_base, $web_searcher, $database_manager, $logger);
+        
+        $message_controller = new \KateAI\Controllers\MessageController($database_manager, $logger);
+        $share_controller = new \KateAI\Controllers\ShareController($database_manager, $logger);
+        $admin_controller = new \KateAI\Controllers\AdminController($database_manager, $logger);
+        $report_controller = new \KateAI\Controllers\ReportController($database_manager, $logger);
+        
+        $rest_controller = new \KateAI\WordPress\RestController($kernel, $advanced_features, $guidance_generator, $law_explainer, $message_controller, $share_controller, $admin_controller, $report_controller);
+        
+        $instances = [
+            'kernel' => $kernel,
+            'rest_controller' => $rest_controller,
+            'advanced_features' => $advanced_features,
+            'guidance_generator' => $guidance_generator,
+            'law_explainer' => $law_explainer
+        ];
+        
+        $rtf_kate_ai_initialized = true;
+        return $instances;
+        
+    } catch (Exception $e) {
+        error_log('Kate AI initialization failed: ' . $e->getMessage());
+        return null;
+    }
 }
-*/
 
 // LAZY INITIALIZATION: Only initialize Kate AI when REST API is actually used
-// DISABLED UNTIL VENDOR IS INSTALLED
-/*
 add_action('rest_api_init', function() {
     if (!get_option('rtf_theme_activated', false)) {
-        return; // Skip if theme not activated yet
+        return;
     }
     
     $instances = rtf_get_kate_ai_instances();
@@ -85,11 +166,10 @@ add_action('rest_api_init', function() {
     }
 });
 
-// Kate AI Shortcode - lazy load when shortcode is actually used
-// AND only if theme is activated
+// Kate AI Shortcode
 add_shortcode('kate_ai', function($atts) {
     if (!get_option('rtf_theme_activated', false)) {
-        return ''; // Skip if theme not activated yet
+        return '';
     }
     
     $instances = rtf_get_kate_ai_instances();
@@ -99,7 +179,6 @@ add_shortcode('kate_ai', function($atts) {
     }
     return '';
 });
-*/
 
 // ============================================================================
 // SPROG SYSTEM
