@@ -930,7 +930,6 @@ function rtf_create_pages_menu_on_switch() {
         'platform-forum' => 'Forum',
         'platform-sagshjaelp' => 'Sagshjælp',
         'platform-kate-ai' => 'Kate AI Assistent',
-        'platform-klagegenerator' => 'Klage Generator',
         'platform-admin-dashboard' => 'Admin Dashboard',
         'platform-admin-users' => 'Admin Users',
         'platform-venner' => 'Venner',
