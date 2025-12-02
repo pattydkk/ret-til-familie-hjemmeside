@@ -96,6 +96,45 @@ $t = array(
 );
 $txt = $t[$lang];
 
+// Handle wall post creation
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_wall_post') {
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'create_wall_post')) {
+        wp_die('Security check failed');
+    }
+    
+    $content = sanitize_textarea_field($_POST['content']);
+    $visibility = sanitize_text_field($_POST['visibility']);
+    
+    if (!empty($content) && in_array($visibility, ['private', 'public'])) {
+        $wpdb->insert($wpdb->prefix . 'rtf_platform_posts', [
+            'user_id' => $current_user->id,
+            'content' => $content,
+            'visibility' => $visibility,
+            'likes' => 0,
+            'created_at' => current_time('mysql')
+        ]);
+        wp_redirect(home_url('/platform-profil/?lang=' . $lang . '#wall'));
+        exit;
+    }
+}
+
+// Handle post deletion
+if (isset($_GET['delete_post']) && isset($_GET['nonce'])) {
+    $post_id = intval($_GET['delete_post']);
+    if (wp_verify_nonce($_GET['nonce'], 'delete_post_' . $post_id)) {
+        $post = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}rtf_platform_posts WHERE id = %d AND user_id = %d",
+            $post_id,
+            $current_user->id
+        ));
+        if ($post) {
+            $wpdb->delete($wpdb->prefix . 'rtf_platform_posts', ['id' => $post_id]);
+        }
+    }
+    wp_redirect(home_url('/platform-profil/?lang=' . $lang . '#wall'));
+    exit;
+}
+
 if (isset($_GET['logout'])) {
     session_destroy();
     wp_redirect(home_url('/borger-platform/?lang=' . $lang));
@@ -362,13 +401,200 @@ if (isset($_GET['logout'])) {
                         <?php endif; ?>
                     </div>
                 </div>
+                
+                <!-- WALL TABS SECTION -->
+                <div class="wall-section" style="background: var(--rtf-card); padding: 40px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-top: 30px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <h2 style="margin: 0; color: var(--rtf-text);">
+                            <?php echo $lang === 'da' ? 'Min Væg' : 'Min Vägg'; ?>
+                        </h2>
+                        <button onclick="viewAsOthers()" style="padding: 10px 20px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                            <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            <?php echo $lang === 'da' ? 'Se som andre' : 'Se som andra'; ?>
+                        </button>
+                    </div>
+                    
+                    <!-- Wall Tabs Navigation -->
+                    <div class="wall-tabs-nav" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid #e2e8f0;">
+                        <button class="wall-tab-button active" onclick="showWallTab('private')" style="background: none; border: none; padding: 1rem 1.5rem; cursor: pointer; font-size: 1rem; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.3s ease;">
+                            🔒 <?php echo $lang === 'da' ? 'Privat Væg' : 'Privat Vägg'; ?>
+                        </button>
+                        <button class="wall-tab-button" onclick="showWallTab('public')" style="background: none; border: none; padding: 1rem 1.5rem; cursor: pointer; font-size: 1rem; font-weight: 600; color: #64748b; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.3s ease;">
+                            🌐 <?php echo $lang === 'da' ? 'Offentlig Væg' : 'Offentlig Vägg'; ?>
+                        </button>
+                    </div>
+                    
+                    <!-- PRIVATE WALL TAB -->
+                    <div id="wall-tab-private" class="wall-tab-content">
+                        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #92400e; display: flex; align-items: center; gap: 0.5rem;">
+                                <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
+                                🔒 <?php echo $lang === 'da' ? 'Privat Væg - Kun du kan se dette' : 'Privat Vägg - Bara du kan se detta'; ?>
+                            </h4>
+                            <p style="margin: 0; color: #92400e; font-size: 0.9rem;">
+                                <?php echo $lang === 'da' ? 'Dine private noter og tanker. Ingen andre kan se dette.' : 'Dina privata anteckningar och tankar. Ingen annan kan se detta.'; ?>
+                            </p>
+                        </div>
+                        
+                        <!-- New Private Post Form -->
+                        <form method="POST" action="" style="margin-bottom: 2rem;">
+                            <input type="hidden" name="action" value="create_wall_post">
+                            <input type="hidden" name="visibility" value="private">
+                            <?php wp_nonce_field('create_wall_post'); ?>
+                            <textarea name="content" rows="4" placeholder="<?php echo $lang === 'da' ? 'Skriv dine private noter her...' : 'Skriv dina privata anteckningar här...'; ?>" required style="width: 100%; padding: 1rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                            <button type="submit" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #60a5fa, #2563eb); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                📝 <?php echo $lang === 'da' ? 'Gem Note' : 'Spara Anteckning'; ?>
+                            </button>
+                        </form>
+                        
+                        <!-- Private Posts List -->
+                        <div class="posts-list">
+                            <?php
+                            $private_posts = $wpdb->get_results($wpdb->prepare(
+                                "SELECT * FROM {$wpdb->prefix}rtf_platform_posts WHERE user_id = %d AND visibility = 'private' ORDER BY created_at DESC LIMIT 20",
+                                $current_user->id
+                            ));
+                            
+                            if (empty($private_posts)): ?>
+                                <p style="text-align: center; color: var(--rtf-muted); padding: 2rem;">
+                                    <?php echo $lang === 'da' ? 'Ingen private noter endnu. Skriv din første note!' : 'Inga privata anteckningar ännu. Skriv din första anteckning!'; ?>
+                                </p>
+                            <?php else: ?>
+                                <?php foreach ($private_posts as $post): ?>
+                                    <div class="wall-post" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #e0f2fe;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                                            <span style="color: var(--rtf-muted); font-size: 0.9rem;">
+                                                <?php echo rtf_format_date($post->created_at); ?>
+                                            </span>
+                                            <a href="?delete_post=<?php echo $post->id; ?>&nonce=<?php echo wp_create_nonce('delete_post_' . $post->id); ?>" onclick="return confirm('<?php echo $lang === 'da' ? 'Slet denne note?' : 'Radera denna anteckning?'; ?>')" style="color: #ef4444; text-decoration: none; font-size: 0.9rem;">
+                                                🗑️ <?php echo $lang === 'da' ? 'Slet' : 'Radera'; ?>
+                                            </a>
+                                        </div>
+                                        <p style="margin: 0; color: var(--rtf-text); line-height: 1.6; white-space: pre-wrap;"><?php echo esc_html($post->content); ?></p>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    
+                    <!-- PUBLIC WALL TAB -->
+                    <div id="wall-tab-public" class="wall-tab-content" style="display: none;">
+                        <div style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 2px solid #2563eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                            <h4 style="margin: 0 0 0.5rem 0; color: #1e3a8a; display: flex; align-items: center; gap: 0.5rem;">
+                                <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                                🌐 <?php echo $lang === 'da' ? 'Offentlig Væg - Andre kan se dette' : 'Offentlig Vägg - Andra kan se detta'; ?>
+                            </h4>
+                            <p style="margin: 0; color: #1e3a8a; font-size: 0.9rem;">
+                                <?php echo $lang === 'da' ? 'Del dine opslag med andre på platformen.' : 'Dela dina inlägg med andra på plattformen.'; ?>
+                            </p>
+                        </div>
+                        
+                        <!-- New Public Post Form -->
+                        <form method="POST" action="" style="margin-bottom: 2rem;">
+                            <input type="hidden" name="action" value="create_wall_post">
+                            <input type="hidden" name="visibility" value="public">
+                            <?php wp_nonce_field('create_wall_post'); ?>
+                            <textarea name="content" rows="4" placeholder="<?php echo $lang === 'da' ? 'Del noget med andre...' : 'Dela något med andra...'; ?>" required style="width: 100%; padding: 1rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1rem; font-family: inherit; resize: vertical;"></textarea>
+                            <button type="submit" style="margin-top: 1rem; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #60a5fa, #2563eb); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                                🌐 <?php echo $lang === 'da' ? 'Del Offentligt' : 'Dela Offentligt'; ?>
+                            </button>
+                        </form>
+                        
+                        <!-- Public Posts List -->
+                        <div class="posts-list">
+                            <?php
+                            $public_posts = $wpdb->get_results($wpdb->prepare(
+                                "SELECT * FROM {$wpdb->prefix}rtf_platform_posts WHERE user_id = %d AND visibility = 'public' ORDER BY created_at DESC LIMIT 20",
+                                $current_user->id
+                            ));
+                            
+                            if (empty($public_posts)): ?>
+                                <p style="text-align: center; color: var(--rtf-muted); padding: 2rem;">
+                                    <?php echo $lang === 'da' ? 'Ingen offentlige opslag endnu. Del dit første opslag!' : 'Inga offentliga inlägg ännu. Dela ditt första inlägg!'; ?>
+                                </p>
+                            <?php else: ?>
+                                <?php foreach ($public_posts as $post): ?>
+                                    <div class="wall-post" style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem; border: 1px solid #e0f2fe;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                <span style="color: var(--rtf-muted); font-size: 0.9rem;">
+                                                    <?php echo rtf_format_date($post->created_at); ?>
+                                                </span>
+                                                <span style="background: #dbeafe; color: #1e3a8a; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600;">
+                                                    👁️ <?php echo $lang === 'da' ? 'Offentlig' : 'Offentlig'; ?>
+                                                </span>
+                                            </div>
+                                            <a href="?delete_post=<?php echo $post->id; ?>&nonce=<?php echo wp_create_nonce('delete_post_' . $post->id); ?>" onclick="return confirm('<?php echo $lang === 'da' ? 'Slet dette opslag?' : 'Radera detta inlägg?'; ?>')" style="color: #ef4444; text-decoration: none; font-size: 0.9rem;">
+                                                🗑️ <?php echo $lang === 'da' ? 'Slet' : 'Radera'; ?>
+                                            </a>
+                                        </div>
+                                        <p style="margin: 0; color: var(--rtf-text); line-height: 1.6; white-space: pre-wrap;"><?php echo esc_html($post->content); ?></p>
+                                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e0f2fe; display: flex; gap: 1rem;">
+                                            <button onclick="likePost(<?php echo $post->id; ?>)" style="background: none; border: none; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; transition: all 0.2s;">
+                                                ❤️ <span><?php echo $post->likes; ?></span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
             </div>
 
         </div>
     </div>
 </main>
 
+<style>
+.wall-tab-button.active {
+    color: #2563eb !important;
+    border-bottom-color: #2563eb !important;
+}
+.wall-tab-button:hover {
+    color: #2563eb !important;
+    background: rgba(37, 99, 235, 0.05) !important;
+}
+</style>
+
 <script>
+// Wall Tab Switching
+function showWallTab(tab) {
+    // Hide all tabs
+    document.querySelectorAll('.wall-tab-content').forEach(el => el.style.display = 'none');
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.wall-tab-button').forEach(btn => btn.classList.remove('active'));
+    
+    // Show selected tab
+    document.getElementById('wall-tab-' + tab).style.display = 'block';
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
+// View As Others
+function viewAsOthers() {
+    const url = '<?php echo home_url('/platform-profil-view/?user_id=' . $current_user->id . '&lang=' . $lang); ?>';
+    window.open(url, '_blank');
+}
+
+// Like Post
+function likePost(postId) {
+    fetch('/wp-json/kate/v1/like-post', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        }
+    });
+}
+
 // Profile Image Upload
 document.getElementById('profileUpload').addEventListener('change', function(e) {
     const file = e.target.files[0];
