@@ -56,150 +56,20 @@ define('RTF_GITHUB_REPO_OWNER', 'hansenhr89dkk');
 define('RTF_GITHUB_REPO_NAME', 'ret-til-familie-hjemmeside');
 define('RTF_GITHUB_BRANCH', 'main');
 
-// EMERGENCY: Composer and Kate AI DISABLED until vendor is properly installed
-// Uncomment these lines after running: composer install --no-dev --optimize-autoloader
-
-/*
-// Composer autoload - CONDITIONAL (only after theme is activated)
-if (get_option('rtf_theme_activated', false)) {
-    $vendor_autoload = get_template_directory() . '/vendor/autoload.php';
-    $kate_ai_file = get_template_directory() . '/kate-ai/kate-ai.php';
-    
-    // Check if vendor exists, if not show admin notice
-    if (file_exists($vendor_autoload)) {
-        require_once $vendor_autoload;
-        
-        // Kate AI autoload - ONLY after theme is activated AND vendor exists
-        if (file_exists($kate_ai_file)) {
-            require_once $kate_ai_file;
-        }
-    } else {
-        // Vendor missing - show admin notice instead of fatal error
-        add_action('admin_notices', function() {
-            echo '<div class="notice notice-error">';
-            echo '<p><strong>Ret til Familie Platform:</strong> Vendor dependencies mangler!</p>';
-            echo '<p>Kør følgende kommando via SSH eller cPanel Terminal:</p>';
-            echo '<pre style="background: #f5f5f5; padding: 10px;">cd ' . get_template_directory() . ' && composer install --no-dev --optimize-autoloader</pre>';
-            echo '<p>Eller download vendor.zip og upload via FTP til theme mappen.</p>';
-            echo '</div>';
-        });
-        error_log('RTF Platform: vendor/autoload.php not found. Composer dependencies missing.');
-    }
-}
-*/
-
 // Load translations (lightweight, always safe)
 require_once get_template_directory() . '/translations.php';
 
-// KATE AI INITIALIZATION - DISABLED UNTIL VENDOR IS INSTALLED
-// Uncomment after running composer install
+// ============================================================================
+// KATE AI INITIALIZATION - COMPLETELY DISABLED FOR NOW
+// ============================================================================
+// Kate AI will be re-enabled once vendor dependencies are properly installed
 
 /*
-// Global variable to cache Kate AI instances
-global $rtf_kate_ai_initialized;
-$rtf_kate_ai_initialized = false;
-
 function rtf_get_kate_ai_instances() {
-    global $rtf_kate_ai_initialized;
-    static $instances = null;
-    
-    // Return cached instances if already initialized
-    if ($instances !== null) {
-        return $instances;
-    }
-    
-    // CRITICAL: Don't initialize if theme not activated yet
-    if (!get_option('rtf_theme_activated', false)) {
-        return null;
-    }
-    
-    // Only initialize if Kate AI classes are loaded
-    if (!class_exists('\KateAI\Core\KateKernel')) {
-        return null;
-    }
-    
-    try {
-        // Initialize Kate AI components
-        $kate_config = new \KateAI\Core\Config([
-            'language' => 'da',
-            'intent_threshold' => 0.3,
-            'max_response_length' => 2000,
-            'log_enabled' => true,
-            'log_level' => 'info',
-            'disclaimer' => 'Kate AI giver juridisk vejledning, men erstatter ikke professionel juridisk rådgivning.'
-        ]);
-        
-        $knowledge_base_path = get_template_directory() . '/kate-ai/data';
-        if (!file_exists($knowledge_base_path)) {
-            wp_mkdir_p($knowledge_base_path);
-        }
-        $knowledge_base = new \KateAI\Core\KnowledgeBase($knowledge_base_path);
-        
-        // Initialize logger with config and wpdb
-        global $wpdb;
-        $logger = new \KateAI\Core\Logger($kate_config, $wpdb);
-        
-        // Initialize DatabaseManager (uses global $wpdb internally)
-        $database_manager = new \KateAI\Core\DatabaseManager();
-        
-        // Initialize WebSearcher with cache directory
-        $cache_dir = get_template_directory() . '/kate-ai/cache';
-        if (!is_dir($cache_dir)) {
-            wp_mkdir_p($cache_dir);
-        }
-        $web_searcher = new \KateAI\Core\WebSearcher($logger, $cache_dir);
-        
-        // MULTI-LANGUAGE: Initialize Language Detector
-        $language_detector = new \KateAI\Core\LanguageDetector($database_manager, $logger);
-        
-        // LAZY LOAD: Initialize Law Database ONLY when needed (not on every page load)
-        $law_database = new \KateAI\Core\LawDatabase($database_manager, $logger);
-        
-        // Initialize KateKernel with all dependencies (including language support)
-        $kernel = new \KateAI\Core\KateKernel($kate_config, $knowledge_base, $logger, $web_searcher, $database_manager, $language_detector, $law_database);
-        
-        // Initialize Advanced Features with database
-        $advanced_features = new \KateAI\Core\AdvancedFeatures($web_searcher, $knowledge_base, $database_manager);
-        
-        // Initialize Legal Guidance Generator
-        $guidance_generator = new \KateAI\Core\LegalGuidanceGenerator($knowledge_base, $web_searcher, $database_manager, $logger);
-        
-        // Initialize Law Explainer
-        $law_explainer = new \KateAI\Core\LawExplainer($knowledge_base, $web_searcher, $database_manager, $logger);
-        
-        // Initialize Message Controller
-        $message_controller = new \KateAI\Controllers\MessageController($database_manager, $logger);
-        
-        // Initialize Share Controller
-        $share_controller = new \KateAI\Controllers\ShareController($database_manager, $logger);
-        
-        // Initialize Admin Controller
-        $admin_controller = new \KateAI\Controllers\AdminController($database_manager, $logger);
-        
-        // Initialize Report Controller
-        $report_controller = new \KateAI\Controllers\ReportController($database_manager, $logger);
-        
-        // Initialize REST controller with all features
-        $rest_controller = new \KateAI\WordPress\RestController($kernel, $advanced_features, $guidance_generator, $law_explainer, $message_controller, $share_controller, $admin_controller, $report_controller);
-        
-        // Cache instances for reuse
-        $instances = [
-            'kernel' => $kernel,
-            'rest_controller' => $rest_controller,
-            'advanced_features' => $advanced_features,
-            'guidance_generator' => $guidance_generator,
-            'law_explainer' => $law_explainer
-        ];
-        
-        $rtf_kate_ai_initialized = true;
-        
-        return $instances;
-        
-    } catch (Exception $e) {
-        error_log('Kate AI initialization failed: ' . $e->getMessage());
-        return null;
-    }
+    // DISABLED - Returns null until vendor/ is properly installed
+    return null;
 }
+*/
 
 // LAZY INITIALIZATION: Only initialize Kate AI when REST API is actually used
 // DISABLED UNTIL VENDOR IS INSTALLED
