@@ -232,6 +232,12 @@ function rtf_setup() {
     if (!get_option('rtf_theme_activated', false)) {
         update_option('rtf_theme_activated', true);
         
+        // AUTO-INSTALL COMPOSER DEPENDENCIES hvis vendor/ mangler
+        $vendor_path = get_template_directory() . '/vendor/autoload.php';
+        if (!file_exists($vendor_path)) {
+            rtf_auto_install_composer_dependencies();
+        }
+        
         // Trigger database creation on first activation
         rtf_create_platform_tables();
         rtf_create_default_pages();
@@ -239,6 +245,63 @@ function rtf_setup() {
     }
 }
 add_action('after_setup_theme', 'rtf_setup');
+
+// ============================================================================
+// AUTO COMPOSER INSTALL (når hentet fra GitHub)
+// ============================================================================
+function rtf_auto_install_composer_dependencies() {
+    $theme_dir = get_template_directory();
+    
+    // Check if composer.json exists
+    if (!file_exists($theme_dir . '/composer.json')) {
+        error_log('RTF: composer.json not found, skipping auto-install');
+        return false;
+    }
+    
+    // Try to run composer install
+    $composer_commands = [
+        'composer install --no-dev --optimize-autoloader 2>&1',
+        'php composer.phar install --no-dev --optimize-autoloader 2>&1',
+        '/usr/local/bin/composer install --no-dev --optimize-autoloader 2>&1'
+    ];
+    
+    foreach ($composer_commands as $cmd) {
+        $output = [];
+        $return_var = 0;
+        
+        // Change to theme directory and run composer
+        $full_cmd = "cd " . escapeshellarg($theme_dir) . " && " . $cmd;
+        exec($full_cmd, $output, $return_var);
+        
+        if ($return_var === 0) {
+            error_log('RTF: Composer dependencies installed successfully via: ' . $cmd);
+            
+            // Show admin notice
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-success is-dismissible">';
+                echo '<p><strong>Ret til Familie:</strong> Composer dependencies installeret automatisk! ✅</p>';
+                echo '</div>';
+            });
+            
+            return true;
+        }
+    }
+    
+    // If all attempts failed, show manual instruction
+    error_log('RTF: Could not auto-install composer dependencies. Manual installation required.');
+    
+    add_action('admin_notices', function() {
+        echo '<div class="notice notice-warning">';
+        echo '<p><strong>Ret til Familie:</strong> Composer dependencies kunne ikke installeres automatisk.</p>';
+        echo '<p>Kør venligst følgende kommando via SSH:</p>';
+        echo '<pre style="background: #f5f5f5; padding: 10px; border-radius: 4px;">cd ' . get_template_directory() . ' && composer install --no-dev --optimize-autoloader</pre>';
+        echo '</div>';
+    });
+    
+    return false;
+}
+
+// ============================================================================
 
 // ============================================================================
 // SESSION START
