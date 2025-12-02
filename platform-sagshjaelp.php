@@ -458,18 +458,173 @@ get_header();
                     Brug vores klage generator til at oprette professionelle klager over afgørelser. Kate AI hjælper dig gennem hele processen.
                 </p>
                 
-                <div class="help-grid">
-                    <div class="help-card">
-                        <h3>📄 Klage over afgørelse</h3>
-                        <p>Lær hvordan du klager over en afgørelse fra kommunen eller Ankestyrelsen.</p>
-                        <ul>
-                            <li>4 ugers klagefrist</li>
-                            <li>Begrundelse og partshøring</li>
-                            <li>Klagevejledning</li>
-                            <li>Dokumentation</li>
-                        </ul>
-                        <a href="<?php echo home_url('/platform-klagegenerator'); ?>" class="btn-help">Start klagegenerator →</a>
+                <!-- Kate AI Anbefalinger -->
+                <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #2563eb; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+                    <h3 style="margin: 0 0 1rem 0; color: #2563eb; display: flex; align-items: center; gap: 0.5rem;">
+                        <svg style="width: 24px; height: 24px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                        🤖 Kate AI's Anbefalinger
+                    </h3>
+                    <p style="margin: 0 0 1rem 0; color: #475569;">
+                        En god klage skal indeholde:
+                    </p>
+                    <ul style="margin: 0; padding-left: 1.5rem; color: #475569;">
+                        <li style="margin-bottom: 0.75rem;">✅ Tydelig beskrivelse af, hvad du klager over (afgørelsens indhold)</li>
+                        <li style="margin-bottom: 0.75rem;">✅ Begrundelse for hvorfor afgørelsen er forkert (juridiske og faktuelle grunde)</li>
+                        <li style="margin-bottom: 0.75rem;">✅ Henvisning til relevant lovgivning (Barnets Lov, Forvaltningsloven)</li>
+                        <li style="margin-bottom: 0.75rem;">✅ Dokumentation der understøtter din klage</li>
+                        <li style="margin-bottom: 0.75rem;">✅ Ønske om opsættende virkning, hvis relevant</li>
+                        <li style="margin-bottom: 0.75rem;">✅ Anmodning om partshøring, hvis ikke modtaget</li>
+                    </ul>
+                </div>
+                
+                <!-- Klagefrist Advarsel -->
+                <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #f59e0b; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: start;">
+                    <svg style="width: 24px; height: 24px; fill: #f59e0b; flex-shrink: 0; margin-top: 3px;" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                    <div>
+                        <h4 style="margin: 0 0 0.5rem 0; color: #92400e; font-size: 1.1rem;">⚠️ Vigtigt: Klagefrist</h4>
+                        <p style="margin: 0; color: #92400e;">
+                            Du har <strong>4 uger</strong> fra afgørelsesdatoen til at klage. Efter fristen kan du normalt ikke klage mere.
+                        </p>
                     </div>
+                </div>
+                
+                <!-- Klage Formular -->
+                <form id="complaint-form" method="POST" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                    <input type="hidden" name="action" value="generate_complaint">
+                    <?php wp_nonce_field('generate_complaint_action', 'complaint_nonce'); ?>
+                    
+                    <div style="display: grid; gap: 1.5rem;">
+                        <!-- Hvem klager du til? -->
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                                Hvem klager du til? *
+                            </label>
+                            <select name="complaint_destination" required style="width: 100%; padding: 0.875rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 0.95rem; font-family: inherit;">
+                                <option value="">Vælg destination...</option>
+                                <option value="municipality">🏛️ Kommunen (genoptagelsesanmodning)</option>
+                                <option value="ankestyrelsen">⚖️ Ankestyrelsen</option>
+                                <option value="ombudsman">🛡️ Ombudsmanden</option>
+                                <option value="echr">🇪🇺 Den Europæiske Menneskerettighedsdomstol (EMK)</option>
+                                <option value="eu_commission">🇪🇺 EU-Kommissionen</option>
+                                <option value="un_child_committee">🌍 FN's Børnekomité</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Hvad klager du over? -->
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                                Hvad klager du over? *
+                            </label>
+                            <select name="complaint_type" required style="width: 100%; padding: 0.875rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 0.95rem; font-family: inherit;">
+                                <option value="">Vælg type...</option>
+                                <option value="anbringelse">Anbringelse uden samtykke</option>
+                                <option value="tvangsfjernelse">Tvangsfjernelse</option>
+                                <option value="samvaer">Samværsbegrænsning</option>
+                                <option value="handleplan">Handleplan</option>
+                                <option value="magtanvendelse">Magtanvendelse</option>
+                                <option value="human_rights">Menneskerettighedskrænkelse</option>
+                                <option value="andet">Andet</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Afgørelsesdato -->
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                                Hvornår modtog du afgørelsen? *
+                            </label>
+                            <input type="date" name="decision_date" required style="width: 100%; padding: 0.875rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 0.95rem; font-family: inherit;">
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0.5rem 0 0 0;">
+                                💡 Klagefristen regnes fra denne dato
+                            </p>
+                        </div>
+                        
+                        <!-- Myndighed -->
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                                Hvilken myndighed/kommune? *
+                            </label>
+                            <input type="text" name="authority" placeholder="F.eks. København Kommune, Aarhus Kommune" required style="width: 100%; padding: 0.875rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 0.95rem; font-family: inherit;">
+                        </div>
+                        
+                        <!-- Beskriv din situation -->
+                        <div class="form-group">
+                            <label style="display: block; font-weight: 600; color: #475569; margin-bottom: 0.5rem;">
+                                Beskriv din situation og hvorfor du klager *
+                            </label>
+                            <textarea name="complaint_text" rows="10" required placeholder="Skriv så detaljeret som muligt:
+- Hvad er der sket i din sag?
+- Hvorfor mener du afgørelsen er forkert?
+- Hvilke fakta er der blevet overset?
+- Hvilke juridiske fejl er der begået?
+
+Kate AI vil hjælpe med at formulere dette professionelt og juridisk korrekt." style="width: 100%; padding: 0.875rem; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 0.95rem; font-family: inherit; resize: vertical;"></textarea>
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0.5rem 0 0 0;">
+                                💡 Jo mere detaljeret, desto bedre kan Kate AI hjælpe dig
+                            </p>
+                        </div>
+                        
+                        <!-- Dokumenter -->
+                        <div style="background: #f9fafb; border: 2px solid #e0f2fe; border-radius: 12px; padding: 1.5rem;">
+                            <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; color: #2563eb;">
+                                📄 Vælg relevante dokumenter
+                            </h3>
+                            <?php
+                            global $wpdb;
+                            $docs_table = $wpdb->prefix . 'rtf_platform_documents';
+                            $current_user = rtf_get_current_user();
+                            $documents = $wpdb->get_results($wpdb->prepare(
+                                "SELECT * FROM $docs_table WHERE user_id = %d ORDER BY created_at DESC",
+                                $current_user->id
+                            ));
+                            ?>
+                            <?php if (empty($documents)): ?>
+                                <p style="color: #64748b; margin: 0;">
+                                    Du har ingen uploadede dokumenter. <a href="<?php echo home_url('/platform-dokumenter/?lang=' . $lang_code); ?>" style="color: #2563eb; text-decoration: underline;">Upload dokumenter her</a>
+                                </p>
+                            <?php else: ?>
+                                <?php foreach ($documents as $doc): ?>
+                                    <label style="display: flex; align-items: center; gap: 0.75rem; padding: 0.875rem; background: white; border: 1px solid #dbeafe; border-radius: 8px; margin-bottom: 0.75rem; cursor: pointer; transition: all 0.2s ease;">
+                                        <input type="checkbox" name="selected_docs[]" value="<?php echo $doc->id; ?>" style="width: 20px; height: 20px;">
+                                        <span><?php echo esc_html($doc->title); ?> (<?php echo esc_html($doc->document_type); ?>)</span>
+                                    </label>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <!-- Ønsker du opsættende virkning? -->
+                        <div class="form-group">
+                            <label style="display: flex; align-items: center; gap: 0.75rem; cursor: pointer;">
+                                <input type="checkbox" name="suspensive_effect" value="yes" style="width: 20px; height: 20px;">
+                                <span style="font-weight: 600; color: #475569;">
+                                    Jeg ønsker opsættende virkning (afgørelsen udsættes indtil klagen er behandlet)
+                                </span>
+                            </label>
+                            <p style="font-size: 0.85rem; color: #64748b; margin: 0.5rem 0 0 2.5rem;">
+                                💡 Opsættende virkning betyder at afgørelsen ikke træder i kraft før klagen er afgjort
+                            </p>
+                        </div>
+                        
+                        <!-- Submit knapper -->
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="submit" style="flex: 1; padding: 1rem 2rem; background: linear-gradient(135deg, #60a5fa, #2563eb); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);">
+                                📄 Generer Klage (PDF)
+                            </button>
+                            <button type="button" onclick="window.location.href='<?php echo home_url('/platform-kate-ai/?lang=' . $lang_code); ?>'" style="padding: 1rem 2rem; background: #f1f5f9; color: #475569; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                                💬 Få Kate AI Hjælp
+                            </button>
+                        </div>
+                    </div>
+                </form>
+                
+                <!-- Hjælpetekst -->
+                <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 1.5rem; margin-top: 2rem;">
+                    <h4 style="margin: 0 0 0.5rem 0; color: #166534; font-size: 1.1rem;">✅ Hvad sker der nu?</h4>
+                    <ol style="margin: 0; padding-left: 1.5rem; color: #166534;">
+                        <li style="margin-bottom: 0.5rem;">Kate AI analyserer din sag og formulerer en professionel klage</li>
+                        <li style="margin-bottom: 0.5rem;">Du får en PDF-fil du kan downloade</li>
+                        <li style="margin-bottom: 0.5rem;">Send klagen til den rette myndighed</li>
+                        <li style="margin-bottom: 0.5rem;">Du modtager en kvittering og afgørelse inden for 4 uger (Ankestyrelsen)</li>
+                    </ol>
                 </div>
             </div>
         </div>
