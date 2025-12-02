@@ -205,24 +205,73 @@ get_header();
     <?php get_template_part('template-parts/platform-sidebar'); ?>
     
     <main class="platform-content">
-        <div class="help-intro">
-            <h1 style="margin: 0 0 1rem 0; color: #0f172a;">\u26d6\ufe0f <?php echo $txt['case_help_title']; ?></h1>
-            <p style="color: #64748b; font-size: 1rem; line-height: 1.6;">
+        <!-- HERO SECTION -->
+        <div class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; padding: 3rem; margin-bottom: 2rem; color: white; box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);">
+            <h1 style="margin: 0 0 1rem 0; font-size: 2.5rem; font-weight: 700;">⚖️ <?php echo $txt['case_help_title']; ?></h1>
+            <p style="font-size: 1.2rem; margin: 0; opacity: 0.95; line-height: 1.6;">
                 <?php 
                 if ($lang_code === 'da') {
-                    echo 'F\u00e5 hj\u00e6lp til din sag med vores v\u00e6rkt\u00f8jer og vejledninger. Kate AI kan guide dig gennem hele processen.';
+                    echo 'Professionel sagshjælp, klage generator og juridisk vejledning - Alt du behøver for at navigere i dit familie- eller socialsag.';
                 } elseif ($lang_code === 'sv') {
-                    echo 'F\u00e5 hj\u00e4lp med ditt \u00e4rende med v\u00e5ra verktyg och v\u00e4gledningar. Kate AI kan guida dig genom hela processen.';
+                    echo 'Professionell ärendehjälp, klagomålsgenerator och juridisk vägledning - Allt du behöver för att navigera i ditt familje- eller socialärende.';
                 } else {
-                    echo 'Get help with your case using our tools and guidance. Kate AI can guide you through the entire process.';
+                    echo 'Professional case help, complaint generator and legal guidance - Everything you need to navigate your family or social case.';
                 }
                 ?>
             </p>
         </div>
+
+        <!-- NAVIGATION TABS -->
+        <div class="tabs-container" style="background: white; border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08);">
+            <div class="tabs-nav" style="display: flex; gap: 1rem; flex-wrap: wrap; border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem;">
+                <button class="tab-btn active" onclick="showTab('overview')" style="padding: 0.75rem 1.5rem; border: none; background: #667eea; color: white; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    📋 Oversigt
+                </button>
+                <button class="tab-btn" onclick="showTab('complaint')" style="padding: 0.75rem 1.5rem; border: none; background: #f1f5f9; color: #475569; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    📝 Klage Generator
+                </button>
+                <button class="tab-btn" onclick="showTab('guidance')" style="padding: 0.75rem 1.5rem; border: none; background: #f1f5f9; color: #475569; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    💡 Råd & Vejledning
+                </button>
+                <button class="tab-btn" onclick="showTab('documentation')" style="padding: 0.75rem 1.5rem; border: none; background: #f1f5f9; color: #475569; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    📄 Dokumentation
+                </button>
+                <button class="tab-btn" onclick="showTab('kate')" style="padding: 0.75rem 1.5rem; border: none; background: #f1f5f9; color: #475569; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                    🤖 Kate AI
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT: OVERVIEW -->
+        </div>
+
+        <!-- TAB CONTENT: OVERVIEW -->
+        <div id="tab-overview" class="tab-content">
+            
+            <!-- QUICK ACTIONS -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+                <div class="action-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 16px; color: white; cursor: pointer; transition: transform 0.3s;" onclick="showTab('complaint')">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: white;">Klage Generator</h3>
+                    <p style="margin: 0; opacity: 0.9;">Opret professionelle klager over afgørelser</p>
+                </div>
+                
+                <div class="action-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 2rem; border-radius: 16px; color: white; cursor: pointer; transition: transform 0.3s;" onclick="showTab('guidance')">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">💡</div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: white;">Råd & Vejledning</h3>
+                    <p style="margin: 0; opacity: 0.9;">Få juridisk vejledning til din sag</p>
+                </div>
+                
+                <div class="action-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 2rem; border-radius: 16px; color: white; cursor: pointer; transition: transform 0.3s;" onclick="showTab('kate')">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
+                    <h3 style="margin: 0 0 0.5rem 0; color: white;">Kate AI</h3>
+                    <p style="margin: 0; opacity: 0.9;">Stil spørgsmål til Kate AI</p>
+                </div>
+            </div>
         
         <!-- DISCLAIMER -->
-        <div style=\"background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;\">
-            <h3 style=\"margin: 0 0 1rem 0; color: #856404;\"><?php echo $txt['disclaimer_not_lawyer']; ?></h3>
+        <div style="background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;">
+            <h3 style="margin: 0 0 1rem 0; color: #856404;">⚠️ <?php echo $txt['disclaimer_not_lawyer']; ?></h3>
             <p style=\"margin: 0 0 1rem 0; color: #856404; line-height: 1.6;\">
                 <?php 
                 if ($lang_code === 'da') {
@@ -883,6 +932,47 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+});
+</script>
+
+<script>
+// Tab switching funktionalitet
+function showTab(tabName) {
+    // Skjul alle tabs
+    const tabs = document.querySelectorAll('.tab-content');
+    tabs.forEach(tab => tab.style.display = 'none');
+    
+    // Fjern active class fra alle knapper
+    const buttons = document.querySelectorAll('.tab-btn');
+    buttons.forEach(btn => {
+        btn.style.background = '#f1f5f9';
+        btn.style.color = '#475569';
+    });
+    
+    // Vis valgt tab
+    const selectedTab = document.getElementById('tab-' + tabName);
+    if (selectedTab) {
+        selectedTab.style.display = 'block';
+    }
+    
+    // Marker active knap
+    event.target.style.background = '#667eea';
+    event.target.style.color = 'white';
+}
+
+// Hover effekt på action cards
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.action-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px)';
+            this.style.boxShadow = '0 20px 40px rgba(0,0,0,0.2)';
+        });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = 'none';
+        });
+    });
 });
 </script>
 
