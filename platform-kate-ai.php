@@ -119,52 +119,8 @@ get_header();
 }
 </style>
 
-<div class="platform-layout">
-    <aside class="platform-sidebar">
-        <h3>Platform Menu</h3>
-        <ul class="platform-nav">
-            <li><a href="<?php echo home_url('/platform-profil'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-                Profil
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-vaeg'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-                Væg
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-billeder'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                Billeder
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-dokumenter'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
-                Dokumenter
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-venner'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                Venner
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-forum'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
-                Forum
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-nyheder'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/></svg>
-                Nyheder
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-sagshjaelp'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-                Sagshjælp
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-kate-ai'); ?>" class="active">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M20 9V7c0-1.1-.9-2-2-2h-3c0-1.66-1.34-3-3-3S9 3.34 9 5H6c-1.1 0-2 .9-2 2v2c-1.66 0-3 1.34-3 3s1.34 3 3 3v4c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-4c1.66 0 3-1.34 3-3s-1.34-3-3-3zm-2 10H6V7h12v12z"/></svg>
-                Kate AI
-            </a></li>
-            <li><a href="<?php echo home_url('/platform-indstillinger'); ?>">
-                <svg style="width: 18px; height: 18px; fill: currentColor; display: inline; vertical-align: middle; margin-right: 6px;" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-                Indstillinger
-            </a></li>
-        </ul>
-    </aside>
+<div class="platform-layout" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <?php get_template_part('template-parts/platform-sidebar'); ?>
     
     <main class="platform-content">
         <div class="kate-intro">

@@ -201,22 +201,8 @@ get_header();
 }
 </style>
 
-<div class="platform-layout">
-    <aside class="platform-sidebar">
-        <h3>📱 Platform</h3>
-        <ul class="platform-nav">
-            <li><a href="<?php echo home_url('/platform-profil'); ?>">👤 Profil</a></li>
-            <li><a href="<?php echo home_url('/platform-vaeg'); ?>">📝 Væg</a></li>
-            <li><a href="<?php echo home_url('/platform-billeder'); ?>">📷 Billeder</a></li>
-            <li><a href="<?php echo home_url('/platform-dokumenter'); ?>">📄 Dokumenter</a></li>
-            <li><a href="<?php echo home_url('/platform-venner'); ?>">👥 Venner</a></li>
-            <li><a href="<?php echo home_url('/platform-forum'); ?>">💬 Forum</a></li>
-            <li><a href="<?php echo home_url('/platform-nyheder'); ?>">📰 Nyheder</a></li>
-            <li><a href="<?php echo home_url('/platform-sagshjaelp'); ?>" class="active">⚖️ Sagshjælp</a></li>
-            <li><a href="<?php echo home_url('/platform-kate-ai'); ?>">🤖 Kate AI</a></li>
-            <li><a href="<?php echo home_url('/platform-indstillinger'); ?>">⚙️ Indstillinger</a></li>
-        </ul>
-    </aside>
+<div class="platform-layout" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <?php get_template_part('template-parts/platform-sidebar'); ?>
     
     <main class="platform-content">
         <div class="help-intro">

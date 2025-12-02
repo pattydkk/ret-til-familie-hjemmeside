@@ -16,10 +16,10 @@ $language = get_user_meta($user_id, 'language_preference', true) ?: 'da_DK';
 $is_danish = ($language === 'da_DK');
 ?>
 
-<div class="platform-container">
+<div class="platform-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
     <?php get_template_part('template-parts/platform-sidebar'); ?>
     
-    <div class="platform-content">
+    <div class="platform-content" style="min-width: 0;">
         <div class="rtf-card chat-container">
             <div class="chat-layout">
                 <!-- Left sidebar: Conversation list -->
