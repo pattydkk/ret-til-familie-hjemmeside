@@ -4,8 +4,8 @@ wp-includes/
 wp-content/uploads/
 wp-content/cache/
 
-# Dependencies (will be installed via Composer on server)
-/vendor/
+# Dependencies (TEMPORARILY INCLUDED for deployment - remove after)
+# /vendor/
 /node_modules/
 
 # Composer lock (commit this to ensure consistent versions)
