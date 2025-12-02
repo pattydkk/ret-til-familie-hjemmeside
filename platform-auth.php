@@ -6,6 +6,10 @@
 get_header();
 $lang = rtf_get_lang();
 
+// Debug mode - show errors
+$debug_mode = isset($_GET['debug']);
+$debug_messages = array();
+
 // Check if already logged in
 if (rtf_is_logged_in()) {
     wp_redirect(home_url('/platform-profil/?lang=' . $lang));
@@ -77,18 +81,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $username = sanitize_text_field($_POST['username']);
     $password = $_POST['password'];
     
-    $user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE username = %s AND is_active = 1", $username));
+    if ($debug_mode) {
+        $debug_messages[] = "Attempting login for username: $username";
+        $debug_messages[] = "Table: $table";
+    }
     
-    if ($user && password_verify($password, $user->password)) {
-        // Regenerate session ID to prevent session fixation attacks
-        session_regenerate_id(true);
-        
-        $_SESSION['rtf_user_id'] = $user->id;
-        $_SESSION['rtf_username'] = $user->username;
-        wp_redirect(home_url('/platform-profil/?lang=' . $lang));
-        exit;
+    // Check if table exists
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
+    if (!$table_exists) {
+        $error = 'Database ikke konfigureret. Kør setup først.';
+        if ($debug_mode) {
+            $debug_messages[] = "ERROR: Table does not exist!";
+        }
     } else {
-        $error = $lang === 'da' ? 'Forkert brugernavn eller adgangskode' : ($lang === 'sv' ? 'Fel användarnamn eller lösenord' : 'Wrong username or password');
+        $user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE username = %s AND is_active = 1", $username));
+        
+        if ($debug_mode) {
+            $debug_messages[] = "User found: " . ($user ? 'YES' : 'NO');
+            if ($user) {
+                $debug_messages[] = "User ID: " . $user->id;
+                $debug_messages[] = "Password hash exists: " . (!empty($user->password) ? 'YES' : 'NO');
+            }
+        }
+        
+        if ($user && password_verify($password, $user->password)) {
+            // Regenerate session ID to prevent session fixation attacks
+            session_regenerate_id(true);
+            
+            $_SESSION['rtf_user_id'] = $user->id;
+            $_SESSION['rtf_username'] = $user->username;
+            
+            if ($debug_mode) {
+                $debug_messages[] = "Login successful! Session ID: " . session_id();
+            } else {
+                wp_redirect(home_url('/platform-profil/?lang=' . $lang));
+                exit;
+            }
+        } else {
+            $error = $lang === 'da' ? 'Forkert brugernavn eller adgangskode' : ($lang === 'sv' ? 'Fel användarnamn eller lösenord' : 'Wrong username or password');
+            if ($debug_mode) {
+                $debug_messages[] = "Login failed - wrong credentials";
+            }
+        }
     }
 }
 
@@ -200,9 +234,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 <main class="platform-auth">
     <div class="auth-container" style="max-width: 500px; margin: 60px auto; padding: 20px;">
         
+        <?php if ($debug_mode && !empty($debug_messages)): ?>
+            <div style="background: #f0f9ff; border: 2px solid #0ea5e9; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                <h3 style="margin: 0 0 10px 0; color: #0369a1;">Debug Info:</h3>
+                <?php foreach ($debug_messages as $msg): ?>
+                    <div style="font-family: monospace; font-size: 12px; margin: 5px 0; color: #0c4a6e;"><?php echo esc_html($msg); ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        
         <?php if (isset($error)): ?>
-            <div class="alert alert-error" style="background: #fee; color: #c00; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                <?php echo esc_html($error); ?>
+            <div class="alert alert-error" style="background: #fee2e2; color: #991b1b; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fca5a5;">
+                <strong>❌ Fejl:</strong> <?php echo esc_html($error); ?>
             </div>
         <?php endif; ?>
 
