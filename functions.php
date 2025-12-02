@@ -1353,8 +1353,11 @@ function rtf_health_check() {
     return $status;
 }
 
-// Add REST endpoint for health check
+// ==================== REST API ENDPOINTS ====================
+
 add_action('rest_api_init', function() {
+    
+    // Health check endpoint
     register_rest_route('rtf/v1', '/health', [
         'methods' => 'GET',
         'callback' => function() {
@@ -1362,4 +1365,660 @@ add_action('rest_api_init', function() {
         },
         'permission_callback' => '__return_true'
     ]);
+    
+    // Share content endpoint (posts, news, forum)
+    register_rest_route('kate/v1', '/share', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_share_content',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Kate AI chat endpoint
+    register_rest_route('kate/v1', '/chat', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_kate_chat',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Document analysis endpoint
+    register_rest_route('kate/v1', '/analyze-document', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_analyze_document',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Search Barnets Lov endpoint
+    register_rest_route('kate/v1', '/search-barnets-lov', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_search_barnets_lov',
+        'permission_callback' => '__return_true'
+    ]);
+    
+    // Explain law paragraph endpoint
+    register_rest_route('kate/v1', '/explain-law', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_explain_law',
+        'permission_callback' => '__return_true'
+    ]);
+    
+    // Generate guidance endpoint
+    register_rest_route('kate/v1', '/guidance', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_generate_guidance',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Send message endpoint
+    register_rest_route('rtf/v1', '/messages/send', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_send_message',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Get conversations endpoint
+    register_rest_route('rtf/v1', '/messages/conversations', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_get_conversations',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Get messages endpoint
+    register_rest_route('rtf/v1', '/messages/thread/(?P<recipient_id>\d+)', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_get_messages',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
 });
+
+// ==================== API HANDLER FUNCTIONS ====================
+
+/**
+ * Share content to user's wall
+ */
+function rtf_api_share_content($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    
+    $source_type = sanitize_text_field($request->get_param('source_type'));
+    $source_id = intval($request->get_param('source_id'));
+    
+    if (!in_array($source_type, ['post', 'news', 'forum'])) {
+        return new WP_REST_Response(['success' => false, 'error' => 'Ugyldig kildetype'], 400);
+    }
+    
+    $table_shares = $wpdb->prefix . 'rtf_platform_shares';
+    
+    $wpdb->insert($table_shares, [
+        'user_id' => $current_user->id,
+        'source_type' => $source_type,
+        'source_id' => $source_id,
+        'created_at' => current_time('mysql')
+    ]);
+    
+    if ($wpdb->insert_id) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Indhold delt til din væg!'
+        ], 200);
+    } else {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Kunne ikke dele indhold'
+        ], 500);
+    }
+}
+
+/**
+ * Kate AI chat handler
+ */
+function rtf_api_kate_chat($request) {
+    $current_user = rtf_get_current_user();
+    $message = sanitize_textarea_field($request->get_param('message'));
+    $session_id = sanitize_text_field($request->get_param('session_id'));
+    
+    if (empty($message)) {
+        return new WP_REST_Response(['success' => false, 'error' => 'Besked mangler'], 400);
+    }
+    
+    // PLACEHOLDER: Real Kate AI implementation would use NLU engine
+    // For now, return a helpful response based on keywords
+    $response = rtf_kate_simple_response($message);
+    
+    // Log chat to database
+    global $wpdb;
+    $table_kate_chat = $wpdb->prefix . 'rtf_kate_chat_sessions';
+    
+    $wpdb->insert($table_kate_chat, [
+        'user_id' => $current_user->id,
+        'session_id' => $session_id ?: uniqid('kate_'),
+        'user_message' => $message,
+        'kate_response' => $response,
+        'created_at' => current_time('mysql')
+    ]);
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'response' => $response,
+        'session_id' => $session_id ?: $wpdb->insert_id
+    ], 200);
+}
+
+/**
+ * Simple Kate AI response generator (placeholder)
+ */
+function rtf_kate_simple_response($message) {
+    $message_lower = mb_strtolower($message);
+    
+    // Keyword matching for common questions
+    if (strpos($message_lower, 'klage') !== false || strpos($message_lower, 'afgørelse') !== false) {
+        return "For at klage over en afgørelse har du **4 ugers klagefrist** fra du modtog afgørelsen.\n\n**Sådan gør du:**\n1. Skriv din klage til den myndighed der traf afgørelsen\n2. Forklar hvorfor du er uenig i afgørelsen\n3. Vedlæg dokumentation hvis relevant\n4. Send klagen inden fristen\n\n📋 Du kan bruge vores **Klagegenerator** til at oprette din klage automatisk.\n\n⚖️ **Juridisk grundlag:** Forvaltningsloven §21 og Barnets Lov §168\n\nHar du brug for hjælp til at formulere din klage?";
+    }
+    
+    if (strpos($message_lower, 'aktindsigt') !== false) {
+        return "Du har **ret til aktindsigt** i din egen sag efter Forvaltningsloven §9.\n\n**Sådan søger du aktindsigt:**\n1. Send en skriftlig anmodning til kommunen\n2. Beskriv hvilke dokumenter du ønsker (eller bed om hele sagen)\n3. Kommunen skal svare inden **7 dage**\n4. Hvis de nægter, skal de begrunde hvorfor\n\n**Du kan få:**\n✅ Alle dokumenter i din sag\n✅ Handleplaner og statusrapporter\n✅ Korrespondance om dig\n✅ Børnefaglige undersøgelser\n\n❌ **Undtagelser:**\n- Interne arbejdsdokumenter (notater)\n- Fortrolige oplysninger om andre\n\nVil du have hjælp til at skrive en aktindsigtsanmodning?";
+    }
+    
+    if (strpos($message_lower, 'anbringelse') !== false || strpos($message_lower, 'tvangsfjernelse') !== false) {
+        return "Anbringelse uden samtykke er reguleret i **Barnets Lov §76**.\n\n**Lovlige grunde til anbringelse:**\n- Alvorlig omsorgssvigt\n- Overgreb eller vold\n- Fysisk/psykisk mishandling\n- Betydelig kriminalitet\n- Misbrugsproblemer hos forældre\n\n**Dine rettigheder:**\n✅ Ret til bisidder ved alle møder (§51)\n✅ Dit barn skal høres (§47)\n✅ Ret til samvær (§83)\n✅ Ret til at klage (§168)\n✅ Handleplan hver 6. måned (§140)\n\n**Vigtigt:**\n- Kommunen skal bevise at dit barn er i fare\n- Anbringelse skal være **proportional** (ikke mere indgribende end nødvendigt)\n- Du kan klage til Ankestyrelsen\n\n📄 Har du modtaget en afgørelse om anbringelse? Jeg kan hjælpe dig med at analysere den.";
+    }
+    
+    if (strpos($message_lower, 'handleplan') !== false) {
+        return "En handleplan er **obligatorisk** når dit barn er anbragt eller modtager særlig støtte (§140).\n\n**Krav til handleplanen:**\n✅ Konkrete mål for indsatsen\n✅ Beskrivelse af barnets situation\n✅ Hvilken støtte barnet får\n✅ Hvordan forældrene inddrages\n✅ Tidsplan for revision\n✅ Samværsaftale\n\n**Revision:**\n- Minimum hver **6. måned**\n- Oftere hvis nødvendigt\n- Du skal indkaldes til møde\n- Du kan komme med input\n\n**Hvis handleplanen mangler eller er mangelfuld:**\n- Klag til kommunens børn- og ungeudvalg\n- Bed om nye forældremøder\n- Kræv at blive hørt\n\n📋 Vil du have mig til at gennemgå din handleplan og pege på mangler?";
+    }
+    
+    if (strpos($message_lower, 'bisidder') !== false) {
+        return "Du har **ret til en bisidder** ved alle møder med kommunen (§51).\n\n**Hvem kan være bisidder:**\n✅ Familiemedlem\n✅ Ven\n✅ Professionel rådgiver\n✅ Advokat (dog ikke fri retshjælp)\n✅ Support-person\n\n**Bisidderens rolle:**\n- Støtte dig emotionelt\n- Tage notater\n- Stille afklarende spørgsmål\n- Huske hvad der blev sagt\n- Hjælpe dig med at forstå beslutninger\n\n**Sådan gør du:**\n1. Giv kommunen besked om at du medbringer bisidder\n2. Navngiv personen\n3. Kommunen **kan ikke** nægte dig dette\n\n💡 **Tip:** Tag altid en bisidder med - det sikrer at du husker alt og har et vidne.\n\nSkal jeg hjælpe dig med at skrive en e-mail om bisidder?";
+    }
+    
+    if (strpos($message_lower, 'samvær') !== false) {
+        return "Samvær med anbragte børn er reguleret i **§83**.\n\n**Din ret til samvær:**\n✅ Samvær er **udgangspunktet**\n✅ Kun begrænset hvis det skader barnet\n✅ Kommunen skal bevise at samvær er skadeligt\n✅ Gradvis udvidelse skal overvejes\n\n**Typer af samvær:**\n- Almindeligt samvær (hjemme hos dig)\n- Overvåget samvær (med tilstedeværende voksen)\n- Samvær på institution\n- Telefonsamtaler/videokald\n- Brevkontakt\n\n**Hvis samvær nægtes eller begrænses:**\n1. Kræv **skriftlig begrundelse**\n2. Bed om hyppigere revision\n3. Klag til Ankestyrelsen\n4. Få bisidder til samværsmøder\n\n📅 Vil du have hjælp til at udarbejde et forslag til samværsaftale?";
+    }
+    
+    // Default response
+    return "Jeg er Kate, din AI-assistent til juridisk vejledning om familie- og socialret.\n\n**Jeg kan hjælpe dig med:**\n- Klager over afgørelser\n- Aktindsigt i din sag\n- Anbringelse og tvangsfj ernelse\n- Handleplaner\n- Samvær med anbragte børn\n- Ret til bisidder\n- Børnesamtaler\n- Analyse af dokumenter\n\n💡 **Prøv at spørge:**\n- \"Hvordan klager jeg over en afgørelse?\"\n- \"Hvordan får jeg aktindsigt?\"\n- \"Hvad er mine rettigheder ved anbringelse?\"\n- \"Hvad skal en handleplan indeholde?\"\n\nHvad kan jeg hjælpe dig med i dag?";
+}
+
+/**
+ * Analyze document with Kate AI
+ */
+function rtf_api_analyze_document($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    $document_id = intval($request->get_param('document_id'));
+    
+    $table_documents = $wpdb->prefix . 'rtf_platform_documents';
+    $document = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM $table_documents WHERE id = %d AND user_id = %d",
+        $document_id,
+        $current_user->id
+    ));
+    
+    if (!$document) {
+        return new WP_REST_Response(['success' => false, 'error' => 'Dokument ikke fundet'], 404);
+    }
+    
+    // Parse document
+    require_once get_template_directory() . '/includes/DocumentParser.php';
+    $file_path = str_replace(home_url(), ABSPATH, $document->file_url);
+    
+    try {
+        $parsed = \RTF\Platform\DocumentParser::parse($file_path);
+        
+        if (!$parsed['success']) {
+            return new WP_REST_Response(['success' => false, 'error' => $parsed['error']], 500);
+        }
+        
+        // Analyze content
+        $analysis = rtf_analyze_document_content($parsed['text']);
+        
+        // Update document with analysis
+        $wpdb->update(
+            $table_documents,
+            [
+                'analysis_status' => 'completed',
+                'analysis_result' => json_encode($analysis)
+            ],
+            ['id' => $document_id]
+        );
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'analysis' => $analysis
+        ], 200);
+        
+    } catch (\Exception $e) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Analyse fejl: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+/**
+ * Analyze document content and extract key information
+ */
+function rtf_analyze_document_content($text) {
+    $analysis = [
+        'document_type' => 'unknown',
+        'key_dates' => [],
+        'mentioned_laws' => [],
+        'key_facts' => [],
+        'concerns' => [],
+        'recommendations' => []
+    ];
+    
+    $text_lower = mb_strtolower($text);
+    
+    // Detect document type
+    if (strpos($text_lower, 'afgørelse') !== false) {
+        $analysis['document_type'] = 'afgørelse';
+    } elseif (strpos($text_lower, 'handleplan') !== false) {
+        $analysis['document_type'] = 'handleplan';
+    } elseif (strpos($text_lower, 'børnefaglig undersøgelse') !== false) {
+        $analysis['document_type'] = 'børnefaglig_undersøgelse';
+    } elseif (strpos($text_lower, 'samværsaftale') !== false) {
+        $analysis['document_type'] = 'samværsaftale';
+    }
+    
+    // Extract dates (dd-mm-yyyy or dd/mm/yyyy format)
+    preg_match_all('/\b(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})\b/', $text, $date_matches);
+    $analysis['key_dates'] = array_unique($date_matches[0]);
+    
+    // Find mentioned laws
+    preg_match_all('/(?:§|paragraf)\s*(\d+)/i', $text, $law_matches);
+    if (!empty($law_matches[1])) {
+        $analysis['mentioned_laws'] = array_unique(array_map(function($n) {
+            return '§' . $n;
+        }, $law_matches[1]));
+    }
+    
+    // Extract key facts based on keywords
+    $fact_indicators = [
+        'anbringelse' => 'Dokumentet nævner anbringelse',
+        'tvang' => 'Der er nævnt tvangselement',
+        'samvær' => 'Samvær er behandlet i dokumentet',
+        'klagefrist' => 'Der er nævnt klagefrist',
+        'bisidder' => 'Ret til bisidder er nævnt',
+        'høring' => 'Partshøring er omtalt'
+    ];
+    
+    foreach ($fact_indicators as $keyword => $fact) {
+        if (strpos($text_lower, $keyword) !== false) {
+            $analysis['key_facts'][] = $fact;
+        }
+    }
+    
+    // Identify potential concerns
+    $concern_keywords = [
+        'uden samtykke' => 'Afgørelse truffet uden samtykke',
+        'øjeblikkelig' => 'Øjeblikkelig handling er nævnt',
+        'alvorlig' => 'Dokumentet nævner alvorlige forhold',
+        'begrænset samvær' => 'Samvær er begrænset',
+        'nægtet' => 'Noget er blevet nægtet'
+    ];
+    
+    foreach ($concern_keywords as $keyword => $concern) {
+        if (strpos($text_lower, $keyword) !== false) {
+            $analysis['concerns'][] = $concern;
+        }
+    }
+    
+    // Generate recommendations based on document type
+    if ($analysis['document_type'] === 'afgørelse') {
+        $analysis['recommendations'][] = 'Tjek om afgørelsen er partshørt korrekt (§19)';
+        $analysis['recommendations'][] = 'Verificér om begrundelsen er tilstrækkelig (§24)';
+        $analysis['recommendations'][] = 'Husk klagefristen på 4 uger';
+        $analysis['recommendations'][] = 'Overvej at søge aktindsigt i hele sagen';
+    } elseif ($analysis['document_type'] === 'handleplan') {
+        $analysis['recommendations'][] = 'Verificér at handleplanen har konkrete mål';
+        $analysis['recommendations'][] = 'Tjek om revision er planlagt (min. hver 6. måned)';
+        $analysis['recommendations'][] = 'Sikr at du er inddraget i planen';
+    }
+    
+    return $analysis;
+}
+
+/**
+ * Search Barnets Lov paragraphs
+ */
+function rtf_api_search_barnets_lov($request) {
+    $query = sanitize_text_field($request->get_param('query'));
+    
+    // Simplified Barnets Lov database
+    $barnets_lov = [
+        ['paragraph' => '§ 47', 'title' => 'Barnets ret til at blive hørt', 'snippet' => 'Barnet skal høres og barnets synspunkter skal tillægges passende vægt i forhold til alder og modenhed.'],
+        ['paragraph' => '§ 51', 'title' => 'Ret til bisidder', 'snippet' => 'Forældre har ret til at medbringe en bisidder til møder med kommunen.'],
+        ['paragraph' => '§ 76', 'title' => 'Anbringelse uden samtykke', 'snippet' => 'Børn kan anbringes uden forældrenes samtykke hvis der er åbenbar risiko for alvorlig skade.'],
+        ['paragraph' => '§ 83', 'title' => 'Samvær og kontakt', 'snippet' => 'Forældre og barn har ret til samvær medmindre det er til skade for barnet.'],
+        ['paragraph' => '§ 140', 'title' => 'Handleplan', 'snippet' => 'Der skal udarbejdes en handleplan som revideres minimum hver 6. måned.'],
+        ['paragraph' => '§ 168', 'title' => 'Klageadgang', 'snippet' => 'Afgørelser kan påklages til Ankestyrelsen inden 4 uger.']
+    ];
+    
+    // Filter results based on query
+    $results = array_filter($barnets_lov, function($item) use ($query) {
+        $search_text = $item['paragraph'] . ' ' . $item['title'] . ' ' . $item['snippet'];
+        return stripos($search_text, $query) !== false;
+    });
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'results' => array_values($results)
+    ], 200);
+}
+
+/**
+ * Explain law paragraph in plain Danish
+ */
+function rtf_api_explain_law($request) {
+    $paragraph = sanitize_text_field($request->get_param('paragraph'));
+    
+    // Simplified explanations database
+    $explanations = [
+        '47' => [
+            'paragraph' => '§ 47',
+            'title' => 'Barnets ret til at blive hørt',
+            'law_text' => 'Et barn, der er fyldt 12 år, skal høres, inden der træffes afgørelse om foranstaltninger efter § 52. Børn, der er fyldt 12 år, kan selv anmode om, at der træffes afgørelse om foranstaltninger. Et barn under 12 år skal høres, hvis det er relevant.',
+            'plain_danish' => 'Dit barn har ret til at sige sin mening, især hvis barnet er over 12 år. Kommunen skal lytte til dit barn før de træffer beslutninger.',
+            'examples' => [
+                'Hvis kommunen vil anbringe dit barn, skal de først tale med barnet',
+                'Barnet kan selv bede om hjælp fra kommunen',
+                'Yngre børn skal også høres hvis det giver mening'
+            ],
+            'your_rights' => [
+                'Du kan kræve at dit barn bliver hørt',
+                'Du kan være til stede når barnet høres (hvis barnet ønsker det)',
+                'Barnets mening skal fremgå af afgørelsen'
+            ],
+            'official_link' => 'https://www.retsinformation.dk/eli/lta/2022/1088#id7f7c8a57-9c8a-4e0f-b0c8-e6e37c5f0d2c'
+        ],
+        '51' => [
+            'paragraph' => '§ 51',
+            'title' => 'Ret til bisidder',
+            'law_text' => 'Forældre, der anmoder herom, har ret til at få en bisidder, når en sag behandles efter denne lov.',
+            'plain_danish' => 'Du har ret til at tage en person med til alle møder med kommunen. Det kan være hvem som helst du ønsker.',
+            'examples' => [
+                'Tag en ven eller familiemedlem med til møder',
+                'Bisidderen kan støtte dig og tage notater',
+                'Kommunen kan ikke nægte dig en bisidder'
+            ],
+            'your_rights' => [
+                'Du bestemmer selv hvem din bisidder skal være',
+                'Kommunen skal acceptere din bisidder',
+                'Giv kommunen besked om bisidder når du bliver indkaldt'
+            ],
+            'official_link' => 'https://www.retsinformation.dk/eli/lta/2022/1088'
+        ],
+        '76' => [
+            'paragraph' => '§ 76',
+            'title' => 'Anbringelse uden samtykke',
+            'law_text' => 'Børne- og ungeudvalget kan uden samtykke træffe afgørelse om anbringelse uden for hjemmet, når det må anses for at være af væsentlig betydning af hensyn til barnets eller den unges særlige behov for støtte.',
+            'plain_danish' => 'Kommunen kan anbringe dit barn uden dit samtykke, men kun hvis dit barn er i alvorlig fare. De skal kunne bevise at anbringelse er nødvendig.',
+            'examples' => [
+                'Alvorligt omsorgssvigt',
+                'Vold eller overgreb',
+                'Stofmisbrug i hjemmet der skader barnet'
+            ],
+            'your_rights' => [
+                'Du kan klage til Ankestyrelsen inden 4 uger',
+                'Du har ret til samvær med dit barn',
+                'Du skal høres før afgørelsen træffes',
+                'Der skal laves en handleplan'
+            ],
+            'official_link' => 'https://www.retsinformation.dk/eli/lta/2022/1088'
+        ]
+    ];
+    
+    if (!isset($explanations[$paragraph])) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Paragraf ikke fundet'
+        ], 404);
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'explanation' => $explanations[$paragraph]
+    ], 200);
+}
+
+/**
+ * Generate personalized guidance based on situation
+ */
+function rtf_api_generate_guidance($request) {
+    $situation = $request->get_param('situation');
+    $situation_type = $situation['situation_type'] ?? '';
+    
+    $guidances = [
+        'anbringelse' => [
+            'title' => 'Vejledning: Dit barn er blevet anbragt',
+            'summary' => 'Her er hvad du skal gøre lige nu og dine vigtigste rettigheder.',
+            'immediate_actions' => [
+                '📄 Kræv STRAKS en kopi af anbringelsesafgørelsen',
+                '🤝 Bed om en bisidder til alle fremtidige møder',
+                '📅 Noter klagefristen (4 uger fra modtagelse)',
+                '📸 Tag billeder af dit hjem og børnenes værelser',
+                '📝 Start en dagbog hvor du skriver ALT ned'
+            ],
+            'your_rights' => [
+                'Du har ret til samvær med dit barn (§83)',
+                'Du skal høres før afgørelsen træffes (§19)',
+                'Der skal laves en handleplan inden 4 uger (§140)',
+                'Du kan klage til Ankestyrelsen (§168)',
+                'Du har ret til aktindsigt i hele sagen (Forvaltningsloven §9)'
+            ],
+            'common_mistakes' => [
+                'At underskrive papirer uden at læse dem grundigt',
+                'At gå til møder alene uden bisidder',
+                'At vente med at klage til fristen er udløbet',
+                'At ikke dokumentere din side af sagen',
+                'At tro kommunen "ved bedst" uden at stille kritiske spørgsmål'
+            ],
+            'next_steps' => [
+                'Læs afgørelsen grundigt og noter alle fejl',
+                'Søg aktindsigt i din sag for at se hvad kommunen har skrevet',
+                'Find en bisidder du har tillid til',
+                'Kontakt os for at få analyseret din afgørelse',
+                'Overvej om du vil klage - du har 4 uger',
+                'Bed om et møde om handleplan og samvær'
+            ]
+        ],
+        'klage' => [
+            'title' => 'Vejledning: Klage over afgørelse',
+            'summary' => 'Sådan klager du korrekt over en afgørelse fra kommunen.',
+            'immediate_actions' => [
+                '📅 Tjek datoen på afgørelsen - du har kun 4 uger!',
+                '📄 Få fat i hele afgørelsen (alle sider)',
+                '🔍 Søg aktindsigt STRAKS for at få alle dokumenter',
+                '✍️ Begynd at skrive ned hvorfor afgørelsen er forkert',
+                '📸 Saml alle beviser der modbeviser kommunens påstande'
+            ],
+            'your_rights' => [
+                'Du kan klage til Ankestyrelsen inden 4 uger (§168)',
+                'Du kan få gratis rådgivning af Ankestyrelsen',
+                'Du kan anmode om opsættende virkning (udsættelse)',
+                'Du har ret til at blive hørt i klagesagen',
+                'Klagen er gratis'
+            ],
+            'common_mistakes' => [
+                'At vente til den sidste dag med at klage',
+                'At skrive en kort klage uden begrundelse',
+                'At glemme at vedlægge dokumentation',
+                'At sende klagen til forkert myndighed',
+                'At ikke bede om opsættende virkning hvis det er vigtigt'
+            ],
+            'next_steps' => [
+                'Søg aktindsigt med det samme',
+                'Skriv alle grunde til at afgørelsen er forkert',
+                'Saml dokumentation: billeder, vidneudsagn, lægeattester osv.',
+                'Brug vores klagegenerator til at oprette klagen',
+                'Send klagen til både kommunen OG Ankestyrelsen',
+                'Gem kopi af din klage og kvittering for afsendelse'
+            ]
+        ],
+        'aktindsigt' => [
+            'title' => 'Vejledning: Aktindsigt i din sag',
+            'summary' => 'Sådan får du aktindsigt i alle dokumenter i din sag.',
+            'immediate_actions' => [
+                '✉️ Send aktindsigtsanmodning NU (email eller brev)',
+                '📋 Bed om "fuld aktindsigt i hele sagen"',
+                '📅 Kommunen skal svare inden 7 dage',
+                '📸 Tag screenshot af din anmodning',
+                '⏰ Sæt alarm til dag 8 hvis de ikke har svaret'
+            ],
+            'your_rights' => [
+                'Du har ret til aktindsigt i egen sag (Forvaltningsloven §9)',
+                'Kommunen skal svare inden 7 dage',
+                'Du kan få kopier af alle dokumenter',
+                'Aktindsigt er gratis (små kopieringsomkostninger kan forekomme)',
+                'Du kan klage hvis aktindsigt nægtes'
+            ],
+            'common_mistakes' => [
+                'At være for specifik - bed om "hele sagen" i stedet',
+                'At acceptere mundtlig gennemgang - kræv kopier',
+                'At glemme at spørge om "interne arbejdsdokumenter"',
+                'At ikke følge op hvis kommunen trækker tiden',
+                'At ikke gemme alle dokumenter sikkert'
+            ],
+            'next_steps' => [
+                'Skriv aktindsigtsanmodning (se skabelon)',
+                'Send til kommunens børne- og ungeforvaltning',
+                'Vent 7 dage',
+                'Hvis ingen svar: Send rykker og klag',
+                'Når du får dokumenterne: Gennemgå ALLE sider',
+                'Noter fejl og modsigelser',
+                'Overvej at få dokumenterne analyseret af Kate AI'
+            ]
+        ]
+    ];
+    
+    if (!isset($guidances[$situation_type])) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Ukendt situationstype'
+        ], 400);
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'guidance' => $guidances[$situation_type]
+    ], 200);
+}
+
+/**
+ * Send private message
+ */
+function rtf_api_send_message($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    
+    $recipient_id = intval($request->get_param('recipient_id'));
+    $message = sanitize_textarea_field($request->get_param('message'));
+    
+    if (empty($message)) {
+        return new WP_REST_Response(['success' => false, 'error' => 'Besked mangler'], 400);
+    }
+    
+    $table_messages = $wpdb->prefix . 'rtf_platform_messages';
+    
+    $wpdb->insert($table_messages, [
+        'sender_id' => $current_user->id,
+        'recipient_id' => $recipient_id,
+        'message' => $message,
+        'created_at' => current_time('mysql')
+    ]);
+    
+    if ($wpdb->insert_id) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message_id' => $wpdb->insert_id
+        ], 200);
+    } else {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Kunne ikke sende besked'
+        ], 500);
+    }
+}
+
+/**
+ * Get user conversations
+ */
+function rtf_api_get_conversations($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    
+    $table_messages = $wpdb->prefix . 'rtf_platform_messages';
+    $table_users = $wpdb->prefix . 'rtf_platform_users';
+    
+    // Get distinct conversations
+    $conversations = $wpdb->get_results($wpdb->prepare("
+        SELECT 
+            u.id, u.username, u.full_name,
+            MAX(m.created_at) as last_message_time,
+            COUNT(CASE WHEN m.is_read = 0 AND m.recipient_id = %d THEN 1 END) as unread_count
+        FROM $table_users u
+        INNER JOIN $table_messages m ON (
+            (m.sender_id = u.id AND m.recipient_id = %d) OR
+            (m.recipient_id = u.id AND m.sender_id = %d)
+        )
+        WHERE u.id != %d
+        GROUP BY u.id
+        ORDER BY last_message_time DESC
+    ", $current_user->id, $current_user->id, $current_user->id, $current_user->id));
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'conversations' => $conversations
+    ], 200);
+}
+
+/**
+ * Get messages in thread
+ */
+function rtf_api_get_messages($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    $recipient_id = intval($request->get_param('recipient_id'));
+    
+    $table_messages = $wpdb->prefix . 'rtf_platform_messages';
+    
+    // Get messages between current user and recipient
+    $messages = $wpdb->get_results($wpdb->prepare("
+        SELECT m.*, u.username, u.full_name
+        FROM $table_messages m
+        JOIN " . $wpdb->prefix . "rtf_platform_users u ON m.sender_id = u.id
+        WHERE 
+            (m.sender_id = %d AND m.recipient_id = %d) OR
+            (m.sender_id = %d AND m.recipient_id = %d)
+        ORDER BY m.created_at ASC
+    ", $current_user->id, $recipient_id, $recipient_id, $current_user->id));
+    
+    // Mark as read
+    $wpdb->update(
+        $table_messages,
+        ['is_read' => 1],
+        [
+            'sender_id' => $recipient_id,
+            'recipient_id' => $current_user->id
+        ]
+    );
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'messages' => $messages
+    ], 200);
+}
