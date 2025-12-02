@@ -3,14 +3,15 @@
  * Template Name: Platform - Venner (Friends)
  */
 
-if (!session_id()) session_start();
+get_header();
+$lang = rtf_get_lang();
 
 if (!rtf_is_logged_in()) {
-    wp_redirect(home_url('/platform-auth'));
+    wp_redirect(home_url('/platform-auth/?lang=' . $lang));
     exit;
 }
 
-$user = rtf_get_current_user();
+$current_user = rtf_get_current_user();
 global $wpdb;
 $friends_table = $wpdb->prefix . 'rtf_platform_friends';
 $users_table = $wpdb->prefix . 'rtf_platform_users';
@@ -25,16 +26,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_request'])) {
     $friend_username = sanitize_text_field($_POST['friend_username']);
     $friend = $wpdb->get_row($wpdb->prepare("SELECT * FROM $users_table WHERE username = %s", $friend_username));
     
-    if ($friend && $friend->id != $user['id']) {
+    if ($friend && $friend->id != $current_user->id) {
         // Check if request already exists
         $existing = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM $friends_table WHERE (user_id = %d AND friend_id = %d) OR (user_id = %d AND friend_id = %d)",
-            $user['id'], $friend->id, $friend->id, $user['id']
+            $current_user->id, $friend->id, $friend->id, $current_user->id
         ));
         
         if (!$existing) {
             $wpdb->insert($friends_table, [
-                'user_id' => $user['id'],
+                'user_id' => $current_user->id,
                 'friend_id' => $friend->id,
                 'status' => 'pending'
             ]);
@@ -52,7 +53,7 @@ if (isset($_GET['action']) && isset($_GET['request_id'])) {
     
     $request = $wpdb->get_row($wpdb->prepare(
         "SELECT * FROM $friends_table WHERE id = %d AND friend_id = %d",
-        $request_id, $user['id']
+        $request_id, $current_user->id
     ));
     
     if ($request) {
@@ -73,7 +74,7 @@ $requests = $wpdb->get_results($wpdb->prepare(
      FROM $friends_table f 
      JOIN $users_table u ON f.user_id = u.id 
      WHERE f.friend_id = %d AND f.status = 'pending'",
-    $user['id']
+    $current_user->id
 ));
 
 // Get friends list
@@ -82,7 +83,7 @@ $friends = $wpdb->get_results($wpdb->prepare(
      FROM $friends_table f
      JOIN $users_table u ON (f.user_id = u.id OR f.friend_id = u.id)
      WHERE (f.user_id = %d OR f.friend_id = %d) AND f.status = 'accepted' AND u.id != %d",
-    $user['id'], $user['id'], $user['id']
+    $current_user->id, $current_user->id, $current_user->id
 ));
 
 get_header();

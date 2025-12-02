@@ -1,38 +1,33 @@
 </main>
 
 <?php 
-// Show foster care statistics counter ONLY on homepage
+// Show foster care statistics counter ONLY on homepage - COMPACT VERSION
 if (is_front_page() || is_home()): 
 ?>
-<div id="foster-care-counter" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white; padding: 2.5rem 1rem; text-align: center; border-top: 4px solid #3b82f6; box-shadow: 0 -4px 6px rgba(0,0,0,0.1);">
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <h3 style="font-size: 1.4rem; margin-bottom: 1.5rem; font-weight: 600; letter-spacing: 0.5px;">
-            📊 Børn fjernet fra hjemmet lige nu / Omhändertagna barn nu
-        </h3>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+<div id="foster-care-counter" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 1.25rem 1rem; text-align: center;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 500;">
+            📊 Børn fjernet fra hjemmet / Omhändertagna barn
+        </div>
+        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; align-items: center;">
             <!-- Denmark Counter -->
-            <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-                <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">🇩🇰 Danmark</div>
-                <div id="dk-count" style="font-size: 3rem; font-weight: 700; font-family: 'Arial', sans-serif; margin: 0.5rem 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">-</div>
-                <div style="font-size: 0.85rem; opacity: 0.85; margin-top: 0.5rem;">
-                    <span id="dk-confidence" style="background: rgba(34,197,94,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid rgba(34,197,94,0.4);">98% præcision</span>
-                </div>
-                <div id="dk-updated" style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.75rem;">Opdateres...</div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.75rem; color: #64748b;">🇩🇰</span>
+                <span id="dk-count" style="font-size: 1.25rem; font-weight: 700; color: #1e40af; font-family: 'Arial', sans-serif;">-</span>
+                <span id="dk-confidence" style="font-size: 0.7rem; color: #16a34a; background: #f0fdf4; padding: 0.15rem 0.4rem; border-radius: 10px;">98%</span>
             </div>
             
             <!-- Sweden Counter -->
-            <div style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 1.5rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);">
-                <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 1px;">🇸🇪 Sverige</div>
-                <div id="se-count" style="font-size: 3rem; font-weight: 700; font-family: 'Arial', sans-serif; margin: 0.5rem 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">-</div>
-                <div style="font-size: 0.85rem; opacity: 0.85; margin-top: 0.5rem;">
-                    <span id="se-confidence" style="background: rgba(34,197,94,0.2); padding: 0.25rem 0.75rem; border-radius: 20px; border: 1px solid rgba(34,197,94,0.4);">98% precision</span>
-                </div>
-                <div id="se-updated" style="font-size: 0.75rem; opacity: 0.7; margin-top: 0.75rem;">Uppdateras...</div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.75rem; color: #64748b;">🇸🇪</span>
+                <span id="se-count" style="font-size: 1.25rem; font-weight: 700; color: #1e40af; font-family: 'Arial', sans-serif;">-</span>
+                <span id="se-confidence" style="font-size: 0.7rem; color: #16a34a; background: #f0fdf4; padding: 0.15rem 0.4rem; border-radius: 10px;">98%</span>
             </div>
         </div>
-        <div style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.8; line-height: 1.6;">
-            Data baseret på officielle rapporter fra Ankestyrelsen (DK) og Socialstyrelsen (SE)<br>
-            Opdateres hver time med realistiske estimater • Data från Ankestyrelsen (DK) och Socialstyrelsen (SE)
+        <div style="margin-top: 0.5rem; font-size: 0.65rem; color: #94a3b8; line-height: 1.4;">
+            <span id="dk-updated"></span> | <span id="se-updated"></span><br>
+            Data: <a href="https://ast.dk" target="_blank" style="color: #64748b; text-decoration: none;">Ankestyrelsen</a> (DK) • 
+            <a href="https://www.socialstyrelsen.se" target="_blank" style="color: #64748b; text-decoration: none;">Socialstyrelsen</a> (SE)
         </div>
     </div>
 </div>
@@ -41,10 +36,7 @@ if (is_front_page() || is_home()):
 (function() {
     let currentDK = 0;
     let currentSE = 0;
-    let targetDK = 0;
-    let targetSE = 0;
     
-    // Animated counter function
     function animateCounter(element, start, end, duration) {
         const startTime = performance.now();
         const difference = end - start;
@@ -52,8 +44,6 @@ if (is_front_page() || is_home()):
         function update(currentTime) {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
-            // Easing function for smooth animation
             const easeOutQuart = 1 - Math.pow(1 - progress, 4);
             const current = Math.floor(start + difference * easeOutQuart);
             
@@ -67,28 +57,25 @@ if (is_front_page() || is_home()):
         requestAnimationFrame(update);
     }
     
-    // Format datetime
     function formatDateTime(dateStr) {
         const date = new Date(dateStr);
         const now = new Date();
         const diffMinutes = Math.floor((now - date) / 60000);
         
-        if (diffMinutes < 1) return 'Lige nu / Just nu';
-        if (diffMinutes < 60) return diffMinutes + ' min siden / för sedan';
+        if (diffMinutes < 1) return 'nu';
+        if (diffMinutes < 60) return diffMinutes + ' min';
         
         const hours = Math.floor(diffMinutes / 60);
-        if (hours < 24) return hours + ' time' + (hours !== 1 ? 'r' : '') + ' siden / timmar sedan';
+        if (hours < 24) return hours + 't';
         
         return date.toLocaleString('da-DK', { 
             day: '2-digit', 
-            month: '2-digit', 
-            year: 'numeric',
+            month: '2-digit',
             hour: '2-digit',
             minute: '2-digit'
         });
     }
     
-    // Fetch and update statistics
     async function updateStats() {
         try {
             const response = await fetch('<?php echo rest_url("kate/v1/foster-care-stats"); ?>');
@@ -103,29 +90,29 @@ if (is_front_page() || is_home()):
                 const seConfidence = document.getElementById('se-confidence');
                 
                 if (data.stats.DK) {
-                    targetDK = data.stats.DK.estimate;
+                    const targetDK = data.stats.DK.estimate;
                     if (currentDK === 0) {
                         currentDK = targetDK;
                         dkElement.textContent = targetDK.toLocaleString('da-DK');
                     } else {
-                        animateCounter(dkElement, currentDK, targetDK, 2000);
+                        animateCounter(dkElement, currentDK, targetDK, 1500);
                         currentDK = targetDK;
                     }
-                    dkUpdated.textContent = 'Opdateret: ' + formatDateTime(data.stats.DK.updated);
-                    dkConfidence.textContent = data.stats.DK.confidence.toFixed(1) + '% præcision';
+                    dkUpdated.textContent = 'DK: ' + formatDateTime(data.stats.DK.updated);
+                    dkConfidence.textContent = data.stats.DK.confidence.toFixed(1) + '%';
                 }
                 
                 if (data.stats.SE) {
-                    targetSE = data.stats.SE.estimate;
+                    const targetSE = data.stats.SE.estimate;
                     if (currentSE === 0) {
                         currentSE = targetSE;
                         seElement.textContent = targetSE.toLocaleString('da-DK');
                     } else {
-                        animateCounter(seElement, currentSE, targetSE, 2000);
+                        animateCounter(seElement, currentSE, targetSE, 1500);
                         currentSE = targetSE;
                     }
-                    seUpdated.textContent = 'Uppdaterad: ' + formatDateTime(data.stats.SE.updated);
-                    seConfidence.textContent = data.stats.SE.confidence.toFixed(1) + '% precision';
+                    seUpdated.textContent = 'SE: ' + formatDateTime(data.stats.SE.updated);
+                    seConfidence.textContent = data.stats.SE.confidence.toFixed(1) + '%';
                 }
             }
         } catch (error) {
@@ -133,10 +120,7 @@ if (is_front_page() || is_home()):
         }
     }
     
-    // Initial load
     updateStats();
-    
-    // Update every 5 minutes (server updates hourly, but we check more frequently)
     setInterval(updateStats, 5 * 60 * 1000);
 })();
 </script>

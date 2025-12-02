@@ -3,19 +3,19 @@
 Template Name: Platform - Find Borgere
 */
 
+get_header();
+$lang = rtf_get_lang();
+
 // Tjek om brugeren er logget ind
-if (!is_user_logged_in()) {
-    wp_redirect(home_url('/login/'));
+if (!rtf_is_logged_in()) {
+    wp_redirect(home_url('/platform-auth/?lang=' . $lang));
     exit;
 }
 
-// Hent sprog parameter
-$lang = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : 'da';
-
-// Tjek bruger-data
+$current_user = rtf_get_current_user();
 global $wpdb;
-$current_user = wp_get_current_user();
-$user_id = $current_user->ID;
+$users_table = $wpdb->prefix . 'rtf_platform_users';
+$friends_table = $wpdb->prefix . 'rtf_platform_friends';
 
 // Hent filtre fra URL
 $filter_country = isset($_GET['country']) ? sanitize_text_field($_GET['country']) : '';
@@ -24,62 +24,43 @@ $filter_case_type = isset($_GET['case_type']) ? sanitize_text_field($_GET['case_
 $filter_age_min = isset($_GET['age_min']) ? intval($_GET['age_min']) : 0;
 $filter_age_max = isset($_GET['age_max']) ? intval($_GET['age_max']) : 100;
 
-// Opbyg søgequery
-$search_query = "SELECT DISTINCT u.ID, u.user_login, u.display_name, 
-                 um_country.meta_value as country,
-                 um_city.meta_value as city,
-                 um_case_type.meta_value as case_type,
-                 um_age.meta_value as age,
-                 um_bio.meta_value as bio,
-                 um_profile_image.meta_value as profile_image,
-                 um_is_public.meta_value as is_public_profile
-                 FROM {$wpdb->users} u
-                 LEFT JOIN {$wpdb->usermeta} um_country ON u.ID = um_country.user_id AND um_country.meta_key = 'country'
-                 LEFT JOIN {$wpdb->usermeta} um_city ON u.ID = um_city.user_id AND um_city.meta_key = 'city'
-                 LEFT JOIN {$wpdb->usermeta} um_case_type ON u.ID = um_case_type.user_id AND um_case_type.meta_key = 'case_type'
-                 LEFT JOIN {$wpdb->usermeta} um_age ON u.ID = um_age.user_id AND um_age.meta_key = 'age'
-                 LEFT JOIN {$wpdb->usermeta} um_bio ON u.ID = um_bio.user_id AND um_bio.meta_key = 'bio'
-                 LEFT JOIN {$wpdb->usermeta} um_profile_image ON u.ID = um_profile_image.user_id AND um_profile_image.meta_key = 'profile_image'
-                 LEFT JOIN {$wpdb->usermeta} um_is_public ON u.ID = um_is_public.user_id AND um_is_public.meta_key = 'is_public_profile'
-                 WHERE u.ID != {$user_id}";
+// Opbyg søgequery med rtf_platform_users
+$search_query = "SELECT id, username, full_name, email, country, city, case_type, age, bio, profile_image, is_public_profile
+                 FROM $users_table
+                 WHERE id != {$current_user->id} AND is_active = 1";
 
 // Tilføj filtre
-$where_conditions = array();
 if (!empty($filter_country)) {
-    $where_conditions[] = $wpdb->prepare("um_country.meta_value = %s", $filter_country);
+    $search_query .= $wpdb->prepare(" AND country = %s", $filter_country);
 }
 if (!empty($filter_city)) {
-    $where_conditions[] = $wpdb->prepare("um_city.meta_value LIKE %s", '%' . $wpdb->esc_like($filter_city) . '%');
+    $search_query .= $wpdb->prepare(" AND city LIKE %s", '%' . $wpdb->esc_like($filter_city) . '%');
 }
 if (!empty($filter_case_type)) {
-    $where_conditions[] = $wpdb->prepare("um_case_type.meta_value = %s", $filter_case_type);
+    $search_query .= $wpdb->prepare(" AND case_type = %s", $filter_case_type);
 }
 if ($filter_age_min > 0) {
-    $where_conditions[] = $wpdb->prepare("CAST(um_age.meta_value AS UNSIGNED) >= %d", $filter_age_min);
+    $search_query .= $wpdb->prepare(" AND age >= %d", $filter_age_min);
 }
 if ($filter_age_max < 100) {
-    $where_conditions[] = $wpdb->prepare("CAST(um_age.meta_value AS UNSIGNED) <= %d", $filter_age_max);
-}
-
-if (!empty($where_conditions)) {
-    $search_query .= " AND " . implode(" AND ", $where_conditions);
+    $search_query .= $wpdb->prepare(" AND age <= %d", $filter_age_max);
 }
 
 // Vis kun offentlige profiler
-$search_query .= " AND (um_is_public.meta_value = '1' OR um_is_public.meta_value IS NULL)";
-
-$search_query .= " ORDER BY u.display_name ASC LIMIT 50";
+$search_query .= " AND (is_public_profile = 1 OR is_public_profile IS NULL)";
+$search_query .= " ORDER BY full_name ASC LIMIT 50";
 
 $search_results = $wpdb->get_results($search_query);
 
 // Tjek eksisterende venskabsforespørgsler
-$existing_requests = $wpdb->get_results($wpdb->prepare(
-    "SELECT friend_id, status FROM {$wpdb->prefix}rtf_platform_friends 
-     WHERE user_id = %d",
-    $user_id
-), OBJECT_K);
-
-get_header();
+$existing_requests = [];
+$friends_data = $wpdb->get_results($wpdb->prepare(
+    "SELECT friend_id, status FROM $friends_table WHERE user_id = %d",
+    $current_user->id
+));
+foreach ($friends_data as $friend) {
+    $existing_requests[$friend->friend_id] = $friend;
+}
 ?>
 
 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0; margin-bottom: 40px;">
@@ -193,14 +174,14 @@ get_header();
         <?php else: ?>
             <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;">
                 <?php foreach ($search_results as $user): 
-                    $friend_status = isset($existing_requests[$user->ID]) ? $existing_requests[$user->ID]->status : null;
-                    $profile_url = home_url('/platform-profil-view/?user_id=' . $user->ID . '&lang=' . $lang);
+                    $friend_status = isset($existing_requests[$user->id]) ? $existing_requests[$user->id]->status : null;
+                    $profile_url = home_url('/platform-profil-view/?user_id=' . $user->id . '&lang=' . $lang);
                     
                     // Get profile image (generate initials badge if no image)
                     $profile_image = !empty($user->profile_image) ? $user->profile_image : '';
                     $initials = '';
                     if (empty($profile_image)) {
-                        $name_parts = explode(' ', $user->display_name);
+                        $name_parts = explode(' ', $user->full_name);
                         $initials = strtoupper(substr($name_parts[0], 0, 1));
                         if (isset($name_parts[1])) {
                             $initials .= strtoupper(substr($name_parts[1], 0, 1));
@@ -224,7 +205,7 @@ get_header();
                         <div style="position: relative; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px;">
                             <?php if (!empty($profile_image)): ?>
                                 <img src="<?php echo esc_url($profile_image); ?>" 
-                                     alt="<?php echo esc_attr($user->display_name); ?>" 
+                                     alt="<?php echo esc_attr($user->full_name); ?>" 
                                      style="width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; object-fit: cover; position: relative; z-index: 2;">
                             <?php else: ?>
                                 <div style="width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; background: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; color: white; position: relative; z-index: 2;">
@@ -236,7 +217,7 @@ get_header();
                         <!-- User info -->
                         <div style="padding: 80px 25px 25px; margin-top: -60px;">
                             <h3 style="margin: 0 0 10px 0; font-size: 1.4em; color: #333; text-align: center;">
-                                <?php echo esc_html($user->display_name); ?>
+                                <?php echo esc_html($user->full_name); ?>
                             </h3>
                             
                             <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">

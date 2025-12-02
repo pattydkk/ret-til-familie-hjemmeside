@@ -3,17 +3,18 @@
 Template Name: Platform - Chat
 */
 
-if (!is_user_logged_in()) {
-    wp_redirect(home_url('/platform-login'));
+get_header();
+$lang = rtf_get_lang();
+
+if (!rtf_is_logged_in()) {
+    wp_redirect(home_url('/platform-auth/?lang=' . $lang));
     exit;
 }
 
-get_header('platform');
-
-$current_user = wp_get_current_user();
-$user_id = $current_user->ID;
-$language = get_user_meta($user_id, 'language_preference', true) ?: 'da_DK';
-$is_danish = ($language === 'da_DK');
+$current_user = rtf_get_current_user();
+$user_id = $current_user->id;
+$language = $current_user->language ?? 'da';
+$is_danish = ($language === 'da');
 ?>
 
 <div class="platform-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
