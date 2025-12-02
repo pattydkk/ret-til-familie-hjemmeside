@@ -184,6 +184,10 @@ if (isset($_GET['logout'])) {
                         <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
                         <?php echo esc_html($txt['wall']); ?>
                     </a>
+                    <a href="<?php echo home_url('/platform-find-borgere/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none;">
+                        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M16.5 12c1.93 0 3.5-1.57 3.5-3.5S18.43 5 16.5 5 13 6.57 13 8.5s1.57 3.5 3.5 3.5zm-9 0c1.93 0 3.5-1.57 3.5-3.5S9.43 5 7.5 5 4 6.57 4 8.5 5.57 12 7.5 12zm0 2C5.01 14 0 15.24 0 17.75V20h15v-2.25C15 15.24 9.99 14 7.5 14zm9 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h9v-2.25c0-2.51-5.01-3.75-7.5-3.75z"/></svg>
+                        <?php echo $lang === 'da' ? 'Find Borgere' : 'Hitta Medborgare'; ?>
+                    </a>
                     <a href="<?php echo home_url('/platform-chat/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; color: var(--rtf-text); text-decoration: none; position: relative;">
                         <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
                         <?php echo esc_html($txt['messages']); ?>

@@ -1,0 +1,329 @@
+<?php
+/*
+Template Name: Platform - Find Borgere
+*/
+
+// Tjek om brugeren er logget ind
+if (!is_user_logged_in()) {
+    wp_redirect(home_url('/login/'));
+    exit;
+}
+
+// Hent sprog parameter
+$lang = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : 'da';
+
+// Tjek bruger-data
+global $wpdb;
+$current_user = wp_get_current_user();
+$user_id = $current_user->ID;
+
+// Hent filtre fra URL
+$filter_country = isset($_GET['country']) ? sanitize_text_field($_GET['country']) : '';
+$filter_city = isset($_GET['city']) ? sanitize_text_field($_GET['city']) : '';
+$filter_case_type = isset($_GET['case_type']) ? sanitize_text_field($_GET['case_type']) : '';
+$filter_age_min = isset($_GET['age_min']) ? intval($_GET['age_min']) : 0;
+$filter_age_max = isset($_GET['age_max']) ? intval($_GET['age_max']) : 100;
+
+// Opbyg søgequery
+$search_query = "SELECT DISTINCT u.ID, u.user_login, u.display_name, 
+                 um_country.meta_value as country,
+                 um_city.meta_value as city,
+                 um_case_type.meta_value as case_type,
+                 um_age.meta_value as age,
+                 um_bio.meta_value as bio,
+                 um_profile_image.meta_value as profile_image,
+                 um_is_public.meta_value as is_public_profile
+                 FROM {$wpdb->users} u
+                 LEFT JOIN {$wpdb->usermeta} um_country ON u.ID = um_country.user_id AND um_country.meta_key = 'country'
+                 LEFT JOIN {$wpdb->usermeta} um_city ON u.ID = um_city.user_id AND um_city.meta_key = 'city'
+                 LEFT JOIN {$wpdb->usermeta} um_case_type ON u.ID = um_case_type.user_id AND um_case_type.meta_key = 'case_type'
+                 LEFT JOIN {$wpdb->usermeta} um_age ON u.ID = um_age.user_id AND um_age.meta_key = 'age'
+                 LEFT JOIN {$wpdb->usermeta} um_bio ON u.ID = um_bio.user_id AND um_bio.meta_key = 'bio'
+                 LEFT JOIN {$wpdb->usermeta} um_profile_image ON u.ID = um_profile_image.user_id AND um_profile_image.meta_key = 'profile_image'
+                 LEFT JOIN {$wpdb->usermeta} um_is_public ON u.ID = um_is_public.user_id AND um_is_public.meta_key = 'is_public_profile'
+                 WHERE u.ID != {$user_id}";
+
+// Tilføj filtre
+$where_conditions = array();
+if (!empty($filter_country)) {
+    $where_conditions[] = $wpdb->prepare("um_country.meta_value = %s", $filter_country);
+}
+if (!empty($filter_city)) {
+    $where_conditions[] = $wpdb->prepare("um_city.meta_value LIKE %s", '%' . $wpdb->esc_like($filter_city) . '%');
+}
+if (!empty($filter_case_type)) {
+    $where_conditions[] = $wpdb->prepare("um_case_type.meta_value = %s", $filter_case_type);
+}
+if ($filter_age_min > 0) {
+    $where_conditions[] = $wpdb->prepare("CAST(um_age.meta_value AS UNSIGNED) >= %d", $filter_age_min);
+}
+if ($filter_age_max < 100) {
+    $where_conditions[] = $wpdb->prepare("CAST(um_age.meta_value AS UNSIGNED) <= %d", $filter_age_max);
+}
+
+if (!empty($where_conditions)) {
+    $search_query .= " AND " . implode(" AND ", $where_conditions);
+}
+
+// Vis kun offentlige profiler
+$search_query .= " AND (um_is_public.meta_value = '1' OR um_is_public.meta_value IS NULL)";
+
+$search_query .= " ORDER BY u.display_name ASC LIMIT 50";
+
+$search_results = $wpdb->get_results($search_query);
+
+// Tjek eksisterende venskabsforespørgsler
+$existing_requests = $wpdb->get_results($wpdb->prepare(
+    "SELECT friend_id, status FROM {$wpdb->prefix}rtf_platform_friends 
+     WHERE user_id = %d",
+    $user_id
+), OBJECT_K);
+
+get_header();
+?>
+
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0; margin-bottom: 40px;">
+    <div class="container">
+        <h1 style="color: white; text-align: center; margin: 0; font-size: 2.5em;">
+            🔍 <?php echo $lang === 'en' ? 'Find Citizens' : 'Find Borgere'; ?>
+        </h1>
+        <p style="color: rgba(255,255,255,0.9); text-align: center; margin: 10px 0 0 0; font-size: 1.1em;">
+            <?php echo $lang === 'en' ? 'Connect with others who share similar experiences' : 'Find og connect med andre i samme situation'; ?>
+        </p>
+    </div>
+</div>
+
+<div class="platform-container" style="max-width: 1400px; margin: 0 auto; padding: 0 20px 60px;">
+    
+    <!-- Filter sektion -->
+    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 40px;">
+        <h2 style="margin: 0 0 20px 0; font-size: 1.5em; color: #333;">
+            🎯 <?php echo $lang === 'en' ? 'Search Filters' : 'Søgefiltre'; ?>
+        </h2>
+        
+        <form method="get" action="" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+            <input type="hidden" name="lang" value="<?php echo esc_attr($lang); ?>">
+            
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                    🌍 <?php echo $lang === 'en' ? 'Country' : 'Land'; ?>
+                </label>
+                <select name="country" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+                    <option value=""><?php echo $lang === 'en' ? 'All countries' : 'Alle lande'; ?></option>
+                    <option value="DK" <?php selected($filter_country, 'DK'); ?>>🇩🇰 Danmark</option>
+                    <option value="SE" <?php selected($filter_country, 'SE'); ?>>🇸🇪 Sverige</option>
+                    <option value="NO" <?php selected($filter_country, 'NO'); ?>>🇳🇴 Norge</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                    📍 <?php echo $lang === 'en' ? 'City' : 'By'; ?>
+                </label>
+                <input type="text" name="city" value="<?php echo esc_attr($filter_city); ?>" 
+                       placeholder="<?php echo $lang === 'en' ? 'Enter city name' : 'Indtast bynavn'; ?>" 
+                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                    📁 <?php echo $lang === 'en' ? 'Case Type' : 'Sagstype'; ?>
+                </label>
+                <select name="case_type" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+                    <option value=""><?php echo $lang === 'en' ? 'All case types' : 'Alle sagstyper'; ?></option>
+                    <option value="forældremyndighed" <?php selected($filter_case_type, 'forældremyndighed'); ?>>Forældremyndighed</option>
+                    <option value="samvær" <?php selected($filter_case_type, 'samvær'); ?>>Samvær</option>
+                    <option value="anbringelse" <?php selected($filter_case_type, 'anbringelse'); ?>>Anbringelse</option>
+                    <option value="tvangsfjernelse" <?php selected($filter_case_type, 'tvangsfjernelse'); ?>>Tvangsfjernelse</option>
+                    <option value="børnebidrag" <?php selected($filter_case_type, 'børnebidrag'); ?>>Børnebidrag</option>
+                    <option value="skilsmisse" <?php selected($filter_case_type, 'skilsmisse'); ?>>Skilsmisse</option>
+                    <option value="andet" <?php selected($filter_case_type, 'andet'); ?>>Andet</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                    🎂 <?php echo $lang === 'en' ? 'Age (min)' : 'Alder (min)'; ?>
+                </label>
+                <input type="number" name="age_min" value="<?php echo esc_attr($filter_age_min > 0 ? $filter_age_min : ''); ?>" 
+                       min="18" max="100" placeholder="18" 
+                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #555;">
+                    🎂 <?php echo $lang === 'en' ? 'Age (max)' : 'Alder (max)'; ?>
+                </label>
+                <input type="number" name="age_max" value="<?php echo esc_attr($filter_age_max < 100 ? $filter_age_max : ''); ?>" 
+                       min="18" max="100" placeholder="100" 
+                       style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
+            </div>
+            
+            <div style="display: flex; align-items: flex-end; gap: 10px;">
+                <button type="submit" style="flex: 1; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer; transition: transform 0.2s;">
+                    🔍 <?php echo $lang === 'en' ? 'Search' : 'Søg'; ?>
+                </button>
+                <a href="<?php echo home_url('/platform-find-borgere/?lang=' . $lang); ?>" 
+                   style="padding: 12px 24px; background: #f0f0f0; color: #555; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; text-decoration: none; text-align: center; transition: background 0.2s;">
+                    🔄 <?php echo $lang === 'en' ? 'Reset' : 'Nulstil'; ?>
+                </a>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Resultater -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="margin: 0; font-size: 1.5em; color: #333;">
+                👥 <?php echo $lang === 'en' ? 'Search Results' : 'Søgeresultater'; ?> 
+                <span style="color: #667eea;">(<?php echo count($search_results); ?>)</span>
+            </h2>
+        </div>
+        
+        <?php if (empty($search_results)): ?>
+            <div style="background: white; padding: 60px 40px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center;">
+                <div style="font-size: 4em; margin-bottom: 20px;">🔍</div>
+                <h3 style="margin: 0 0 10px 0; font-size: 1.5em; color: #333;">
+                    <?php echo $lang === 'en' ? 'No users found' : 'Ingen brugere fundet'; ?>
+                </h3>
+                <p style="color: #666; margin: 0; font-size: 1.1em;">
+                    <?php echo $lang === 'en' ? 'Try adjusting your filters or search again' : 'Prøv at justere dine filtre eller søg igen'; ?>
+                </p>
+            </div>
+        <?php else: ?>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 25px;">
+                <?php foreach ($search_results as $user): 
+                    $friend_status = isset($existing_requests[$user->ID]) ? $existing_requests[$user->ID]->status : null;
+                    $profile_url = home_url('/platform-profil-view/?user_id=' . $user->ID . '&lang=' . $lang);
+                    
+                    // Hent profilbillede
+                    $profile_image = !empty($user->profile_image) ? $user->profile_image : 'https://via.placeholder.com/150';
+                    
+                    // Afkort bio
+                    $bio_preview = !empty($user->bio) ? mb_substr($user->bio, 0, 120) : ($lang === 'en' ? 'No bio available' : 'Ingen beskrivelse tilgængelig');
+                    if (mb_strlen($user->bio) > 120) {
+                        $bio_preview .= '...';
+                    }
+                    
+                    // Land flag
+                    $country_flag = $user->country === 'DK' ? '🇩🇰' : ($user->country === 'SE' ? '🇸🇪' : ($user->country === 'NO' ? '🇳🇴' : '🌍'));
+                ?>
+                    <div style="background: white; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer;" 
+                         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 30px rgba(0,0,0,0.15)';" 
+                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(0,0,0,0.08)';">
+                        
+                        <!-- Profil header med billede -->
+                        <div style="position: relative; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px;">
+                            <img src="<?php echo esc_url($profile_image); ?>" 
+                                 alt="<?php echo esc_attr($user->display_name); ?>" 
+                                 style="width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; object-fit: cover; position: relative; z-index: 2;">
+                        </div>
+                        
+                        <!-- Bruger info -->
+                        <div style="padding: 80px 25px 25px; margin-top: -60px;">
+                            <h3 style="margin: 0 0 10px 0; font-size: 1.4em; color: #333; text-align: center;">
+                                <?php echo esc_html($user->display_name); ?>
+                            </h3>
+                            
+                            <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">
+                                <?php if (!empty($user->age)): ?>
+                                    <span style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 0.9em; color: #666;">
+                                        🎂 <?php echo esc_html($user->age); ?> <?php echo $lang === 'en' ? 'years' : 'år'; ?>
+                                    </span>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($user->country)): ?>
+                                    <span style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 0.9em; color: #666;">
+                                        <?php echo $country_flag; ?> <?php echo esc_html($user->country); ?>
+                                    </span>
+                                <?php endif; ?>
+                                
+                                <?php if (!empty($user->city)): ?>
+                                    <span style="padding: 6px 12px; background: #f0f0f0; border-radius: 20px; font-size: 0.9em; color: #666;">
+                                        📍 <?php echo esc_html($user->city); ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                            
+                            <?php if (!empty($user->case_type)): ?>
+                                <div style="text-align: center; margin-bottom: 15px;">
+                                    <span style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 20px; font-size: 0.9em; font-weight: 600; display: inline-block;">
+                                        📁 <?php echo esc_html(ucfirst($user->case_type)); ?>
+                                    </span>
+                                </div>
+                            <?php endif; ?>
+                            
+                            <p style="color: #666; margin: 0 0 20px 0; font-size: 0.95em; line-height: 1.6; text-align: center;">
+                                <?php echo esc_html($bio_preview); ?>
+                            </p>
+                            
+                            <!-- Action buttons -->
+                            <div style="display: flex; gap: 10px;">
+                                <a href="<?php echo esc_url($profile_url); ?>" 
+                                   style="flex: 1; padding: 12px; background: #f8f9fa; color: #333; text-align: center; border-radius: 8px; text-decoration: none; font-weight: 600; transition: background 0.2s;">
+                                    👤 <?php echo $lang === 'en' ? 'View Profile' : 'Se Profil'; ?>
+                                </a>
+                                
+                                <?php if ($friend_status === 'accepted'): ?>
+                                    <button disabled style="flex: 1; padding: 12px; background: #e8f5e9; color: #4caf50; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;">
+                                        ✅ <?php echo $lang === 'en' ? 'Friends' : 'Venner'; ?>
+                                    </button>
+                                <?php elseif ($friend_status === 'pending'): ?>
+                                    <button disabled style="flex: 1; padding: 12px; background: #fff3e0; color: #ff9800; border: none; border-radius: 8px; font-weight: 600; cursor: not-allowed;">
+                                        ⏳ <?php echo $lang === 'en' ? 'Pending' : 'Afventer'; ?>
+                                    </button>
+                                <?php else: ?>
+                                    <button onclick="sendFriendRequest(<?php echo $user->ID; ?>, this)" 
+                                            style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: opacity 0.2s;">
+                                        🤝 <?php echo $lang === 'en' ? 'Connect' : 'Connect'; ?>
+                                    </button>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<script>
+function sendFriendRequest(userId, button) {
+    if (confirm('<?php echo $lang === "en" ? "Send connection request to this user?" : "Send forbindelses-anmodning til denne bruger?"; ?>')) {
+        button.disabled = true;
+        button.innerHTML = '⏳ <?php echo $lang === "en" ? "Sending..." : "Sender..."; ?>';
+        
+        fetch('<?php echo rest_url('kate/v1/send-friend-request'); ?>', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': '<?php echo wp_create_nonce('wp_rest'); ?>'
+            },
+            body: JSON.stringify({
+                friend_id: userId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                button.innerHTML = '⏳ <?php echo $lang === "en" ? "Pending" : "Afventer"; ?>';
+                button.style.background = '#fff3e0';
+                button.style.color = '#ff9800';
+                alert('<?php echo $lang === "en" ? "Connection request sent!" : "Forbindelses-anmodning sendt!"; ?>');
+            } else {
+                alert('<?php echo $lang === "en" ? "Error: " : "Fejl: "; ?>' + (data.message || 'Unknown error'));
+                button.disabled = false;
+                button.innerHTML = '🤝 <?php echo $lang === "en" ? "Connect" : "Connect"; ?>';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('<?php echo $lang === "en" ? "Error sending request. Please try again." : "Fejl ved afsendelse. Prøv igen."; ?>');
+            button.disabled = false;
+            button.innerHTML = '🤝 <?php echo $lang === "en" ? "Connect" : "Connect"; ?>';
+        });
+    }
+}
+</script>
+
+<?php get_footer(); ?>

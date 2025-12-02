@@ -2290,3 +2290,204 @@ function rtf_api_admin_create_news($request) {
     return new WP_REST_Response(['success' => false, 'message' => 'Kunne ikke oprette nyhed'], 500);
 }
 
+// REST API endpoint: Send friend request
+add_action('rest_api_init', function() {
+    register_rest_route('kate/v1', '/send-friend-request', array(
+        'methods' => 'POST',
+        'callback' => 'handle_send_friend_request',
+        'permission_callback' => function() {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+function handle_send_friend_request($request) {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    $friend_id = $request->get_param('friend_id');
+    
+    if (empty($friend_id) || !is_numeric($friend_id)) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Invalid user ID'], 400);
+    }
+    
+    // Tjek om brugeren eksisterer
+    $friend = get_user_by('id', $friend_id);
+    if (!$friend) {
+        return new WP_REST_Response(['success' => false, 'message' => 'User not found'], 404);
+    }
+    
+    // Tjek om anmodning allerede eksisterer
+    $existing = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}rtf_platform_friends 
+         WHERE (user_id = %d AND friend_id = %d) OR (user_id = %d AND friend_id = %d)",
+        $current_user_id, $friend_id, $friend_id, $current_user_id
+    ));
+    
+    if ($existing) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Connection already exists or pending'], 400);
+    }
+    
+    // Opret venskabsanmodning
+    $inserted = $wpdb->insert(
+        $wpdb->prefix . 'rtf_platform_friends',
+        array(
+            'user_id' => $current_user_id,
+            'friend_id' => $friend_id,
+            'status' => 'pending',
+            'created_at' => current_time('mysql')
+        ),
+        array('%d', '%d', '%s', '%s')
+    );
+    
+    if ($inserted) {
+        // Send notifikation til modtager (kan udvides senere)
+        return new WP_REST_Response(['success' => true, 'message' => 'Friend request sent'], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Failed to send request'], 500);
+}
+
+// REST API endpoint: Accept friend request
+add_action('rest_api_init', function() {
+    register_rest_route('kate/v1', '/accept-friend-request', array(
+        'methods' => 'POST',
+        'callback' => 'handle_accept_friend_request',
+        'permission_callback' => function() {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+function handle_accept_friend_request($request) {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    $requester_id = $request->get_param('requester_id');
+    
+    if (empty($requester_id) || !is_numeric($requester_id)) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Invalid user ID'], 400);
+    }
+    
+    // Opdater status til accepted
+    $updated = $wpdb->update(
+        $wpdb->prefix . 'rtf_platform_friends',
+        array('status' => 'accepted'),
+        array(
+            'user_id' => $requester_id,
+            'friend_id' => $current_user_id,
+            'status' => 'pending'
+        ),
+        array('%s'),
+        array('%d', '%d', '%s')
+    );
+    
+    if ($updated) {
+        return new WP_REST_Response(['success' => true, 'message' => 'Friend request accepted'], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Request not found or already processed'], 400);
+}
+
+// REST API endpoint: Reject friend request
+add_action('rest_api_init', function() {
+    register_rest_route('kate/v1', '/reject-friend-request', array(
+        'methods' => 'POST',
+        'callback' => 'handle_reject_friend_request',
+        'permission_callback' => function() {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+function handle_reject_friend_request($request) {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    $requester_id = $request->get_param('requester_id');
+    
+    if (empty($requester_id) || !is_numeric($requester_id)) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Invalid user ID'], 400);
+    }
+    
+    // Slet anmodningen
+    $deleted = $wpdb->delete(
+        $wpdb->prefix . 'rtf_platform_friends',
+        array(
+            'user_id' => $requester_id,
+            'friend_id' => $current_user_id,
+            'status' => 'pending'
+        ),
+        array('%d', '%d', '%s')
+    );
+    
+    if ($deleted) {
+        return new WP_REST_Response(['success' => true, 'message' => 'Friend request rejected'], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Request not found'], 400);
+}
+
+// REST API endpoint: Get friend requests
+add_action('rest_api_init', function() {
+    register_rest_route('kate/v1', '/friend-requests', array(
+        'methods' => 'GET',
+        'callback' => 'get_friend_requests',
+        'permission_callback' => function() {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+function get_friend_requests($request) {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    
+    // Hent pending requests hvor current user er modtager
+    $requests = $wpdb->get_results($wpdb->prepare(
+        "SELECT f.*, u.display_name, u.user_email 
+         FROM {$wpdb->prefix}rtf_platform_friends f
+         JOIN {$wpdb->users} u ON f.user_id = u.ID
+         WHERE f.friend_id = %d AND f.status = 'pending'
+         ORDER BY f.created_at DESC",
+        $current_user_id
+    ));
+    
+    return new WP_REST_Response(['success' => true, 'requests' => $requests], 200);
+}
+
+// REST API endpoint: Get friends list
+add_action('rest_api_init', function() {
+    register_rest_route('kate/v1', '/friends-list', array(
+        'methods' => 'GET',
+        'callback' => 'get_friends_list',
+        'permission_callback' => function() {
+            return is_user_logged_in();
+        }
+    ));
+});
+
+function get_friends_list($request) {
+    global $wpdb;
+    $current_user_id = get_current_user_id();
+    
+    // Hent accepted friends (både hvor user er initiator og modtager)
+    $friends = $wpdb->get_results($wpdb->prepare(
+        "SELECT DISTINCT 
+            CASE 
+                WHEN f.user_id = %d THEN f.friend_id 
+                ELSE f.user_id 
+            END as friend_user_id,
+            u.display_name, u.user_email
+         FROM {$wpdb->prefix}rtf_platform_friends f
+         JOIN {$wpdb->users} u ON (
+            CASE 
+                WHEN f.user_id = %d THEN f.friend_id 
+                ELSE f.user_id 
+            END = u.ID
+         )
+         WHERE (f.user_id = %d OR f.friend_id = %d) AND f.status = 'accepted'
+         ORDER BY u.display_name ASC",
+        $current_user_id, $current_user_id, $current_user_id, $current_user_id
+    ));
+    
+    return new WP_REST_Response(['success' => true, 'friends' => $friends, 'count' => count($friends)], 200);
+}
+
