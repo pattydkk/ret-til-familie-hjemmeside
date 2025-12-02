@@ -112,13 +112,40 @@ foreach ($friends_data as $friend) {
                 </label>
                 <select name="case_type" style="width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 1em;">
                     <option value=""><?php echo $lang === 'en' ? 'All case types' : 'Alle sagstyper'; ?></option>
-                    <option value="forældremyndighed" <?php selected($filter_case_type, 'forældremyndighed'); ?>>Forældremyndighed</option>
-                    <option value="samvær" <?php selected($filter_case_type, 'samvær'); ?>>Samvær</option>
-                    <option value="anbringelse" <?php selected($filter_case_type, 'anbringelse'); ?>>Anbringelse</option>
-                    <option value="tvangsfjernelse" <?php selected($filter_case_type, 'tvangsfjernelse'); ?>>Tvangsfjernelse</option>
-                    <option value="børnebidrag" <?php selected($filter_case_type, 'børnebidrag'); ?>>Børnebidrag</option>
-                    <option value="skilsmisse" <?php selected($filter_case_type, 'skilsmisse'); ?>>Skilsmisse</option>
-                    <option value="andet" <?php selected($filter_case_type, 'andet'); ?>>Andet</option>
+                    <optgroup label="Familie & Børn">
+                        <option value="forældremyndighed" <?php selected($filter_case_type, 'forældremyndighed'); ?>>Forældremyndighed</option>
+                        <option value="samvær" <?php selected($filter_case_type, 'samvær'); ?>>Samvær</option>
+                        <option value="anbringelse" <?php selected($filter_case_type, 'anbringelse'); ?>>Anbringelse</option>
+                        <option value="tvangsfjernelse" <?php selected($filter_case_type, 'tvangsfjernelse'); ?>>Tvangsfjernelse</option>
+                        <option value="børnebidrag" <?php selected($filter_case_type, 'børnebidrag'); ?>>Børnebidrag</option>
+                        <option value="skilsmisse" <?php selected($filter_case_type, 'skilsmisse'); ?>>Skilsmisse</option>
+                    </optgroup>
+                    <optgroup label="Jobcenter & Økonomi">
+                        <option value="kontanthjælp" <?php selected($filter_case_type, 'kontanthjælp'); ?>>Kontanthjælp</option>
+                        <option value="dagpenge" <?php selected($filter_case_type, 'dagpenge'); ?>>Dagpenge</option>
+                        <option value="sygedagpenge" <?php selected($filter_case_type, 'sygedagpenge'); ?>>Sygedagpenge</option>
+                        <option value="førtidspension" <?php selected($filter_case_type, 'førtidspension'); ?>>Førtidspension</option>
+                        <option value="ressourceforløb" <?php selected($filter_case_type, 'ressourceforløb'); ?>>Ressourceforløb</option>
+                        <option value="jobafklaringsforløb" <?php selected($filter_case_type, 'jobafklaringsforløb'); ?>>Jobafklaringsforløb</option>
+                    </optgroup>
+                    <optgroup label="Handicap & Funktionsnedsættelse">
+                        <option value="handicaptillæg" <?php selected($filter_case_type, 'handicaptillæg'); ?>>Handicaptillæg</option>
+                        <option value="handicapbil" <?php selected($filter_case_type, 'handicapbil'); ?>>Handicapbil</option>
+                        <option value="personlig_hjælper" <?php selected($filter_case_type, 'personlig_hjælper'); ?>>Personlig hjælper</option>
+                        <option value="botilbud" <?php selected($filter_case_type, 'botilbud'); ?>>Botilbud</option>
+                        <option value="hjælpemidler" <?php selected($filter_case_type, 'hjælpemidler'); ?>>Hjælpemidler</option>
+                    </optgroup>
+                    <optgroup label="Ældre & Pleje">
+                        <option value="hjemmepleje" <?php selected($filter_case_type, 'hjemmepleje'); ?>>Hjemmepleje</option>
+                        <option value="plejehjem" <?php selected($filter_case_type, 'plejehjem'); ?>>Plejehjem</option>
+                        <option value="ældreboliger" <?php selected($filter_case_type, 'ældreboliger'); ?>>Ældreboliger</option>
+                        <option value="værgemål" <?php selected($filter_case_type, 'værgemål'); ?>>Værgemål</option>
+                    </optgroup>
+                    <optgroup label="Andet">
+                        <option value="boligstøtte" <?php selected($filter_case_type, 'boligstøtte'); ?>>Boligstøtte</option>
+                        <option value="fri_retshjælp" <?php selected($filter_case_type, 'fri_retshjælp'); ?>>Fri retshjælp</option>
+                        <option value="anden_sag" <?php selected($filter_case_type, 'anden_sag'); ?>>Anden sag</option>
+                    </optgroup>
                 </select>
             </div>
             

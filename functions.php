@@ -2584,13 +2584,46 @@ add_action('rest_api_init', function() {
     register_rest_route('kate/v1', '/foster-care-stats', array(
         'methods' => 'GET',
         'callback' => 'rtf_get_foster_care_stats',
-        'permission_callback' => '__return_true', // Public endpoint
+        'permission_callback' => '__return_true',
+    ));
+    
+    // Admin endpoint to force initialize stats
+    register_rest_route('kate/v1', '/foster-care-stats/init', array(
+        'methods' => 'POST',
+        'callback' => 'rtf_force_init_foster_stats',
+        'permission_callback' => function() {
+            $current_user = rtf_get_current_user();
+            return $current_user && $current_user->is_admin == 1;
+        },
     ));
 });
+
+function rtf_force_init_foster_stats() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'rtf_foster_care_stats';
+    
+    // Delete existing data
+    $wpdb->query("DELETE FROM $table");
+    
+    // Re-initialize
+    rtf_init_foster_care_stats();
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'message' => 'Statistics re-initialized',
+        'data' => $wpdb->get_results("SELECT * FROM $table")
+    ], 200);
+}
 
 function rtf_get_foster_care_stats() {
     global $wpdb;
     $table = $wpdb->prefix . 'rtf_foster_care_stats';
+    
+    // Force initialization if table is empty
+    $exists = $wpdb->get_var("SELECT COUNT(*) FROM $table");
+    if ($exists == 0) {
+        rtf_init_foster_care_stats();
+    }
     
     $stats = $wpdb->get_results(
         "SELECT country, current_estimate, confidence_level, last_updated 
@@ -2600,10 +2633,12 @@ function rtf_get_foster_care_stats() {
     );
     
     if (empty($stats)) {
+        error_log('Foster care stats: No data found in table');
         return new WP_REST_Response([
             'success' => false,
             'message' => 'No statistics available yet. System is initializing...',
-            'stats' => []
+            'stats' => [],
+            'debug' => 'Table exists but no data found'
         ], 200);
     }
     
@@ -2634,6 +2669,12 @@ function rtf_init_foster_care_stats() {
     global $wpdb;
     $table = $wpdb->prefix . 'rtf_foster_care_stats';
     
+    // Check if table exists first
+    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
+    if (!$table_exists) {
+        return; // Table will be created on theme activation
+    }
+    
     // Check if data exists
     $exists = $wpdb->get_var("SELECT COUNT(*) FROM $table");
     
@@ -2641,7 +2682,7 @@ function rtf_init_foster_care_stats() {
         // Denmark baseline (Ankestyrelsen 2023 report: ~11,000 anbringelser)
         $wpdb->insert($table, [
             'country' => 'DK',
-            'current_estimate' => 11247, // Latest estimate with growth
+            'current_estimate' => 11247,
             'confidence_level' => 98.50,
             'data_sources' => json_encode([
                 ['source' => 'Ankestyrelsen', 'url' => 'https://ast.dk/tal-og-analyser', 'year' => 2023],
@@ -2654,7 +2695,7 @@ function rtf_init_foster_care_stats() {
         // Sweden baseline (Socialstyrelsen 2023: ~24,000 omhändertagna)
         $wpdb->insert($table, [
             'country' => 'SE',
-            'current_estimate' => 24685, // Latest estimate with growth
+            'current_estimate' => 24685,
             'confidence_level' => 98.20,
             'data_sources' => json_encode([
                 ['source' => 'Socialstyrelsen', 'url' => 'https://www.socialstyrelsen.se/statistik-och-data/', 'year' => 2023],
@@ -2663,9 +2704,12 @@ function rtf_init_foster_care_stats() {
             'base_annual_report' => 24000,
             'growth_rate' => 2.85,
         ]);
+        
+        error_log('Foster care statistics initialized: DK=11247, SE=24685');
     }
 }
 add_action('after_setup_theme', 'rtf_init_foster_care_stats');
+add_action('init', 'rtf_init_foster_care_stats'); // Also run on init
 
 /**
  * Cron job: Update foster care statistics hourly

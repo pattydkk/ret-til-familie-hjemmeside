@@ -149,7 +149,6 @@ $topics = $wpdb->get_results(
                         <option value=""><?php echo $lang === 'da' ? 'Alle lande' : 'Alla länder'; ?></option>
                         <option value="DK" <?php selected($filter_country, 'DK'); ?>>🇩🇰 Danmark</option>
                         <option value="SE" <?php selected($filter_country, 'SE'); ?>>🇸🇪 Sverige</option>
-                        <option value="NO" <?php selected($filter_country, 'NO'); ?>>🇳🇴 Norge</option>
                     </select>
                 </div>
                 
@@ -226,7 +225,6 @@ $topics = $wpdb->get_results(
                         <option value=""><?php echo $lang === 'da' ? 'Vælg land' : 'Välj land'; ?></option>
                         <option value="DK">🇩🇰 Danmark</option>
                         <option value="SE">🇸🇪 Sverige</option>
-                        <option value="NO">🇳🇴 Norge</option>
                     </select>
                     
                     <input type="text" name="city" placeholder="<?php echo $lang === 'da' ? 'By (valgfri)' : 'Stad (valfritt)'; ?>" style="padding: 10px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
