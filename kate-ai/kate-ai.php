@@ -10,6 +10,13 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// CRITICAL: Check if vendor dependencies are loaded
+// Without vendor/, Kate AI classes will cause fatal errors
+if (!defined('RTF_VENDOR_LOADED') || !RTF_VENDOR_LOADED) {
+    // Vendor not available - do not initialize Kate AI
+    return;
+}
+
 // Define Kate AI paths
 define('KATE_AI_PATH', dirname(__FILE__));
 define('KATE_AI_URL', get_stylesheet_directory_uri() . '/kate-ai');
