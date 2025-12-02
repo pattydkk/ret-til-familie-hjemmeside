@@ -2,12 +2,14 @@
 /**
  * Plugin Name: RTF Vendor Dependencies
  * Plugin URI: https://github.com/pattydkk/ret-til-familie-hjemmeside
- * Description: Loads Composer vendor dependencies (Stripe, mPDF, PHPWord, PDF Parser) for Ret til Familie theme
- * Version: 1.0.0
+ * Description: Loads Composer vendor dependencies (Stripe, mPDF, PHPWord, PDF Parser) for Ret til Familie theme. Auto-updates from GitHub.
+ * Version: 1.0.1
  * Author: Ret til Familie
  * Author URI: https://rettilfamilie.com
  * License: GPL v2 or later
  * Text Domain: rtf-vendor
+ * GitHub Plugin URI: pattydkk/ret-til-familie-hjemmeside
+ * GitHub Branch: main
  */
 
 // Exit if accessed directly
@@ -16,9 +18,12 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('RTF_VENDOR_VERSION', '1.0.0');
+define('RTF_VENDOR_VERSION', '1.0.1');
 define('RTF_VENDOR_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('RTF_VENDOR_PLUGIN_URL', plugin_dir_url(__FILE__));
+
+// Load GitHub Updater for plugin
+require_once RTF_VENDOR_PLUGIN_DIR . 'github-updater.php';
 
 /**
  * Load Composer autoloader
