@@ -22,7 +22,7 @@ $t = array(
         'full_name' => 'Fulde navn',
         'birthday' => 'Fødselsdag',
         'phone' => 'Telefonnummer',
-        'phone_privacy' => '🔒 Dit telefonnummer er kun synligt for administratorer - aldrig for andre brugere.',
+        'phone_privacy' => 'Dit telefonnummer er kun synligt for administratorer - aldrig for andre brugere.',
         'login_btn' => 'Log ind',
         'register_btn' => 'Opret konto',
         'switch_to_register' => 'Har du ikke en konto? Registrer dig her',
@@ -38,7 +38,7 @@ $t = array(
         'full_name' => 'Fullständigt namn',
         'birthday' => 'Födelsedag',
         'phone' => 'Telefonnummer',
-        'phone_privacy' => '🔒 Ditt telefonnummer är endast synligt för administratörer - aldrig för andra användare.',
+        'phone_privacy' => 'Ditt telefonnummer är endast synligt för administratörer - aldrig för andra användare.',
         'login_btn' => 'Logga in',
         'register_btn' => 'Skapa konto',
         'switch_to_register' => 'Har du inget konto? Registrera dig här',
@@ -54,7 +54,7 @@ $t = array(
         'full_name' => 'Full Name',
         'birthday' => 'Birthday',
         'phone' => 'Phone Number',
-        'phone_privacy' => '🔒 Your phone number is only visible to administrators - never to other users.',
+        'phone_privacy' => 'Your phone number is only visible to administrators - never to other users.',
         'login_btn' => 'Login',
         'register_btn' => 'Create Account',
         'switch_to_register' => "Don't have an account? Register here",
@@ -271,8 +271,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="form-group" style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-text);"><?php echo esc_html($txt['phone']); ?></label>
                     <input type="tel" name="phone" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;" placeholder="+45 12 34 56 78">
-                    <small style="display: block; margin-top: 5px; color: #64748b; font-size: 0.85em;">
-                        <?php echo esc_html($txt['phone_privacy']); ?>
+                    <small style="display: block; margin-top: 8px; padding: 12px; background: #e0f2fe; border-left: 3px solid #2563eb; border-radius: 4px; color: #1e3a8a; font-size: 0.85em;">
+                        <strong>🔒 Privat:</strong> <?php echo esc_html($txt['phone_privacy']); ?>
                     </small>
                 </div>
 
@@ -282,12 +282,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <?php echo $lang === 'da' ? 'Vælg sprog / Land' : ($lang === 'sv' ? 'Välj språk / Land' : 'Choose Language / Country'); ?>
                     </label>
                     <select name="language_preference" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em; background: white;">
-                        <option value="da_DK"><?php echo $lang === 'da' ? '🇩🇰 Dansk (Danmark)' : ($lang === 'sv' ? '🇩🇰 Danska (Danmark)' : '🇩🇰 Danish (Denmark)'); ?></option>
-                        <option value="sv_SE"><?php echo $lang === 'da' ? '🇸🇪 Svenska (Sverige)' : ($lang === 'sv' ? '🇸🇪 Svenska (Sverige)' : '🇸🇪 Swedish (Sweden)'); ?></option>
-                        <option value="en_US"><?php echo $lang === 'da' ? '🌍 English (International)' : ($lang === 'sv' ? '🌍 Engelska (Internationell)' : '🌍 English (International)'); ?></option>
+                        <option value="da_DK"><?php echo $lang === 'da' ? 'Dansk (Danmark)' : ($lang === 'sv' ? 'Danska (Danmark)' : 'Danish (Denmark)'); ?></option>
+                        <option value="sv_SE"><?php echo $lang === 'da' ? 'Svenska (Sverige)' : ($lang === 'sv' ? 'Svenska (Sverige)' : 'Swedish (Sweden)'); ?></option>
+                        <option value="en_US"><?php echo $lang === 'da' ? 'English (International)' : ($lang === 'sv' ? 'Engelska (Internationell)' : 'English (International)'); ?></option>
                     </select>
-                    <small style="display: block; margin-top: 8px; color: #64748b; font-size: 0.85em; padding: 10px; background: #fef3c7; border-left: 3px solid #fbbf24; border-radius: 4px;">
-                        <strong><?php echo $lang === 'da' ? '💰 Alle priser er i DKK (danske kroner)' : ($lang === 'sv' ? '💰 Alla priser är i DKK (danska kronor)' : '💰 All prices are in DKK (Danish Kroner)'); ?></strong>
+                    <small style="display: block; margin-top: 8px; color: #1e3a8a; font-size: 0.85em; padding: 10px; background: #fef3c7; border-left: 3px solid #fbbf24; border-radius: 4px;">
+                        <strong>Alle priser er i DKK (danske kroner)</strong>
                     </small>
                 </div>
 
