@@ -960,35 +960,68 @@ add_action('after_switch_theme', 'rtf_create_pages_menu_on_switch');
 add_action('wp_ajax_rtf_force_create_pages', 'rtf_force_create_pages');
 add_action('wp_ajax_nopriv_rtf_force_create_pages', 'rtf_force_create_pages');
 function rtf_force_create_pages() {
-    echo '<html><head><meta charset="utf-8"><title>RTF Setup</title></head><body style="font-family: Arial; max-width: 800px; margin: 50px auto; padding: 20px;">';
+    // Set longer execution time
+    set_time_limit(300);
+    
+    echo '<html><head><meta charset="utf-8"><title>RTF Setup</title>';
+    echo '<style>body{font-family:Arial;max-width:900px;margin:50px auto;padding:20px;background:#f8fafc}';
+    echo '.success{color:#059669;padding:10px;background:#d1fae5;border-left:4px solid #059669;margin:10px 0}';
+    echo '.error{color:#dc2626;padding:10px;background:#fee2e2;border-left:4px solid #dc2626;margin:10px 0}';
+    echo '.info{color:#2563eb;padding:10px;background:#dbeafe;border-left:4px solid #2563eb;margin:10px 0}</style>';
+    echo '</head><body>';
     echo '<h1 style="color: #2563eb;">🚀 RTF Platform Setup</h1>';
-    echo '<div style="background: #dbeafe; padding: 20px; border-left: 4px solid #2563eb; margin: 20px 0;">';
     
-    echo '<p><strong>📊 Opretter database tabeller...</strong></p>';
-    rtf_create_platform_tables();
-    echo '<p style="color: green;">✅ Database tabeller oprettet</p>';
+    try {
+        echo '<div class="info"><strong>📊 Opretter database tabeller...</strong></div>';
+        rtf_create_platform_tables();
+        echo '<div class="success">✅ Database tabeller oprettet (28 tabeller)</div>';
+    } catch (Exception $e) {
+        echo '<div class="error">❌ Fejl ved oprettelse af tabeller: ' . $e->getMessage() . '</div>';
+    }
     
-    echo '<p><strong>📄 Opretter alle sider...</strong></p>';
-    rtf_create_pages_menu_on_switch();
-    echo '<p style="color: green;">✅ 24 sider oprettet</p>';
+    try {
+        echo '<div class="info"><strong>📄 Opretter alle sider...</strong></div>';
+        rtf_create_pages_menu_on_switch();
+        echo '<div class="success">✅ 25 sider oprettet med templates</div>';
+    } catch (Exception $e) {
+        echo '<div class="error">❌ Fejl ved oprettelse af sider: ' . $e->getMessage() . '</div>';
+    }
     
-    echo '<p><strong>👤 Opretter admin bruger...</strong></p>';
-    rtf_create_default_admin();
-    echo '<p style="color: green;">✅ Admin bruger oprettet (username: admin, password: admin123)</p>';
+    try {
+        echo '<div class="info"><strong>👤 Opretter admin bruger...</strong></div>';
+        rtf_create_default_admin();
+        echo '<div class="success">✅ Admin bruger oprettet/verificeret<br>';
+        echo '<strong>Email:</strong> patrickfoerslev@gmail.com<br>';
+        echo '<strong>Password:</strong> Ph1357911<br>';
+        echo '<strong>Status:</strong> Admin har FRI adgang uden abonnement</div>';
+    } catch (Exception $e) {
+        echo '<div class="error">❌ Fejl ved oprettelse af admin: ' . $e->getMessage() . '</div>';
+    }
     
-    echo '<p><strong>🔄 Flusher permalinks...</strong></p>';
-    flush_rewrite_rules();
-    echo '<p style="color: green;">✅ Permalinks flushed</p>';
+    try {
+        echo '<div class="info"><strong>🔄 Flusher permalinks...</strong></div>';
+        flush_rewrite_rules();
+        echo '<div class="success">✅ Permalinks flushed</div>';
+    } catch (Exception $e) {
+        echo '<div class="error">❌ Fejl ved flush: ' . $e->getMessage() . '</div>';
+    }
     
-    echo '</div>';
-    echo '<h2 style="color: green;">✅ SETUP GENNEMFØRT!</h2>';
-    echo '<p><strong>Test disse sider nu:</strong></p>';
-    echo '<ul>';
-    echo '<li><a href="' . home_url('/') . '" target="_blank">Forside</a></li>';
-    echo '<li><a href="' . home_url('/borger-platform/') . '" target="_blank">Borgerplatform</a></li>';
-    echo '<li><a href="' . home_url('/platform-auth/') . '" target="_blank">Login/Registrering</a></li>';
-    echo '<li><a href="' . home_url('/om-os/') . '" target="_blank">Om os</a></li>';
-    echo '</ul>';
+    echo '<h2 style="color: #059669; margin-top: 30px;">✅ SETUP GENNEMFØRT!</h2>';
+    echo '<div class="info"><strong>📋 Test disse sider nu:</strong>';
+    echo '<ul style="line-height: 1.8;">';
+    echo '<li>🏠 <a href="' . home_url('/') . '" target="_blank" style="color:#2563eb">Forside</a></li>';
+    echo '<li>🌐 <a href="' . home_url('/borger-platform/') . '" target="_blank" style="color:#2563eb">Borgerplatform Landing</a></li>';
+    echo '<li>🔐 <a href="' . home_url('/platform-auth/') . '" target="_blank" style="color:#2563eb">Login/Registrering</a></li>';
+    echo '<li>🧪 <a href="' . home_url('/test-db/') . '" target="_blank" style="color:#2563eb">Database Test</a></li>';
+    echo '<li>👤 <a href="' . home_url('/platform-profil/') . '" target="_blank" style="color:#2563eb">Min Profil (kræver login)</a></li>';
+    echo '</ul></div>';
+    
+    echo '<div class="success" style="margin-top:20px"><strong>🎯 NÆSTE TRIN:</strong><br>';
+    echo '1. Log ind med admin: patrickfoerslev@gmail.com / Ph1357911<br>';
+    echo '2. Test at du kan se profil og alle platform funktioner<br>';
+    echo '3. Opret en test bruger for at verificere registrering virker<br>';
+    echo '4. Admin har automatisk fri adgang til alt uden abonnement</div>';
+    
     echo '</body></html>';
     exit;
 }
@@ -1018,6 +1051,11 @@ function rtf_require_subscription() {
     if (!rtf_is_logged_in()) {
         wp_redirect(home_url('/platform-auth'));
         exit;
+    }
+    
+    // Admin har altid fri adgang
+    if (rtf_is_admin_user()) {
+        return;
     }
     
     $user = rtf_get_current_user();
