@@ -280,6 +280,35 @@ get_header();
         </div>
     </div>
     
+    <!-- NEWS CREATION SECTION -->
+    <div style="background: #f7fafc; padding: 25px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin: 30px 0;">
+        <h3 style="margin: 0 0 20px 0; color: #2d3748; font-size: 1.3em;">📰 Opret nyhed</h3>
+        <form id="createNewsForm">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Titel</label>
+                <input type="text" name="title" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Indhold</label>
+                <textarea name="content" rows="6" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em; resize: vertical;"></textarea>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-weight: 600; color: #4a5568; margin-bottom: 8px;">Land</label>
+                <select name="country" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1em;">
+                    <option value="DK">🇩🇰 Danmark</option>
+                    <option value="SE">🇸🇪 Sverige</option>
+                    <option value="BOTH">Begge lande</option>
+                </select>
+            </div>
+            
+            <button type="submit" style="padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer;">
+                Opret nyhed
+            </button>
+        </form>
+    </div>
+    
     <div class="quick-actions">
         <a href="<?php echo home_url('/platform-admin-users'); ?>" class="action-btn">
             <span class="icon">👥</span>
@@ -300,6 +329,41 @@ get_header();
 // Load analytics on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadAnalytics();
+    
+    // News creation form
+    document.getElementById('createNewsForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = {
+            title: formData.get('title'),
+            content: formData.get('content'),
+            country: formData.get('country')
+        };
+        
+        try {
+            const response = await fetch('/wp-json/kate/v1/admin/create-news', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert('Nyhed oprettet!');
+                this.reset();
+            } else {
+                alert(result.message || 'Kunne ikke oprette nyhed');
+            }
+        } catch (error) {
+            console.error('Create news error:', error);
+            alert('Der opstod en fejl');
+        }
+    });
 });
 
 async function loadAnalytics() {

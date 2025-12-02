@@ -11,12 +11,57 @@ if (!rtf_is_logged_in()) {
 }
 
 $user = rtf_get_current_user();
-$lang = $_GET['lang'] ?? $user['language_preference'] ?? 'da_DK';
-$lang_code = substr($lang, 0, 2); // da, sv, en
+$lang = rtf_get_lang();
 
-// Load translations
-require_once get_template_directory() . '/translations.php';
-$t = rtf_get_all_translations($lang_code);
+// Simple translations
+$t = array(
+    'da' => array(
+        'case_help_title' => 'Sagshjælp',
+        'disclaimer_not_lawyer' => 'Vigtigt: Vi er ikke advokater',
+        'need_professional_help' => 'Har du brug for professionel juridisk hjælp?',
+        'conflict_mediation' => 'Konflikthåndtering',
+        'party_representation' => 'Partsrepræsentation',
+        'case_review' => 'Sagsgennemgang',
+        'documentation_importance' => 'Dokumentation er ALT i din sag',
+        'tip_record_meetings' => 'Optag ALLE møder',
+        'tip_transcribe' => 'Få transskriptioner',
+        'tip_save_emails' => 'Gem alle emails og SMS',
+        'tip_keep_diary' => 'Før dagbog',
+        'tip_take_photos' => 'Tag billeder',
+        'tip_witnesses' => 'Få vidneudsagn'
+    ),
+    'sv' => array(
+        'case_help_title' => 'Ärendehjälp',
+        'disclaimer_not_lawyer' => 'Viktigt: Vi är inte advokater',
+        'need_professional_help' => 'Behöver du professionell juridisk hjälp?',
+        'conflict_mediation' => 'Konflikthantering',
+        'party_representation' => 'Partsrepresentation',
+        'case_review' => 'Ärendegranskning',
+        'documentation_importance' => 'Dokumentation är ALLT i ditt ärende',
+        'tip_record_meetings' => 'Spela in ALLA möten',
+        'tip_transcribe' => 'Få transkriptioner',
+        'tip_save_emails' => 'Spara alla e-post och SMS',
+        'tip_keep_diary' => 'För dagbok',
+        'tip_take_photos' => 'Ta bilder',
+        'tip_witnesses' => 'Få vittnesmål'
+    ),
+    'en' => array(
+        'case_help_title' => 'Case Help',
+        'disclaimer_not_lawyer' => 'Important: We are not lawyers',
+        'need_professional_help' => 'Do you need professional legal help?',
+        'conflict_mediation' => 'Conflict Mediation',
+        'party_representation' => 'Party Representation',
+        'case_review' => 'Case Review',
+        'documentation_importance' => 'Documentation is EVERYTHING in your case',
+        'tip_record_meetings' => 'Record ALL meetings',
+        'tip_transcribe' => 'Get transcriptions',
+        'tip_save_emails' => 'Save all emails and SMS',
+        'tip_keep_diary' => 'Keep a diary',
+        'tip_take_photos' => 'Take photos',
+        'tip_witnesses' => 'Get witness statements'
+    )
+);
+$txt = $t[$lang];
 
 get_header();
 ?>
@@ -175,7 +220,7 @@ get_header();
     
     <main class="platform-content">
         <div class="help-intro">
-            <h1 style="margin: 0 0 1rem 0; color: #0f172a;">\u26d6\ufe0f <?php echo $t['case_help_title']; ?></h1>
+            <h1 style="margin: 0 0 1rem 0; color: #0f172a;">\u26d6\ufe0f <?php echo $txt['case_help_title']; ?></h1>
             <p style="color: #64748b; font-size: 1rem; line-height: 1.6;">
                 <?php 
                 if ($lang_code === 'da') {
@@ -191,7 +236,7 @@ get_header();
         
         <!-- DISCLAIMER -->
         <div style=\"background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem;\">
-            <h3 style=\"margin: 0 0 1rem 0; color: #856404;\"><?php echo $t['disclaimer_not_lawyer']; ?></h3>
+            <h3 style=\"margin: 0 0 1rem 0; color: #856404;\"><?php echo $txt['disclaimer_not_lawyer']; ?></h3>
             <p style=\"margin: 0 0 1rem 0; color: #856404; line-height: 1.6;\">
                 <?php 
                 if ($lang_code === 'da') {
@@ -204,11 +249,11 @@ get_header();
                 ?>
             </p>
             <div style=\"background: white; border-radius: 8px; padding: 1rem; margin-top: 1rem;\">
-                <strong style=\"color: #2563eb;\"><?php echo $t['need_professional_help']; ?></strong><br>
+                <strong style=\"color: #2563eb;\"><?php echo $txt['need_professional_help']; ?></strong><br>
                 <ul style=\"margin: 0.5rem 0 0 0; padding-left: 1.5rem; color: #475569;\">
-                    <li><strong>\ud83e\udd1d <?php echo $t['conflict_mediation']; ?></strong></li>
-                    <li><strong>\ud83d\udcc4 <?php echo $t['party_representation']; ?></strong></li>
-                    <li><strong>\ud83d\udd0d <?php echo $t['case_review']; ?></strong></li>
+                    <li><strong>\ud83e\udd1d <?php echo $txt['conflict_mediation']; ?></strong></li>
+                    <li><strong>\ud83d\udcc4 <?php echo $txt['party_representation']; ?></strong></li>
+                    <li><strong>\ud83d\udd0d <?php echo $txt['case_review']; ?></strong></li>
                     <li style=\"margin-top: 0.5rem;\">📧 Email: kontakt@rettiltifamilie.dk</li>
                     <li>📞 Telefon: +45 123 456 78</li>
                 </ul>
@@ -217,11 +262,11 @@ get_header();
         
         <!-- DOCUMENTATION GUIDE -->
         <div style=\"background: #e0f2fe; border: 2px solid #2563eb; border-radius: 12px; padding: 2rem; margin-bottom: 2rem;\">
-            <h2 style=\"margin: 0 0 1rem 0; color: #2563eb;\"><?php echo $t['documentation_importance']; ?></h2>
+            <h2 style=\"margin: 0 0 1rem 0; color: #2563eb;\"><?php echo $txt['documentation_importance']; ?></h2>
             <div style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-top: 1.5rem;\">
                 <div style=\"background: white; border-radius: 8px; padding: 1.25rem;\">
                     <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">\ud83c\udf99\ufe0f</div>
-                    <strong><?php echo $t['tip_record_meetings']; ?></strong>
+                    <strong><?php echo $txt['tip_record_meetings']; ?></strong>
                     <p style=\"margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.9rem;\">
                         <?php 
                         if ($lang_code === 'da') {
@@ -229,7 +274,7 @@ get_header();
                         } elseif ($lang_code === 'sv') {
                             echo 'Det är lagligt i både Danmark och Sverige att spela in egna samtal utan den andres samtycke (för privat bruk). Inspelningar kan användas som bevis i rätten.';
                         } else {
-                            echo 'It is legal in both Denmark and Sweden to record your own conversations without the other party\\'s consent (for private use). Recordings can be used as evidence in court.';
+                            echo 'It is legal in both Denmark and Sweden to record your own conversations without the other party\'s consent (for private use). Recordings can be used as evidence in court.';
                         }
                         ?>
                     </p>
@@ -237,7 +282,7 @@ get_header();
                 
                 <div style=\"background: white; border-radius: 8px; padding: 1.25rem;\">
                     <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">\ud83d\udcc4</div>
-                    <strong><?php echo $t['tip_transcribe']; ?></strong>
+                    <strong><?php echo $txt['tip_transcribe']; ?></strong>
                     <p style=\"margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.9rem;\">
                         <?php 
                         if ($lang_code === 'da') {
@@ -245,7 +290,7 @@ get_header();
                         } elseif ($lang_code === 'sv') {
                             echo 'Få professionella transkriberingar av alla möten. Detta visar vad som sades och kan påvisa motsägelser i myndigheternas förklaringar.';
                         } else {
-                            echo 'Get professional transcriptions of all meetings. This shows what was said and can reveal contradictions in authorities\\' statements.';
+                            echo 'Get professional transcriptions of all meetings. This shows what was said and can reveal contradictions in authorities' . "'" . ' statements.';
                         }
                         ?>
                     </p>
@@ -253,11 +298,11 @@ get_header();
                 
                 <div style=\"background: white; border-radius: 8px; padding: 1.25rem;\">
                     <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">\ud83d\udce7</div>
-                    <strong><?php echo $t['tip_save_emails']; ?></strong>
+                    <strong><?php echo $txt['tip_save_emails']; ?></strong>
                     <p style=\"margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.9rem;\">
                         <?php 
                         if ($lang_code === 'da') {
-                            echo 'Gem ALLE emails, SMS\\'er og beskeder i din sag. Tag screenshots af vigtige beskeder. Print emails og gem i mapper med dato.';
+                            echo 'Gem ALLE emails, SMS' . "'" . 'er og beskeder i din sag. Tag screenshots af vigtige beskeder. Print emails og gem i mapper med dato.';
                         } elseif ($lang_code === 'sv') {
                             echo 'Spara ALLA e-postmeddelanden, SMS och meddelanden i ditt ärende. Ta skärmdumpar av viktiga meddelanden. Skriv ut e-post och spara i mappar med datum.';
                         } else {
@@ -269,7 +314,7 @@ get_header();
                 
                 <div style=\"background: white; border-radius: 8px; padding: 1.25rem;\">
                     <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">\ud83d\udcd4</div>
-                    <strong><?php echo $t['tip_keep_diary']; ?></strong>
+                    <strong><?php echo $txt['tip_keep_diary']; ?></strong>
                     <p style=\"margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.9rem;\">
                         <?php 
                         if ($lang_code === 'da') {
@@ -285,7 +330,7 @@ get_header();
                 
                 <div style=\"background: white; border-radius: 8px; padding: 1.25rem;\">
                     <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">\ud83d\udcf8</div>
-                    <strong><?php echo $t['tip_take_photos']; ?></strong>
+                    <strong><?php echo $txt['tip_take_photos']; ?></strong>
                     <p style=\"margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.9rem;\">
                         <?php 
                         if ($lang_code === 'da') {
@@ -293,7 +338,7 @@ get_header();
                         } elseif ($lang_code === 'sv') {
                             echo 'Ta bilder av alla dokument, brevlådan, din bostad (om relevant), barnens välbefinnande. Bilder säger mer än ord.';
                         } else {
-                            echo 'Take photos of all documents, mailbox, your home (if relevant), children\\'s well-being. Pictures speak louder than words.';
+                            echo 'Take photos of all documents, mailbox, your home (if relevant), children' . "'" . 's well-being. Pictures speak louder than words.';
                         }
                         ?>
                     </p>
@@ -301,7 +346,7 @@ get_header();
                 
                 <div style=\"background: white; border-radius: 8px; padding: 1.25rem;\">
                     <div style=\"font-size: 2rem; margin-bottom: 0.5rem;\">\ud83d\udc65</div>
-                    <strong><?php echo $t['tip_witnesses']; ?></strong>
+                    <strong><?php echo $txt['tip_witnesses']; ?></strong>
                     <p style=\"margin: 0.5rem 0 0 0; color: #64748b; font-size: 0.9rem;\">
                         <?php 
                         if ($lang_code === 'da') {
@@ -856,3 +901,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php get_footer(); ?>
+
+

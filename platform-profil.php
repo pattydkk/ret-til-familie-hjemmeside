@@ -109,15 +109,33 @@ if (isset($_GET['logout'])) {
         <div style="display: grid; grid-template-columns: 300px 1fr; gap: 30px;">
             
             <!-- SIDEBAR -->
-            <div class="sidebar">
-                <div class="profile-card" style="background: var(--rtf-card); padding: 30px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 20px; text-align: center;">
-                    <div class="profile-avatar" style="width: 100px; height: 100px; background: linear-gradient(135deg, #60a5fa, #2563eb); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">
-                        <?php echo strtoupper(substr($current_user->username, 0, 1)); ?>
+            <div class="sidebar" style="position: sticky; top: 80px; height: fit-content;">
+                <div class="profile-card" style="background: var(--rtf-card); border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 20px; overflow: hidden; text-align: center;">
+                    <!-- Cover Image -->
+                    <div class="cover-image" style="position: relative; height: 120px; background: <?php echo $current_user->cover_image ? 'url(' . esc_url($current_user->cover_image) . ') center/cover' : 'linear-gradient(135deg, #60a5fa, #2563eb)'; ?>;">
+                        <label for="coverUpload" style="position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; padding: 6px 12px; border-radius: 8px; cursor: pointer; font-size: 12px;">
+                            <svg style="width: 16px; height: 16px; fill: currentColor; display: inline; vertical-align: middle;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                            <?php echo $lang === 'da' ? 'Skift' : 'Byt'; ?>
+                        </label>
+                        <input type="file" id="coverUpload" accept="image/*" style="display: none;">
                     </div>
-                    <h2 style="margin-bottom: 10px; color: var(--rtf-text);"><?php echo esc_html($current_user->full_name); ?></h2>
-                    <p style="color: var(--rtf-muted); margin-bottom: 20px;">@<?php echo esc_html($current_user->username); ?></p>
-                    <div class="subscription-badge" style="display: inline-block; padding: 8px 20px; background: <?php echo $current_user->subscription_status === 'active' ? 'linear-gradient(135deg, #38bdf8, #0ea5e9)' : '#e0f2fe'; ?>; color: <?php echo $current_user->subscription_status === 'active' ? '#ffffff' : '#1e3a8a'; ?>; border-radius: 20px; font-weight: 600; margin-bottom: 20px;">
-                        <?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?>
+                    
+                    <!-- Profile Avatar -->
+                    <div style="position: relative; margin-top: -50px; padding: 0 30px 20px;">
+                        <div class="profile-avatar" style="position: relative; width: 100px; height: 100px; background: <?php echo $current_user->profile_image ? 'url(' . esc_url($current_user->profile_image) . ') center/cover' : 'linear-gradient(135deg, #60a5fa, #2563eb)'; ?>; border: 4px solid var(--rtf-card); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">
+                            <?php if (!$current_user->profile_image): ?>
+                                <?php echo strtoupper(substr($current_user->username, 0, 1)); ?>
+                            <?php endif; ?>
+                            <label for="profileUpload" style="position: absolute; bottom: 0; right: 0; background: #0ea5e9; color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                            </label>
+                            <input type="file" id="profileUpload" accept="image/*" style="display: none;">
+                        </div>
+                        <h2 style="margin: 15px 0 10px; color: var(--rtf-text);"><?php echo esc_html($current_user->full_name); ?></h2>
+                        <p style="color: var(--rtf-muted); margin-bottom: 15px;">@<?php echo esc_html($current_user->username); ?></p>
+                        <div class="subscription-badge" style="display: inline-block; padding: 8px 20px; background: <?php echo $current_user->subscription_status === 'active' ? 'linear-gradient(135deg, #38bdf8, #0ea5e9)' : '#e0f2fe'; ?>; color: <?php echo $current_user->subscription_status === 'active' ? '#ffffff' : '#1e3a8a'; ?>; border-radius: 20px; font-weight: 600;">
+                            <?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?>
+                        </div>
                     </div>
                 </div>
 
@@ -195,46 +213,82 @@ if (isset($_GET['logout'])) {
                 <div class="profile-info" style="background: var(--rtf-card); padding: 40px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px;">
                     <h1 style="margin-bottom: 30px; color: var(--rtf-text);"><?php echo esc_html($txt['title']); ?></h1>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
-                        <div>
-                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['username']); ?></label>
-                            <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->username); ?></p>
+                    <form id="profileUpdateForm">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['username']); ?></label>
+                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->username); ?></p>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['email']); ?></label>
+                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->email); ?></p>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['fullname']); ?></label>
+                                <input type="text" name="full_name" value="<?php echo esc_attr($current_user->full_name); ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['birthday']); ?></label>
+                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($birthday_display); ?></p>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Sagstype' : 'Ärendetyp'; ?></label>
+                                <select name="case_type" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                                    <option value=""><?php echo $lang === 'da' ? 'Vælg sagstype' : 'Välj ärendetyp'; ?></option>
+                                    <option value="custody" <?php echo $current_user->case_type === 'custody' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad'; ?></option>
+                                    <option value="visitation" <?php echo $current_user->case_type === 'visitation' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Samvær' : 'Umgänge'; ?></option>
+                                    <option value="divorce" <?php echo $current_user->case_type === 'divorce' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa'; ?></option>
+                                    <option value="support" <?php echo $current_user->case_type === 'support' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag'; ?></option>
+                                    <option value="other" <?php echo $current_user->case_type === 'other' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Andet' : 'Annat'; ?></option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Land' : 'Land'; ?></label>
+                                <select name="country" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                                    <option value="DK" <?php echo $current_user->country === 'DK' ? 'selected' : ''; ?>>Danmark</option>
+                                    <option value="SE" <?php echo $current_user->country === 'SE' ? 'selected' : ''; ?>>Sverige</option>
+                                    <option value="NO" <?php echo $current_user->country === 'NO' ? 'selected' : ''; ?>>Norge</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Alder' : 'Ålder'; ?></label>
+                                <input type="number" name="age" value="<?php echo esc_attr($current_user->age); ?>" min="18" max="120" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['member_since']); ?></label>
+                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo rtf_format_date($current_user->created_at); ?></p>
+                            </div>
+                            
+                            <div style="grid-column: 1 / -1;">
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Kort biografi' : 'Kort biografi'; ?></label>
+                                <textarea name="bio" rows="4" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc; resize: vertical;" placeholder="<?php echo $lang === 'da' ? 'Fortæl lidt om dig selv...' : 'Berätta lite om dig själv...'; ?>"><?php echo esc_textarea($current_user->bio); ?></textarea>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['subscription']); ?></label>
+                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?></p>
+                            </div>
                         </div>
-                        
-                        <div>
-                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['email']); ?></label>
-                            <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->email); ?></p>
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['fullname']); ?></label>
-                            <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->full_name); ?></p>
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['birthday']); ?></label>
-                            <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($birthday_display); ?></p>
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['member_since']); ?></label>
-                            <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo rtf_format_date($current_user->created_at); ?></p>
-                        </div>
-                        
-                        <div>
-                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['subscription']); ?></label>
-                            <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?></p>
-                        </div>
-                    </div>
 
-                    <div style="display: flex; gap: 15px;">
-                        <a href="<?php echo home_url('/platform-subscription/?lang=' . $lang); ?>" class="btn-primary" style="padding: 15px 30px; text-decoration: none;">
-                            <?php echo esc_html($txt['manage_sub']); ?>
-                        </a>
-                        <a href="?logout=1" class="btn-secondary" style="padding: 15px 30px; text-decoration: none;">
-                            <?php echo esc_html($txt['logout']); ?>
-                        </a>
-                    </div>
+                        <div style="display: flex; gap: 15px;">
+                            <button type="submit" class="btn-primary" style="padding: 15px 30px; border: none; cursor: pointer;">
+                                <?php echo $lang === 'da' ? 'Gem ændringer' : 'Spara ändringar'; ?>
+                            </button>
+                            <a href="<?php echo home_url('/platform-subscription/?lang=' . $lang); ?>" class="btn-secondary" style="padding: 15px 30px; text-decoration: none; display: inline-block;">
+                                <?php echo esc_html($txt['manage_sub']); ?>
+                            </a>
+                            <a href="?logout=1" class="btn-secondary" style="padding: 15px 30px; text-decoration: none; display: inline-block;">
+                                <?php echo esc_html($txt['logout']); ?>
+                            </a>
+                        </div>
+                    </form>
                 </div>
                 
                 <!-- DASHBOARD STATISTICS -->
@@ -313,5 +367,93 @@ if (isset($_GET['logout'])) {
         </div>
     </div>
 </main>
+
+<script>
+// Profile Image Upload
+document.getElementById('profileUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', 'profile');
+    
+    fetch('/wp-json/kate/v1/upload-profile-image', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Reload to show new image
+        } else {
+            alert(data.message || 'Upload fejlede');
+        }
+    })
+    .catch(err => {
+        console.error('Upload error:', err);
+        alert('Upload fejlede. Prøv igen.');
+    });
+});
+
+// Cover Image Upload
+document.getElementById('coverUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('type', 'cover');
+    
+    fetch('/wp-json/kate/v1/upload-profile-image', {
+        method: 'POST',
+        credentials: 'same-origin',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            location.reload(); // Reload to show new cover
+        } else {
+            alert(data.message || 'Upload fejlede');
+        }
+    })
+    .catch(err => {
+        console.error('Upload error:', err);
+        alert('Upload fejlede. Prøv igen.');
+    });
+});
+
+// Profile Update Form
+document.getElementById('profileUpdateForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    fetch('/wp-json/kate/v1/update-profile', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(result => {
+        if (result.success) {
+            alert('<?php echo $lang === "da" ? "Profil opdateret!" : "Profil uppdaterad!"; ?>');
+            location.reload();
+        } else {
+            alert(result.message || 'Opdatering fejlede');
+        }
+    })
+    .catch(err => {
+        console.error('Update error:', err);
+        alert('Opdatering fejlede. Prøv igen.');
+    });
+});
+</script>
 
 <?php get_footer(); ?>

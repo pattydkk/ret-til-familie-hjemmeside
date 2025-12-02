@@ -307,6 +307,9 @@ function rtf_create_platform_tables() {
         birthday date DEFAULT NULL,
         phone varchar(20) DEFAULT NULL,
         profile_image varchar(500) DEFAULT NULL,
+        cover_image varchar(500) DEFAULT NULL,
+        case_type varchar(100) DEFAULT NULL COMMENT 'custody, visitation, divorce, support, other',
+        age int DEFAULT NULL,
         bio text DEFAULT NULL,
         language_preference varchar(10) DEFAULT 'da_DK',
         country varchar(5) DEFAULT 'DK',
@@ -320,7 +323,12 @@ function rtf_create_platform_tables() {
         UNIQUE KEY username (username),
         UNIQUE KEY email (email),
         KEY language_preference (language_preference)
-    ) $charset_collate;";
+    ) $charset_collate;
+    
+    // Add missing columns if they don't exist (for existing installations)
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS cover_image varchar(500) DEFAULT NULL AFTER profile_image\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL COMMENT 'custody, visitation, divorce, support, other' AFTER cover_image\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS age int DEFAULT NULL AFTER case_type\");";
 
     // 2. Privacy Settings
     $table_privacy = $wpdb->prefix . 'rtf_platform_privacy';
@@ -1442,6 +1450,44 @@ add_action('rest_api_init', function() {
             return rtf_is_logged_in();
         }
     ]);
+    
+    // Upload profile/cover image endpoint
+    register_rest_route('kate/v1', '/upload-profile-image', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_upload_profile_image',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Update user profile endpoint
+    register_rest_route('kate/v1', '/update-profile', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_update_profile',
+        'permission_callback' => function() {
+            return rtf_is_logged_in();
+        }
+    ]);
+    
+    // Admin analytics endpoint
+    register_rest_route('kate/v1', '/admin/analytics', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_admin_analytics',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Admin create news endpoint
+    register_rest_route('kate/v1', '/admin/create-news', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_admin_create_news',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
 });
 
 // ==================== API HANDLER FUNCTIONS ====================
@@ -2022,3 +2068,213 @@ function rtf_api_get_messages($request) {
         'messages' => $messages
     ], 200);
 }
+
+/**
+ * Upload profile or cover image
+ */
+function rtf_api_upload_profile_image($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    
+    if (!isset($_FILES['image'])) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Ingen fil uploadet'], 400);
+    }
+    
+    $file = $_FILES['image'];
+    $type = sanitize_text_field($request->get_param('type')); // 'profile' or 'cover'
+    
+    // Validate file type
+    $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($file['type'], $allowed_types)) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Ugyldig filtype'], 400);
+    }
+    
+    // Validate file size (max 5MB)
+    if ($file['size'] > 5 * 1024 * 1024) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Filen er for stor (max 5MB)'], 400);
+    }
+    
+    // Upload directory
+    $upload_dir = wp_upload_dir();
+    $target_dir = $upload_dir['basedir'] . '/profile-images/';
+    
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0755, true);
+    }
+    
+    // Generate unique filename
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = $current_user->id . '_' . $type . '_' . time() . '.' . $extension;
+    $target_file = $target_dir . $filename;
+    
+    // Move uploaded file
+    if (move_uploaded_file($file['tmp_name'], $target_file)) {
+        $file_url = $upload_dir['baseurl'] . '/profile-images/' . $filename;
+        
+        // Update database
+        $table_users = $wpdb->prefix . 'rtf_platform_users';
+        $column = $type === 'cover' ? 'cover_image' : 'profile_image';
+        
+        $updated = $wpdb->update(
+            $table_users,
+            [$column => $file_url],
+            ['id' => $current_user->id],
+            ['%s'],
+            ['%d']
+        );
+        
+        if ($updated !== false) {
+            return new WP_REST_Response([
+                'success' => true,
+                'message' => 'Billede uploadet',
+                'url' => $file_url
+            ], 200);
+        }
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Upload fejlede'], 500);
+}
+
+/**
+ * Update user profile
+ */
+function rtf_api_update_profile($request) {
+    global $wpdb;
+    $current_user = rtf_get_current_user();
+    
+    $body = json_decode($request->get_body(), true);
+    
+    $full_name = sanitize_text_field($body['full_name'] ?? '');
+    $case_type = sanitize_text_field($body['case_type'] ?? '');
+    $country = sanitize_text_field($body['country'] ?? 'DK');
+    $age = intval($body['age'] ?? 0);
+    $bio = sanitize_textarea_field($body['bio'] ?? '');
+    
+    $table_users = $wpdb->prefix . 'rtf_platform_users';
+    
+    $updated = $wpdb->update(
+        $table_users,
+        [
+            'full_name' => $full_name,
+            'case_type' => $case_type,
+            'country' => $country,
+            'age' => $age,
+            'bio' => $bio
+        ],
+        ['id' => $current_user->id],
+        ['%s', '%s', '%s', '%d', '%s'],
+        ['%d']
+    );
+    
+    if ($updated !== false) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Profil opdateret'
+        ], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Opdatering fejlede'], 500);
+}
+
+/**
+ * Get admin analytics
+ */
+function rtf_api_admin_analytics($request) {
+    global $wpdb;
+    
+    $table_users = $wpdb->prefix . 'rtf_platform_users';
+    $table_posts = $wpdb->prefix . 'rtf_platform_posts';
+    $table_messages = $wpdb->prefix . 'rtf_platform_messages';
+    $table_kate_chat = $wpdb->prefix . 'rtf_kate_chat';
+    
+    // Total users
+    $total_users = $wpdb->get_var("SELECT COUNT(*) FROM $table_users");
+    
+    // Active users (last 7 days)
+    $active_users = $wpdb->get_var("SELECT COUNT(DISTINCT user_id) FROM $table_kate_chat WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)");
+    
+    // Active subscriptions
+    $active_subscriptions = $wpdb->get_var("SELECT COUNT(*) FROM $table_users WHERE subscription_status = 'active'");
+    
+    // Total posts
+    $total_posts = $wpdb->get_var("SELECT COUNT(*) FROM $table_posts");
+    
+    // Total messages
+    $total_messages = $wpdb->get_var("SELECT COUNT(*) FROM $table_messages");
+    
+    // Kate sessions
+    $kate_sessions = $wpdb->get_var("SELECT COUNT(DISTINCT session_id) FROM $table_kate_chat");
+    
+    // Recent registrations (last 30 days)
+    $recent_registrations = $wpdb->get_var("SELECT COUNT(*) FROM $table_users WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)");
+    
+    // Language breakdown
+    $language_breakdown = [];
+    $lang_results = $wpdb->get_results("SELECT language_preference, COUNT(*) as count FROM $table_users GROUP BY language_preference");
+    foreach ($lang_results as $row) {
+        $language_breakdown[$row->language_preference] = intval($row->count);
+    }
+    
+    // Country breakdown
+    $country_breakdown = [];
+    $country_results = $wpdb->get_results("SELECT country, COUNT(*) as count FROM $table_users GROUP BY country");
+    foreach ($country_results as $row) {
+        $country_breakdown[$row->country] = intval($row->count);
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'analytics' => [
+            'total_users' => intval($total_users),
+            'active_users' => intval($active_users),
+            'active_subscriptions' => intval($active_subscriptions),
+            'total_posts' => intval($total_posts),
+            'total_messages' => intval($total_messages),
+            'kate_sessions' => intval($kate_sessions),
+            'recent_registrations' => intval($recent_registrations),
+            'language_breakdown' => $language_breakdown,
+            'country_breakdown' => $country_breakdown
+        ]
+    ], 200);
+}
+
+/**
+ * Admin create news
+ */
+function rtf_api_admin_create_news($request) {
+    global $wpdb;
+    
+    $body = json_decode($request->get_body(), true);
+    
+    $title = sanitize_text_field($body['title'] ?? '');
+    $content = wp_kses_post($body['content'] ?? '');
+    $country = sanitize_text_field($body['country'] ?? 'DK');
+    
+    if (empty($title) || empty($content)) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Titel og indhold er påkrævet'], 400);
+    }
+    
+    $table_news = $wpdb->prefix . 'rtf_platform_news';
+    
+    $inserted = $wpdb->insert(
+        $table_news,
+        [
+            'title' => $title,
+            'content' => $content,
+            'country' => $country,
+            'created_at' => current_time('mysql')
+        ],
+        ['%s', '%s', '%s', '%s']
+    );
+    
+    if ($inserted) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => 'Nyhed oprettet',
+            'news_id' => $wpdb->insert_id
+        ], 201);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Kunne ikke oprette nyhed'], 500);
+}
+

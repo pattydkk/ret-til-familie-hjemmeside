@@ -157,6 +157,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $full_name = sanitize_text_field($_POST['full_name']);
     $birthday = sanitize_text_field($_POST['birthday']);
     $phone = sanitize_text_field($_POST['phone']);
+    $case_type = sanitize_text_field($_POST['case_type'] ?? '');
+    $age = intval($_POST['age'] ?? 0);
+    $bio = sanitize_textarea_field($_POST['bio'] ?? '');
     $language_preference = isset($_POST['language_preference']) ? sanitize_text_field($_POST['language_preference']) : 'da_DK';
     
     // Map language to country
@@ -180,6 +183,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'full_name' => $full_name,
             'birthday' => $birthday,
             'phone' => $phone,
+            'case_type' => $case_type,
+            'age' => $age,
+            'bio' => $bio,
             'language_preference' => $language_preference,
             'country' => $country,
             'is_admin' => 0,
@@ -331,6 +337,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <small style="display: block; margin-top: 8px; padding: 12px; background: #e0f2fe; border-left: 3px solid #2563eb; border-radius: 4px; color: #1e3a8a; font-size: 0.85em;">
                         <strong>🔒 Privat:</strong> <?php echo esc_html($txt['phone_privacy']); ?>
                     </small>
+                </div>
+
+                <!-- NEW: Case Type -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-text);"><?php echo $lang === 'da' ? 'Sagstype' : 'Ärendetyp'; ?></label>
+                    <select name="case_type" style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em; background: white;">
+                        <option value=""><?php echo $lang === 'da' ? 'Vælg sagstype' : 'Välj ärendetyp'; ?></option>
+                        <option value="custody"><?php echo $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad'; ?></option>
+                        <option value="visitation"><?php echo $lang === 'da' ? 'Samvær' : 'Umgänge'; ?></option>
+                        <option value="divorce"><?php echo $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa'; ?></option>
+                        <option value="support"><?php echo $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag'; ?></option>
+                        <option value="other"><?php echo $lang === 'da' ? 'Andet' : 'Annat'; ?></option>
+                    </select>
+                </div>
+
+                <!-- NEW: Age -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-text);"><?php echo $lang === 'da' ? 'Alder' : 'Ålder'; ?></label>
+                    <input type="number" name="age" min="18" max="120" style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em;">
+                </div>
+
+                <!-- NEW: Bio -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--rtf-text);"><?php echo $lang === 'da' ? 'Kort biografi (valgfrit)' : 'Kort biografi (valfritt)'; ?></label>
+                    <textarea name="bio" rows="3" style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-size: 1em; resize: vertical;" placeholder="<?php echo $lang === 'da' ? 'Fortæl lidt om dig selv...' : 'Berätta lite om dig själv...'; ?>"></textarea>
                 </div>
 
                 <!-- MULTI-LANGUAGE: Language Selection -->
