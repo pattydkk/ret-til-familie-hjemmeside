@@ -22,7 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && rtf_is_admin_user()) {
     exit;
 }
 
-$news = $wpdb->get_results("SELECT n.*, u.full_name FROM $table_news n JOIN $table_users u ON n.author_id = u.id ORDER BY n.created_at DESC LIMIT 20");
+// Filter by country
+$filter_country = isset($_GET['country']) ? sanitize_text_field($_GET['country']) : '';
+$where_clause = "1=1";
+if (!empty($filter_country) && $filter_country !== 'ALL') {
+    $where_clause = $wpdb->prepare("(n.country = %s OR n.country = 'BOTH')", $filter_country);
+}
+
+$news = $wpdb->get_results("SELECT n.*, u.full_name FROM $table_news n JOIN $table_users u ON n.author_id = u.id WHERE $where_clause ORDER BY n.created_at DESC LIMIT 20");
 $t = array('da' => array('title' => 'Nyheder', 'create' => 'Opret Nyhed', 'title_field' => 'Titel', 'content' => 'Indhold', 'publish' => 'Publicer', 'no_news' => 'Ingen nyheder endnu', 'by' => 'Af'), 'sv' => array('title' => 'Nyheter', 'create' => 'Skapa Nyhet', 'title_field' => 'Titel', 'content' => 'Innehåll', 'publish' => 'Publicera', 'no_news' => 'Inga nyheter än', 'by' => 'Av'), 'en' => array('title' => 'News', 'create' => 'Create News', 'title_field' => 'Title', 'content' => 'Content', 'publish' => 'Publish', 'no_news' => 'No news yet', 'by' => 'By'));
 $txt = $t[$lang];
 ?>
@@ -34,15 +41,28 @@ $txt = $t[$lang];
     <div class="container" style="max-width: 900px; margin: 40px auto; padding: 20px;">
         <h1 style="margin-bottom: 30px; color: var(--rtf-text);"><?php echo esc_html($txt['title']); ?></h1>
 
+        <!-- Country filter -->
+        <div style="background: var(--rtf-card); padding: 20px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px;">
+            <form method="get" action="" style="display: flex; gap: 15px; align-items: center;">
+                <input type="hidden" name="lang" value="<?php echo esc_attr($lang); ?>">
+                <label style="font-weight: 600; color: var(--rtf-text);">🌍 <?php echo $lang === 'da' ? 'Filtrer efter land:' : 'Filtrera efter land:'; ?></label>
+                <select name="country" onchange="this.form.submit()" style="padding: 10px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; background: white; cursor: pointer;">
+                    <option value="ALL" <?php selected($filter_country, 'ALL'); ?>><?php echo $lang === 'da' ? 'Alle lande' : 'Alla länder'; ?></option>
+                    <option value="DK" <?php selected($filter_country, 'DK'); ?>>🇩🇰 Danmark</option>
+                    <option value="SE" <?php selected($filter_country, 'SE'); ?>>🇸🇪 Sverige</option>
+                </select>
+            </form>
+        </div>
+        
         <?php if (rtf_is_admin_user()): ?>
-            <div style="background: var(--rtf-card); padding: 30px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px;">
-                <h3 style="margin-bottom: 20px;"><?php echo esc_html($txt['create']); ?></h3>
-                <form method="POST" action="">
-                    <?php wp_nonce_field('rtf_create_news'); ?>
-                    <input type="text" name="title" placeholder="<?php echo esc_attr($txt['title_field']); ?>" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; margin-bottom: 15px;">
-                    <textarea name="content" rows="6" placeholder="<?php echo esc_attr($txt['content']); ?>" required style="width: 100%; padding: 12px; border: 1px solid #e0f2fe; border-radius: 8px; font-family: inherit; margin-bottom: 15px;"></textarea>
-                    <button type="submit" class="btn-primary"><?php echo esc_html($txt['publish']); ?></button>
-                </form>
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px; color: white;">
+                <h3 style="margin: 0 0 10px 0; color: white;">✏️ <?php echo $lang === 'da' ? 'Opret ny nyhed' : 'Skapa ny nyhet'; ?></h3>
+                <p style="margin: 0; font-size: 0.9em; opacity: 0.9;">
+                    <?php echo $lang === 'da' ? 'Gå til Admin Dashboard for at oprette nyheder' : 'Gå till Admin Dashboard för att skapa nyheter'; ?>
+                    <a href="<?php echo home_url('/platform-admin-dashboard/?lang=' . $lang); ?>" style="color: white; text-decoration: underline; font-weight: 600; margin-left: 10px;">
+                        → Admin Dashboard
+                    </a>
+                </p>
             </div>
         <?php endif; ?>
 
