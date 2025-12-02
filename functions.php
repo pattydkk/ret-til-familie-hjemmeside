@@ -421,10 +421,16 @@ function rtf_create_platform_tables() {
         content text NOT NULL,
         author_id bigint(20) NOT NULL,
         image_url varchar(500) DEFAULT NULL,
+        country varchar(10) DEFAULT 'BOTH' COMMENT 'DK, SE, or BOTH',
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
-        KEY author_id (author_id)
+        KEY author_id (author_id),
+        KEY country (country)
     ) $charset_collate;";
+    
+    // ALTER TABLE for existing installations - News country
+    $wpdb->query("ALTER TABLE $table_news ADD COLUMN IF NOT EXISTS country varchar(10) DEFAULT 'BOTH' COMMENT 'DK, SE, or BOTH' AFTER image_url");
+    $wpdb->query("ALTER TABLE $table_news ADD INDEX IF NOT EXISTS country (country)");
 
     // 8. Forum Topics
     $table_forum_topics = $wpdb->prefix . 'rtf_platform_forum_topics';
@@ -433,12 +439,24 @@ function rtf_create_platform_tables() {
         user_id bigint(20) NOT NULL,
         title varchar(255) NOT NULL,
         content text NOT NULL,
+        country varchar(10) DEFAULT NULL,
+        city varchar(100) DEFAULT NULL,
+        case_type varchar(100) DEFAULT NULL,
         views int DEFAULT 0,
         replies_count int DEFAULT 0,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
-        KEY user_id (user_id)
+        KEY user_id (user_id),
+        KEY country (country),
+        KEY case_type (case_type)
     ) $charset_collate;";
+    
+    // ALTER TABLE for existing installations - Forum Topics metadata
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS country varchar(10) DEFAULT NULL AFTER content");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS city varchar(100) DEFAULT NULL AFTER country");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL AFTER city");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS country (country)");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS case_type (case_type)");
 
     // 9. Forum Replies
     $table_forum_replies = $wpdb->prefix . 'rtf_platform_forum_replies';

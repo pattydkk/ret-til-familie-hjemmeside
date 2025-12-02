@@ -45,6 +45,11 @@ $is_admin = rtf_is_admin_user();
         <?php echo $is_danish ? 'Dokumenter' : 'Dokument'; ?>
     </a>
     
+    <a href="<?php echo home_url('/platform-find-borgere/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; <?php echo strpos($current_url, 'platform-find-borgere') !== false ? 'background: #e0f2fe; color: #1e3a8a;' : 'color: var(--rtf-text);'; ?> text-decoration: none; <?php echo strpos($current_url, 'platform-find-borgere') !== false ? 'font-weight: 600;' : ''; ?>">
+        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M16.5 12c1.93 0 3.5-1.57 3.5-3.5S18.43 5 16.5 5 13 6.57 13 8.5s1.57 3.5 3.5 3.5zm-9 0c1.93 0 3.5-1.57 3.5-3.5S9.43 5 7.5 5 4 6.57 4 8.5 5.57 12 7.5 12zm0 2C5.01 14 0 15.24 0 17.75V20h15v-2.25C15 15.24 9.99 14 7.5 14zm9 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V20h9v-2.25c0-2.51-5.01-3.75-7.5-3.75z"/></svg>
+        <?php echo $is_danish ? 'Find Borgere' : 'Hitta Medborgare'; ?>
+    </a>
+    
     <a href="<?php echo home_url('/platform-venner/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; <?php echo strpos($current_url, 'platform-venner') !== false ? 'background: #e0f2fe; color: #1e3a8a;' : 'color: var(--rtf-text);'; ?> text-decoration: none; <?php echo strpos($current_url, 'platform-venner') !== false ? 'font-weight: 600;' : ''; ?>">
         <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         <?php echo $is_danish ? 'Venner' : 'Vänner'; ?>
