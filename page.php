@@ -250,15 +250,19 @@ case 'ydelser':
         </p>
       </div>
 
-      <h2 style="margin-top:24px;">Abonnemang & plattform</h2>
+      <h2 style="margin-top:24px;">Borgarplattform & abonnemang</h2>
       <div class="info-box">
         <p>
-          Med vårt abonnemang får du löpande tillgång till grundläggande rådgivning och vår kunskapsplattform
-          med guider och material. Abonnemanget löper månadsvis tills det sägs upp via e-post.
+          Vi har en borgarplattform där medlemmar kan få tillgång till juridiska guider, dokumentmallar, 
+          fallstudier och direkt kontakt med vårt socialfackliga team. Plattformen innehåller också forum 
+          för erfarenhetsutbyte och AI-assisterad juridisk hjälp.
         </p>
         <p style="margin-top:10px;">
-          <a class="btn-primary" href="https://buy.stripe.com/eVq4gAdk6aOFcnP0aG93y08" target="_blank" rel="noopener">
-            Teckna abonnemang (49 DKK / mån)
+          <strong>Abonnemangspris:</strong> 49 DKK/månad (körs månad för månad tills uppsägning)
+        </p>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="<?php echo esc_url( home_url('/borger-platform/?lang=sv') ); ?>">
+            🔐 Se borgarplattformen
           </a>
         </p>
       </div>
@@ -334,15 +338,19 @@ case 'ydelser':
         </p>
       </div>
 
-      <h2 style="margin-top:24px;">Subscription & platform</h2>
+      <h2 style="margin-top:24px;">Citizen Platform & subscription</h2>
       <div class="info-box">
         <p>
-          With our subscription you get ongoing access to basic guidance and our knowledge platform with guides and materials.
-          The subscription continues month by month until you cancel by e-mail.
+          We have a citizen platform where members can access legal guides, document templates, 
+          case studies and direct contact with our social work team. The platform also includes forums 
+          for sharing experiences and AI-assisted legal help.
         </p>
         <p style="margin-top:10px;">
-          <a class="btn-primary" href="https://buy.stripe.com/eVq4gAdk6aOFcnP0aG93y08" target="_blank" rel="noopener">
-            Start subscription (49 DKK / month)
+          <strong>Subscription price:</strong> 49 DKK/month (runs month by month until cancellation)
+        </p>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="<?php echo esc_url( home_url('/borger-platform/?lang=en') ); ?>">
+            🔐 View citizen platform
           </a>
         </p>
       </div>
@@ -416,15 +424,19 @@ case 'ydelser':
         </p>
       </div>
 
-      <h2 style="margin-top:24px;">Abonnement & vidensplatform</h2>
+      <h2 style="margin-top:24px;">Borgerplatform & abonnement</h2>
       <div class="info-box">
         <p>
-          Med vores abonnement får du løbende adgang til grundlæggende rådgivning og til vores vidensplatform med guides
-          og materiale. Abonnementet fortsætter måned for måned, indtil du opsiger det skriftligt via e-mail.
+          Vi har en borgerplatform, hvor medlemmer kan få adgang til juridiske guides, dokumentskabeloner, 
+          casestudier og direkte kontakt med vores socialfaglige team. Platformen indeholder også forum 
+          til erfaringsudveksling og AI-assisteret juridisk hjælp.
         </p>
         <p style="margin-top:10px;">
-          <a class="btn-primary" href="https://buy.stripe.com/eVq4gAdk6aOFcnP0aG93y08" target="_blank" rel="noopener">
-            Tegn abonnement (49 kr./md)
+          <strong>Abonnementspris:</strong> 49 kr./måned (løber måned for måned indtil opsigelse)
+        </p>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="<?php echo esc_url( home_url('/borger-platform/?lang=da') ); ?>">
+            🔐 Se borgerplatformen
           </a>
         </p>
       </div>
