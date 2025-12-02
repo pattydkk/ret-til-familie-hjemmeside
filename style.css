@@ -726,3 +726,27 @@ body {
   background: #1e293b;
   color: #e0f2fe;
 }
+
+/* Platform Navigation Hover Effects */
+.nav-link {
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+  background: #f1f5f9 !important;
+  transform: translateX(4px);
+}
+
+.nav-link.active {
+  background: #e0f2fe !important;
+  color: #1e3a8a !important;
+  font-weight: 600;
+}
+
+.nav-link svg {
+  transition: transform 0.2s ease;
+}
+
+.nav-link:hover svg {
+  transform: scale(1.1);
+}
