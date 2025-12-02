@@ -885,6 +885,11 @@ function rtf_create_pages_menu_on_switch() {
         $existing = get_page_by_path($slug);
         if ($existing) {
             $ids[$slug] = $existing->ID;
+            
+            // VIGTIGT: Assign template til borger-platform
+            if ($slug === 'borger-platform') {
+                update_post_meta($existing->ID, '_wp_page_template', 'borger-platform.php');
+            }
         } else {
             $ids[$slug] = wp_insert_post(array(
                 'post_title'   => $title,
@@ -893,6 +898,11 @@ function rtf_create_pages_menu_on_switch() {
                 'post_type'    => 'page',
                 'post_content' => '',
             ));
+            
+            // Assign template til borger-platform
+            if ($slug === 'borger-platform' && !empty($ids[$slug])) {
+                update_post_meta($ids[$slug], '_wp_page_template', 'borger-platform.php');
+            }
         }
     }
 
