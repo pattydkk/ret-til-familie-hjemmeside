@@ -29,8 +29,8 @@ switch ($slug) :
         <span class="badge">Konflikthantering och partsrepresentation</span>
       </div>
       <div class="hero-cta">
-        <a class="btn-primary" href="BOOKING_LINK_HER">
-          Boka tid (bokningslänk läggs till)
+        <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+          📅 Boka möte
         </a>
         <a class="btn-secondary" href="<?php echo esc_url( home_url('/ydelser/?lang=sv') ); ?>">
           Se tjänster och priser
@@ -88,8 +88,8 @@ switch ($slug) :
         <span class="badge">Conflict mediation & representation</span>
       </div>
       <div class="hero-cta">
-        <a class="btn-primary" href="BOOKING_LINK_HER">
-          Book a meeting (link coming)
+        <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+          📅 Book a meeting
         </a>
         <a class="btn-secondary" href="<?php echo esc_url( home_url('/ydelser/?lang=en') ); ?>">
           View services and prices
@@ -147,8 +147,8 @@ switch ($slug) :
         <span class="badge">Konflikthåndtering & partsrepræsentation</span>
       </div>
       <div class="hero-cta">
-        <a class="btn-primary" href="BOOKING_LINK_HER">
-          Book en tid (bookinglink kommer)
+        <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+          📅 Book et møde
         </a>
         <a class="btn-secondary" href="<?php echo esc_url( home_url('/ydelser/') ); ?>">
           Se ydelser og priser
@@ -264,9 +264,18 @@ case 'ydelser':
       </div>
 
       <div class="info-box" style="margin-top:24px;">
+        <h3>Boka konsultation</h3>
         <p>
-          Vill du veta mer om hur vi kan hjälpa i just ditt ärende, skriv till <strong>booking@rettilfamilie.com</strong>
-          så återkommer vi med förslag till upplägg och pris.
+          Vill du veta mer om hur vi kan hjälpa i just ditt ärende? Boka ett möte med vårt socialfackliga team.
+        </p>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Boka möte här
+          </a>
+        </p>
+        <p style="margin-top:10px; font-size:0.9rem;">
+          <strong>Kontakt socialfacklig teamledare Nanna:</strong><br>
+          <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a>
         </p>
       </div>
     </div>
@@ -339,9 +348,18 @@ case 'ydelser':
       </div>
 
       <div class="info-box" style="margin-top:24px;">
+        <h3>Book consultation</h3>
         <p>
-          To find out how we can support you in your specific case, write to <strong>booking@rettilfamilie.com</strong>
-          and we will return with a proposed plan and price frame.
+          Want to know more about how we can help with your specific case? Book a meeting with our social work team.
+        </p>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Book meeting here
+          </a>
+        </p>
+        <p style="margin-top:10px; font-size:0.9rem;">
+          <strong>Contact social work team leader Nanna:</strong><br>
+          <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a>
         </p>
       </div>
     </div>
@@ -412,9 +430,18 @@ case 'ydelser':
       </div>
 
       <div class="info-box" style="margin-top:24px;">
+        <h3>Book konsultation</h3>
         <p>
-          Vil du høre mere om, hvordan vi kan hjælpe i netop din sag, så skriv til <strong>booking@rettilfamilie.com</strong>.
-          Så vender vi tilbage med et forslag til forløb og prisramme.
+          Vil du høre mere om, hvordan vi kan hjælpe i netop din sag? Book et møde med vores socialfaglige team.
+        </p>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Book møde her
+          </a>
+        </p>
+        <p style="margin-top:10px; font-size:0.9rem;">
+          <strong>Kontakt socialfaglig teamleder Nanna:</strong><br>
+          <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a>
         </p>
       </div>
     </div>
@@ -460,6 +487,18 @@ case 'om-os':
           Vi bygger löpande ut vårt nätverk, så fler medborgare kan få kvalificerat stöd på ett och samma ställe.
         </p>
       </div>
+      <div class="info-box" style="margin-top:14px;">
+        <h3>Boka konsultation</h3>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Boka möte med vårt team
+          </a>
+        </p>
+        <p style="margin-top:10px; font-size:0.9rem;">
+          <strong>Kontakt socialfacklig teamledare Nanna:</strong><br>
+          <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a>
+        </p>
+      </div>
     </div>
   </div>
 <?php elseif ($rtf_lang === 'en') : ?>
@@ -498,6 +537,18 @@ case 'om-os':
           Our network is continuously expanding so more citizens can access qualified help in one place.
         </p>
       </div>
+      <div class="info-box" style="margin-top:14px;">
+        <h3>Book consultation</h3>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Book meeting with our team
+          </a>
+        </p>
+        <p style="margin-top:10px; font-size:0.9rem;">
+          <strong>Contact social work team leader Nanna:</strong><br>
+          <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a>
+        </p>
+      </div>
     </div>
   </div>
 <?php else : ?>
@@ -534,6 +585,18 @@ case 'om-os':
         </p>
         <p style="margin-top:6px;">
           Vores netværk udbygges løbende, så flere borgere kan få kvalificeret hjælp til deres sag.
+        </p>
+      </div>
+      <div class="info-box" style="margin-top:14px;">
+        <h3>Book konsultation</h3>
+        <p style="margin-top:10px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Book møde med vores team
+          </a>
+        </p>
+        <p style="margin-top:10px; font-size:0.9rem;">
+          <strong>Kontakt socialfaglig teamleder Nanna:</strong><br>
+          <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a>
         </p>
       </div>
     </div>
@@ -679,14 +742,21 @@ case 'kontakt':
         <p><strong>E-post – allmän info:</strong> info@rettilfamilie.com</p>
         <p><strong>E-post – bokning:</strong> booking@rettilfamilie.com</p>
         <p><strong>E-post – ekonomi/abonnemang:</strong> bogholderi@rettilfamilie.com</p>
+        <p style="margin-top:10px;"><strong>Socialfacklig teamledare Nanna:</strong><br>
+        <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a></p>
       </div>
     </div>
     <div>
       <h2>Bokning & betalning</h2>
       <div class="info-box">
         <p>
-          Alla faktiska bokningar sker via vår bokningslänk (när den är klar). Betalning sker via Stripe för säker
-          hantering av betalningar. Tills bokningslänken är aktiv kan du skriva till booking@rettilfamilie.com.
+          Boka ditt möte direkt via vår bokningslänk. Betalning sker via Stripe för säker
+          hantering av betalningar.
+        </p>
+        <p style="margin-top:12px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Boka möte här
+          </a>
         </p>
       </div>
     </div>
@@ -705,14 +775,20 @@ case 'kontakt':
         <p><strong>E-mail – general info:</strong> info@rettilfamilie.com</p>
         <p><strong>E-mail – booking:</strong> booking@rettilfamilie.com</p>
         <p><strong>E-mail – accounting/subscriptions:</strong> bogholderi@rettilfamilie.com</p>
+        <p style="margin-top:10px;"><strong>Social work team leader Nanna:</strong><br>
+        <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a></p>
       </div>
     </div>
     <div>
       <h2>Booking & payment</h2>
       <div class="info-box">
         <p>
-          All bookings are made via our booking link (once available). Payment is handled via Stripe for secure processing.
-          Until the booking link is active, you can write to booking@rettilfamilie.com to arrange a meeting.
+          Book your meeting directly via our booking link. Payment is handled via Stripe for secure processing.
+        </p>
+        <p style="margin-top:12px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Book meeting here
+          </a>
         </p>
       </div>
     </div>
@@ -731,14 +807,21 @@ case 'kontakt':
         <p><strong>E-mail – generel info:</strong> info@rettilfamilie.com</p>
         <p><strong>E-mail – booking:</strong> booking@rettilfamilie.com</p>
         <p><strong>E-mail – bogholderi/abonnement:</strong> bogholderi@rettilfamilie.com</p>
+        <p style="margin-top:10px;"><strong>Socialfaglig teamleder Nanna:</strong><br>
+        <a href="mailto:socialfagligafd.rtf@outlook.dk">socialfagligafd.rtf@outlook.dk</a></p>
       </div>
     </div>
     <div>
       <h2>Booking & betaling</h2>
       <div class="info-box">
         <p>
-          Selve booking foregår via vores bookinglink (når det er klar). Al betaling håndteres via Stripe for sikker
-          betaling. Indtil bookinglinket er aktivt, kan du skrive til booking@rettilfamilie.com for at aftale en tid.
+          Book dit møde direkte via vores bookinglink. Al betaling håndteres via Stripe for sikker
+          betaling.
+        </p>
+        <p style="margin-top:12px;">
+          <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
+            📅 Book møde her
+          </a>
         </p>
       </div>
     </div>
