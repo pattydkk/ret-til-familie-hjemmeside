@@ -867,15 +867,13 @@ function rtf_create_pages_menu_on_switch() {
         'platform-indstillinger' => 'Indstillinger',
         'platform-nyheder' => 'Nyheder',
         'platform-forum' => 'Forum',
-        'platform-sagshjælp' => 'Sagshjælp',
+        'platform-sagshjaelp' => 'Sagshjælp',
         'platform-kate-ai' => 'Kate AI Assistent',
         'platform-klagegenerator' => 'Klage Generator',
-        'platform-admin' => 'Admin Panel',
         'platform-admin-dashboard' => 'Admin Dashboard',
         'platform-admin-users' => 'Admin Users',
-        'platform-admin-moderation' => 'Admin Moderation',
-        'platform-github' => 'GitHub Editor',
-        'platform-sagshaandtering' => 'Sagshåndtering',
+        'platform-venner' => 'Venner',
+        'platform-rapporter' => 'Rapporter & Analyser',
     );
 
     $all_pages = array_merge($pages, $platform_pages);
