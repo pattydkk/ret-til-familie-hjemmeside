@@ -17,7 +17,32 @@ $is_admin = rtf_is_admin_user();
 ?>
 
 <nav class="platform-nav" style="background: var(--rtf-card); padding: 20px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); position: sticky; top: 80px; height: fit-content;">
-    <h3 style="margin-bottom: 20px; color: var(--rtf-text);"><?php echo $is_danish ? 'Platform Menu' : 'Plattform Meny'; ?></h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: var(--rtf-text);"><?php echo $is_danish ? 'Platform Menu' : 'Plattform Meny'; ?></h3>
+        
+        <!-- Language Switcher -->
+        <div style="display: flex; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
+            <?php
+            $current_page = basename($_SERVER['REQUEST_URI']);
+            $current_page = preg_replace('/\?.*/', '', $current_page);
+            $base_url = $_SERVER['REQUEST_URI'];
+            $base_url = preg_replace('/[?&]lang=[^&]*/', '', $base_url);
+            $separator = strpos($base_url, '?') !== false ? '&' : '?';
+            ?>
+            <a href="<?php echo $base_url . $separator . 'lang=da'; ?>" 
+               style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; <?php echo $lang === 'da' ? 'background: #3b82f6; color: white;' : 'color: #64748b;'; ?>">
+                🇩🇰 DA
+            </a>
+            <a href="<?php echo $base_url . $separator . 'lang=sv'; ?>" 
+               style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; <?php echo $lang === 'sv' ? 'background: #3b82f6; color: white;' : 'color: #64748b;'; ?>">
+                🇸🇪 SV
+            </a>
+            <a href="<?php echo $base_url . $separator . 'lang=en'; ?>" 
+               style="padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; <?php echo $lang === 'en' ? 'background: #3b82f6; color: white;' : 'color: #64748b;'; ?>">
+                🇬🇧 EN
+            </a>
+        </div>
+    </div>
     
     <a href="<?php echo home_url('/platform-profil/?lang=' . $lang); ?>" class="nav-link" style="display: flex; align-items: center; gap: 10px; padding: 12px; margin-bottom: 8px; border-radius: 8px; <?php echo strpos($current_url, 'platform-profil') !== false ? 'background: #e0f2fe; color: #1e3a8a;' : 'color: var(--rtf-text);'; ?> text-decoration: none; <?php echo strpos($current_url, 'platform-profil') !== false ? 'font-weight: 600;' : ''; ?>">
         <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
