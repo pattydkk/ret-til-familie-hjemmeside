@@ -352,10 +352,16 @@ function rtf_create_platform_tables() {
         content text NOT NULL,
         image_url varchar(500) DEFAULT NULL,
         likes int DEFAULT 0,
+        visibility varchar(20) DEFAULT 'public' COMMENT 'private, public',
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
-        KEY user_id (user_id)
-    ) $charset_collate;";
+        KEY user_id (user_id),
+        KEY visibility (visibility)
+    ) $charset_collate;
+    
+    // Add visibility column if it doesn't exist (for existing installations)
+    $wpdb->query(\"ALTER TABLE $table_posts ADD COLUMN IF NOT EXISTS visibility varchar(20) DEFAULT 'public' COMMENT 'private, public' AFTER likes\");
+    $wpdb->query(\"ALTER TABLE $table_posts ADD INDEX IF NOT EXISTS visibility (visibility)\");";
 
     // 4. Images
     $table_images = $wpdb->prefix . 'rtf_platform_images';
@@ -366,10 +372,16 @@ function rtf_create_platform_tables() {
         title varchar(255) DEFAULT NULL,
         description text DEFAULT NULL,
         blur_faces tinyint(1) DEFAULT 0,
+        is_public tinyint(1) DEFAULT 0,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
-        KEY user_id (user_id)
-    ) $charset_collate;";
+        KEY user_id (user_id),
+        KEY is_public (is_public)
+    ) $charset_collate;
+    
+    // Add is_public column if it doesn't exist (for existing installations)
+    $wpdb->query(\"ALTER TABLE $table_images ADD COLUMN IF NOT EXISTS is_public tinyint(1) DEFAULT 0 AFTER blur_faces\");
+    $wpdb->query(\"ALTER TABLE $table_images ADD INDEX IF NOT EXISTS is_public (is_public)\");";
 
     // 5. Documents
     $table_documents = $wpdb->prefix . 'rtf_platform_documents';
