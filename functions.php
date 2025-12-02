@@ -886,9 +886,15 @@ function rtf_create_pages_menu_on_switch() {
         if ($existing) {
             $ids[$slug] = $existing->ID;
             
-            // VIGTIGT: Assign template til borger-platform
+            // VIGTIGT: Assign templates til platform pages automatisk
             if ($slug === 'borger-platform') {
                 update_post_meta($existing->ID, '_wp_page_template', 'borger-platform.php');
+            } elseif (strpos($slug, 'platform-') === 0) {
+                // For alle platform-* sider, tjek om template fil eksisterer
+                $template_file = $slug . '.php';
+                if (file_exists(get_template_directory() . '/' . $template_file)) {
+                    update_post_meta($existing->ID, '_wp_page_template', $template_file);
+                }
             }
         } else {
             $ids[$slug] = wp_insert_post(array(
@@ -899,9 +905,15 @@ function rtf_create_pages_menu_on_switch() {
                 'post_content' => '',
             ));
             
-            // Assign template til borger-platform
+            // Assign templates til nye platform pages automatisk
             if ($slug === 'borger-platform' && !empty($ids[$slug])) {
                 update_post_meta($ids[$slug], '_wp_page_template', 'borger-platform.php');
+            } elseif (strpos($slug, 'platform-') === 0 && !empty($ids[$slug])) {
+                // For alle platform-* sider, tjek om template fil eksisterer
+                $template_file = $slug . '.php';
+                if (file_exists(get_template_directory() . '/' . $template_file)) {
+                    update_post_meta($ids[$slug], '_wp_page_template', $template_file);
+                }
             }
         }
     }
