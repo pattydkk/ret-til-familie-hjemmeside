@@ -258,7 +258,8 @@ case 'ydelser':
           för erfarenhetsutbyte och AI-assisterad juridisk hjälp.
         </p>
         <p style="margin-top:10px;">
-          <strong>Abonnemangspris:</strong> 49 DKK/månad (körs månad för månad tills uppsägning)
+          <strong>Abonnemangspris:</strong> 49 DKK/månad (körs månad för månad tills uppsägning)<br>
+          <span style="font-size:0.9rem; color:#6b7280;">Betalning via Stripe</span>
         </p>
         <p style="margin-top:10px;">
           <a class="btn-primary" href="<?php echo esc_url( home_url('/borger-platform/?lang=sv') ); ?>">
@@ -271,6 +272,9 @@ case 'ydelser':
         <h3>Boka konsultation</h3>
         <p>
           Vill du veta mer om hur vi kan hjälpa i just ditt ärende? Boka ett möte med vårt socialfackliga team.
+        </p>
+        <p style="margin-top:8px; font-size:0.9rem; color:#6b7280;">
+          💳 Möten och konsultationer betalas via faktura
         </p>
         <p style="margin-top:10px;">
           <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
@@ -346,7 +350,8 @@ case 'ydelser':
           for sharing experiences and AI-assisted legal help.
         </p>
         <p style="margin-top:10px;">
-          <strong>Subscription price:</strong> 49 DKK/month (runs month by month until cancellation)
+          <strong>Subscription price:</strong> 49 DKK/month (runs month by month until cancellation)<br>
+          <span style="font-size:0.9rem; color:#6b7280;">Payment via Stripe</span>
         </p>
         <p style="margin-top:10px;">
           <a class="btn-primary" href="<?php echo esc_url( home_url('/borger-platform/?lang=en') ); ?>">
@@ -359,6 +364,9 @@ case 'ydelser':
         <h3>Book consultation</h3>
         <p>
           Want to know more about how we can help with your specific case? Book a meeting with our social work team.
+        </p>
+        <p style="margin-top:8px; font-size:0.9rem; color:#6b7280;">
+          💳 Meetings and consultations are paid via invoice
         </p>
         <p style="margin-top:10px;">
           <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
@@ -432,7 +440,8 @@ case 'ydelser':
           til erfaringsudveksling og AI-assisteret juridisk hjælp.
         </p>
         <p style="margin-top:10px;">
-          <strong>Abonnementspris:</strong> 49 kr./måned (løber måned for måned indtil opsigelse)
+          <strong>Abonnementspris:</strong> 49 kr./måned (løber måned for måned indtil opsigelse)<br>
+          <span style="font-size:0.9rem; color:#6b7280;">Betaling via Stripe</span>
         </p>
         <p style="margin-top:10px;">
           <a class="btn-primary" href="<?php echo esc_url( home_url('/borger-platform/?lang=da') ); ?>">
@@ -445,6 +454,9 @@ case 'ydelser':
         <h3>Book konsultation</h3>
         <p>
           Vil du høre mere om, hvordan vi kan hjælpe i netop din sag? Book et møde med vores socialfaglige team.
+        </p>
+        <p style="margin-top:8px; font-size:0.9rem; color:#6b7280;">
+          💳 Møder og konsultationer betales via faktura
         </p>
         <p style="margin-top:10px;">
           <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
@@ -762,8 +774,11 @@ case 'kontakt':
       <h2>Bokning & betalning</h2>
       <div class="info-box">
         <p>
-          Boka ditt möte direkt via vår bokningslänk. Betalning sker via Stripe för säker
-          hantering av betalningar.
+          Boka ditt möte direkt via vår bokningslänk.
+        </p>
+        <p style="margin-top:8px; font-size:0.9rem; color:#6b7280;">
+          💳 Möten och konsultationer: Betalning via faktura<br>
+          🔒 Abonnemang och stöd: Betalning via Stripe
         </p>
         <p style="margin-top:12px;">
           <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
@@ -795,7 +810,11 @@ case 'kontakt':
       <h2>Booking & payment</h2>
       <div class="info-box">
         <p>
-          Book your meeting directly via our booking link. Payment is handled via Stripe for secure processing.
+          Book your meeting directly via our booking link.
+        </p>
+        <p style="margin-top:8px; font-size:0.9rem; color:#6b7280;">
+          💳 Meetings and consultations: Payment via invoice<br>
+          🔒 Subscription and support: Payment via Stripe
         </p>
         <p style="margin-top:12px;">
           <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
@@ -827,8 +846,11 @@ case 'kontakt':
       <h2>Booking & betaling</h2>
       <div class="info-box">
         <p>
-          Book dit møde direkte via vores bookinglink. Al betaling håndteres via Stripe for sikker
-          betaling.
+          Book dit møde direkte via vores bookinglink.
+        </p>
+        <p style="margin-top:8px; font-size:0.9rem; color:#6b7280;">
+          💳 Møder og konsultationer: Betaling via faktura<br>
+          🔒 Abonnement og støtte: Betaling via Stripe
         </p>
         <p style="margin-top:12px;">
           <a class="btn-primary" href="https://ret-til-familie.planway.com/" target="_blank" rel="noopener">
