@@ -932,6 +932,16 @@ function rtf_create_pages_menu_on_switch() {
 add_action('after_switch_theme', 'rtf_create_pages_menu_on_switch');
 
 // ============================================================================
+// DEBUG: Kør denne URL én gang for at oprette sider manuelt
+// ============================================================================
+add_action('wp_ajax_rtf_force_create_pages', 'rtf_force_create_pages');
+add_action('wp_ajax_nopriv_rtf_force_create_pages', 'rtf_force_create_pages');
+function rtf_force_create_pages() {
+    rtf_create_pages_menu_on_switch();
+    wp_send_json_success('Alle sider er oprettet!');
+}
+
+// ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 function rtf_is_logged_in() {
