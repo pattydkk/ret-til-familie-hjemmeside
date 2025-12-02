@@ -1,0 +1,18 @@
+{
+    "name": "rettilfamilie/borger-platform",
+    "description": "Ret til Familie - Complete platform with Stripe, Kate AI, Document Processing",
+    "type": "wordpress-theme",
+    "require": {
+        "php": ">=7.4",
+        "stripe/stripe-php": "^13.0",
+        "phpoffice/phpword": "^1.2",
+        "smalot/pdfparser": "^2.7",
+        "mpdf/mpdf": "^8.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "RTF\\Platform\\": "includes/",
+            "RTF\\KateAI\\": "kate-ai/src/"
+        }
+    }
+}

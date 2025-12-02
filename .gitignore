@@ -1,0 +1,53 @@
+# WordPress Core
+wp-admin/
+wp-includes/
+wp-content/uploads/
+wp-content/cache/
+
+# Dependencies (will be installed via Composer on server)
+/vendor/
+/node_modules/
+
+# Composer lock (commit this to ensure consistent versions)
+# composer.lock
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+/kate-ai/logs/*.log
+/kate-ai/cache/*
+!/kate-ai/cache/.htaccess
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Stripe legacy folder (use vendor/stripe/stripe-php instead)
+/stripe-php-master/
+
+# Large test files
+*.zip
+*.tar.gz
+*.rar

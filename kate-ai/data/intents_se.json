@@ -1,0 +1,169 @@
+{
+  "intents": [
+    {
+      "id": "FORVALTNINGSLOV_INFO",
+      "tag": "förvaltningslagen_info",
+      "patterns": [
+        "vad är förvaltningslagen",
+        "berätta om förvaltningslagen",
+        "förvaltningslagen regler",
+        "administrativa förfaranden",
+        "hur fungerar förvaltningen"
+      ],
+      "responses": [
+        "Förvaltningslagen (1986:223) reglerar hur myndigheter ska handlägga ärenden och fatta beslut. Den säkerställer rättssäkerhet, saklighet och likabehandling i all offentlig förvaltning. Lagen innehåller regler om bland annat handläggningstid, kommunikation med parter, och rätten att överklaga beslut."
+      ],
+      "context": ["förvaltningslagen", "myndighet", "överklagande"]
+    },
+    {
+      "id": "SOCIALTJANSTLAGEN_INFO",
+      "tag": "socialtjänstlagen_info",
+      "patterns": [
+        "vad är socialtjänstlagen",
+        "berätta om socialtjänstlagen",
+        "socialtjänsten regler",
+        "socialt stöd",
+        "barn och familj socialtjänst"
+      ],
+      "responses": [
+        "Socialtjänstlagen (2001:453) reglerar den kommunala socialtjänstens ansvar för barn, ungdomar och vuxna som behöver stöd. Lagen innehåller bestämmelser om utredning, insatser, dokumentation och sekretess. Socialtjänsten ska arbeta för att människor får leva under trygga och värdiga förhållanden."
+      ],
+      "context": ["socialtjänstlagen", "kommunen", "socialt stöd"]
+    },
+    {
+      "id": "LVU_INFO",
+      "tag": "lvu_info",
+      "patterns": [
+        "vad är lvu",
+        "lag med särskilda bestämmelser om vård av unga",
+        "tvångsvård barn",
+        "omhändertagande barn",
+        "lvu placering"
+      ],
+      "responses": [
+        "LVU (Lag med särskilda bestämmelser om vård av unga, 1990:52) reglerar när samhället kan ingripa med tvångsvård av barn och ungdomar under 20 år. Det kan ske om den unges hälsa eller utveckling riskeras på grund av missförhållanden i hemmet eller den unges eget beteende. Beslut fattas av förvaltningsrätten efter ansökan från socialnämnden."
+      ],
+      "context": ["lvu", "tvångsvård", "förvaltningsrätten", "omhändertagande"]
+    },
+    {
+      "id": "OVERKLAGANDE_INFO",
+      "tag": "överklagande_info",
+      "patterns": [
+        "hur överklagar jag",
+        "överklaga beslut",
+        "förvaltningsrätten överklagande",
+        "kammarrätten",
+        "överklagande socialtjänsten"
+      ],
+      "responses": [
+        "Du har rätt att överklaga myndighetsbeslut till förvaltningsrätten inom 3 veckor från att du fick beslutet. I överklagandet ska du ange vilket beslut du överklagar och hur du vill att det ska ändras. Från förvaltningsrätten kan du i vissa fall överklaga vidare till kammarrätten och högsta förvaltningsdomstolen."
+      ],
+      "context": ["överklagande", "förvaltningsrätten", "kammarrätten"]
+    },
+    {
+      "id": "BARNETS_BASTA",
+      "tag": "barnets_bästa",
+      "patterns": [
+        "vad är barnets bästa",
+        "barnets bästa princip",
+        "barnkonventionen",
+        "barnets rättigheter",
+        "barnets perspektiv"
+      ],
+      "responses": [
+        "Barnets bästa är en grundläggande princip i all beslut som rör barn. Den kommer från FN:s barnkonvention som är svensk lag sedan 2020. Det innebär att barnets behov, åsikter och bästa ska vara utgångspunkt i alla beslut. Socialtjänsten måste alltid utreda och ta hänsyn till vad som är bäst för just det enskilda barnet."
+      ],
+      "context": ["barnets bästa", "barnkonventionen", "barnets rättigheter"]
+    },
+    {
+      "id": "GOD_MAN_INFO",
+      "tag": "god_man_info",
+      "patterns": [
+        "vad är god man",
+        "behöver jag god man",
+        "ansöka om god man",
+        "god man uppgifter",
+        "god man för barn"
+      ],
+      "responses": [
+        "En god man är en juridiskt tillsatt företrädare som kan hjälpa personer som inte själva kan ta hand om sina angelägenheter. För barn kan en särskild god man utses i vissa situationer, till exempel vid intressekonflikter med vårdnadshavarna. God man ansöker du om hos överförmyndaren i din kommun."
+      ],
+      "context": ["god man", "överförmyndare", "företrädare"]
+    },
+    {
+      "id": "UMGANG_RECHT",
+      "tag": "umgängesrätt",
+      "patterns": [
+        "umgängesrätt",
+        "träffa mitt barn",
+        "kontakt med barn",
+        "umgänge efter placering",
+        "besöksrätt"
+      ],
+      "responses": [
+        "Umgängesrätt innebär rätten för förälder och barn att träffas och ha kontakt även om barnet inte bor med föräldern. När ett barn är placerat enligt LVU beslutar förvaltningsrätten om umgänge. Vid frivilliga placeringar enligt SoL bestäms umgänget i samråd mellan socialtjänsten och föräldrarna. Barnets bästa ska alltid vara avgörande."
+      ],
+      "context": ["umgängesrätt", "kontakt", "placering", "besöksrätt"]
+    },
+    {
+      "id": "JURIDISK_HJALP",
+      "tag": "juridisk_hjälp",
+      "patterns": [
+        "behöver juridisk hjälp",
+        "advokat socialtjänst",
+        "rättshjälp",
+        "juridiskt stöd",
+        "kontakta advokat"
+      ],
+      "responses": [
+        "Du har rätt till offentligt biträde (advokat) vid LVU-mål på statens bekostnad. Vid andra socialtjänstärenden kan du ansöka om rättshjälp hos Rättshjälpsmyndigheten om du har begränsad ekonomi. Det finns också ideella organisationer som Rädda Barnen och BRIS som kan ge stöd och vägledning."
+      ],
+      "context": ["juridisk hjälp", "advokat", "rättshjälp", "offentligt biträde"]
+    },
+    {
+      "id": "BARNETS_LOV_OVERSIGT",
+      "tag": "barnets_rättigheter_översikt",
+      "patterns": [
+        "barnets rättigheter översikt",
+        "vad säger lagen om barn",
+        "barnets rättigheter sammanfattning",
+        "vilka regler finns för barn",
+        "lag om barn"
+      ],
+      "responses": [
+        "Barnets rättigheter i Sverige regleras av flera lagar: Barnkonventionen (grundlag sedan 2020), Socialtjänstlagen (socialt stöd), LVU (tvångsvård), Förvaltningslagen (myndigheters handläggning) och Föräldrabalken (vårdnad och umgänge). Viktiga principer är barnets bästa, barnets rätt att komma till tals, och samhällets ansvar att skydda barn från skada."
+      ],
+      "context": ["barnets rättigheter", "barnkonventionen", "lvu", "socialtjänstlagen"]
+    },
+    {
+      "id": "BARNETS_LOV_PARAGRAF_LOOKUP",
+      "tag": "barnets_rättigheter_paragraf",
+      "patterns": [
+        "paragraf om barn",
+        "vilken lag gäller",
+        "slå upp lag barn",
+        "hitta paragraf barn",
+        "specifik lag barn"
+      ],
+      "responses": [
+        "Du kan söka efter specifika bestämmelser om barn i flera lagar. För socialtjänstinsatser: Socialtjänstlagen kap 5 (barn och unga). För tvångsvård: LVU § 1-3 (förutsättningar). För myndigheters handläggning: Förvaltningslagen § 9 (kommunikation), § 23 (överklagande). Vad vill du veta mer om?"
+      ],
+      "context": ["lagparagraf", "barn", "specifik lag"]
+    },
+    {
+      "id": "BARNETS_LOV_FORKLARING",
+      "tag": "barnets_rättigheter_förklaring",
+      "patterns": [
+        "förklara lagen",
+        "vad betyder paragrafen",
+        "lag förklaring barn",
+        "tolka lag",
+        "förstå lagen"
+      ],
+      "responses": [
+        "Jag kan förklara barnrelaterade lagar på begripligt svenska. Vilken lag eller paragraf vill du ha förklaring på? Till exempel kan jag förklara LVU § 2 (förutsättningar för tvångsvård), Socialtjänstlagen 5 kap 1 § (kommunens ansvar), eller Barnkonventionens artiklar."
+      ],
+      "context": ["lagförklaring", "barn", "förståelse"]
+    }
+  ]
+}
