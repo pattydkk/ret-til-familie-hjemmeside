@@ -859,6 +859,7 @@ function rtf_create_pages_menu_on_switch() {
 
     // Platform pages
     $platform_pages = array(
+        'test-db' => 'Database Test',
         'platform-auth' => 'Platform Login',
         'platform-profil' => 'Min Profil',
         'platform-subscription' => 'Abonnement',
