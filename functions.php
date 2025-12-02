@@ -56,6 +56,10 @@ define('RTF_GITHUB_REPO_OWNER', 'hansenhr89dkk');
 define('RTF_GITHUB_REPO_NAME', 'ret-til-familie-hjemmeside');
 define('RTF_GITHUB_BRANCH', 'main');
 
+// EMERGENCY: Composer and Kate AI DISABLED until vendor is properly installed
+// Uncomment these lines after running: composer install --no-dev --optimize-autoloader
+
+/*
 // Composer autoload - CONDITIONAL (only after theme is activated)
 if (get_option('rtf_theme_activated', false)) {
     $vendor_autoload = get_template_directory() . '/vendor/autoload.php';
@@ -82,13 +86,15 @@ if (get_option('rtf_theme_activated', false)) {
         error_log('RTF Platform: vendor/autoload.php not found. Composer dependencies missing.');
     }
 }
+*/
 
 // Load translations (lightweight, always safe)
 require_once get_template_directory() . '/translations.php';
 
-// ============================================================================
-// KATE AI INITIALIZATION
-// ============================================================================
+// KATE AI INITIALIZATION - DISABLED UNTIL VENDOR IS INSTALLED
+// Uncomment after running composer install
+
+/*
 // Global variable to cache Kate AI instances
 global $rtf_kate_ai_initialized;
 $rtf_kate_ai_initialized = false;
@@ -196,7 +202,8 @@ function rtf_get_kate_ai_instances() {
 }
 
 // LAZY INITIALIZATION: Only initialize Kate AI when REST API is actually used
-// AND only if theme is activated
+// DISABLED UNTIL VENDOR IS INSTALLED
+/*
 add_action('rest_api_init', function() {
     if (!get_option('rtf_theme_activated', false)) {
         return; // Skip if theme not activated yet
@@ -222,6 +229,7 @@ add_shortcode('kate_ai', function($atts) {
     }
     return '';
 });
+*/
 
 // ============================================================================
 // SPROG SYSTEM
