@@ -58,13 +58,28 @@ define('RTF_GITHUB_BRANCH', 'main');
 
 // Composer autoload - CONDITIONAL (only after theme is activated)
 if (get_option('rtf_theme_activated', false)) {
-    if (file_exists(get_template_directory() . '/vendor/autoload.php')) {
-        require_once get_template_directory() . '/vendor/autoload.php';
-    }
-
-    // Kate AI autoload - ONLY after theme is activated
-    if (file_exists(get_template_directory() . '/kate-ai/kate-ai.php')) {
-        require_once get_template_directory() . '/kate-ai/kate-ai.php';
+    $vendor_autoload = get_template_directory() . '/vendor/autoload.php';
+    $kate_ai_file = get_template_directory() . '/kate-ai/kate-ai.php';
+    
+    // Check if vendor exists, if not show admin notice
+    if (file_exists($vendor_autoload)) {
+        require_once $vendor_autoload;
+        
+        // Kate AI autoload - ONLY after theme is activated AND vendor exists
+        if (file_exists($kate_ai_file)) {
+            require_once $kate_ai_file;
+        }
+    } else {
+        // Vendor missing - show admin notice instead of fatal error
+        add_action('admin_notices', function() {
+            echo '<div class="notice notice-error">';
+            echo '<p><strong>Ret til Familie Platform:</strong> Vendor dependencies mangler!</p>';
+            echo '<p>Kør følgende kommando via SSH eller cPanel Terminal:</p>';
+            echo '<pre style="background: #f5f5f5; padding: 10px;">cd ' . get_template_directory() . ' && composer install --no-dev --optimize-autoloader</pre>';
+            echo '<p>Eller download vendor.zip og upload via FTP til theme mappen.</p>';
+            echo '</div>';
+        });
+        error_log('RTF Platform: vendor/autoload.php not found. Composer dependencies missing.');
     }
 }
 
