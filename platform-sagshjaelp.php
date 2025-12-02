@@ -1,8 +1,8 @@
 <?php
-/*
-Template Name: Platform - Sagshjælp (Social Services Support)
-Description: Complete social services support for ALL citizens - family, jobcenter, disability, elderly
-*/
+/**
+ * Template Name: Platform - Sagshjælp
+ * Description: Complete social services support for ALL citizens - family, jobcenter, disability, elderly
+ */
 
 get_header();
 $lang = rtf_get_lang();

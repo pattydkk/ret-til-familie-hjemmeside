@@ -1,7 +1,7 @@
 <?php
-/*
-Template Name: Platform - Chat
-*/
+/**
+ * Template Name: Platform - Chat
+ */
 
 get_header();
 $lang = rtf_get_lang();

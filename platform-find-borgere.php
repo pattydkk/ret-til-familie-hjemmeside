@@ -1,7 +1,7 @@
 <?php
-/*
-Template Name: Platform - Find Borgere
-*/
+/**
+ * Template Name: Platform - Find Borgere
+ */
 
 get_header();
 $lang = rtf_get_lang();

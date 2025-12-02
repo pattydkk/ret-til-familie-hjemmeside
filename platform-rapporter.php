@@ -1,7 +1,7 @@
 <?php
-/*
-Template Name: Platform - Rapporter & Analyser
-*/
+/**
+ * Template Name: Platform - Rapporter
+ */
 
 if (!is_user_logged_in()) {
     wp_redirect(home_url('/platform-auth'));

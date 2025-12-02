@@ -1,8 +1,8 @@
 <?php
-/*
-Template Name: Platform - Admin Dashboard (Full Control)
-Description: Complete admin control panel with user management, content moderation, system settings
-*/
+/**
+ * Template Name: Platform - Admin Dashboard
+ * Description: Complete admin control panel with user management, content moderation, system settings
+ */
 
 get_header();
 $lang = rtf_get_lang();
