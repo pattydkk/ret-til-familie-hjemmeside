@@ -214,15 +214,9 @@ function rtf_setup() {
     if (!get_option('rtf_theme_activated', false)) {
         update_option('rtf_theme_activated', true);
         
-        // AUTO-INSTALL COMPOSER DEPENDENCIES hvis vendor/ mangler
-        $vendor_path = get_template_directory() . '/vendor/autoload.php';
-        if (!file_exists($vendor_path)) {
-            rtf_auto_install_composer_dependencies();
-        }
-        
-        // Trigger database creation on first activation
+        // Trigger database and pages creation on first activation
         rtf_create_platform_tables();
-        rtf_create_default_pages();
+        rtf_create_pages_menu_on_switch();
         rtf_create_default_admin();
     }
 }
@@ -843,6 +837,14 @@ function rtf_create_platform_tables() {
 // ============================================================================
 // SIDER OPRETTELSE
 // ============================================================================
+
+/**
+ * Create all default pages (alias for rtf_create_pages_menu_on_switch)
+ */
+function rtf_create_default_pages() {
+    rtf_create_pages_menu_on_switch();
+}
+
 function rtf_create_pages_menu_on_switch() {
     // Standard pages
     $pages = array(
@@ -1098,27 +1100,7 @@ add_action('wp_enqueue_scripts', 'rtf_scripts');
 // ============================================================================
 // THEME ACTIVATION - ONE-CLICK INSTALLATION
 // ============================================================================
-function rtf_theme_activation() {
-    // Create all database tables
-    rtf_create_platform_tables();
-    
-    // Create default pages
-    rtf_create_default_pages();
-    
-    // Create default admin user
-    rtf_create_default_admin();
-    
-    // Set version
-    update_option('rtf_theme_version', RTF_VERSION);
-    update_option('rtf_db_version', RTF_DB_VERSION);
-    
-    // Flush rewrite rules
-    flush_rewrite_rules();
-    
-    // Log activation
-    error_log('[RTF Platform] Theme activated successfully. Version: ' . RTF_VERSION);
-}
-add_action('after_switch_theme', 'rtf_theme_activation');
+// Note: rtf_theme_activation removed - handled by rtf_setup and after_switch_theme hook directly
 
 // ============================================================================
 // CREATE DEFAULT ADMIN USER
