@@ -63,18 +63,20 @@ foreach ($friends_data as $friend) {
 }
 ?>
 
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 0; margin-bottom: 40px;">
-    <div class="container">
-        <h1 style="color: white; text-align: center; margin: 0; font-size: 2.5em;">
-            🔍 <?php echo $lang === 'en' ? 'Find Citizens' : 'Find Borgere'; ?>
-        </h1>
-        <p style="color: rgba(255,255,255,0.9); text-align: center; margin: 10px 0 0 0; font-size: 1.1em;">
-            <?php echo $lang === 'en' ? 'Connect with others who share similar experiences' : 'Find og connect med andre i samme situation'; ?>
-        </p>
-    </div>
-</div>
+<div class="platform-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <?php get_template_part('template-parts/platform-sidebar'); ?>
+    
+    <div class="platform-content" style="min-width: 0;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px; border-radius: 15px; margin-bottom: 40px;">
+            <h1 style="color: white; text-align: center; margin: 0; font-size: 2.5em;">
+                🔍 <?php echo $lang === 'en' ? 'Find Citizens' : 'Find Borgere'; ?>
+            </h1>
+            <p style="color: rgba(255,255,255,0.9); text-align: center; margin: 10px 0 0 0; font-size: 1.1em;">
+                <?php echo $lang === 'en' ? 'Connect with others who share similar experiences' : 'Find og connect med andre i samme situation'; ?>
+            </p>
+        </div>
 
-<div class="platform-container" style="max-width: 1400px; margin: 0 auto; padding: 0 20px 60px;">
+        <div style="max-width: 100%;">
     
     <!-- Filter sektion -->
     <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin-bottom: 40px;">
@@ -347,5 +349,8 @@ function sendFriendRequest(userId, button) {
     }
 }
 </script>
+
+    </div><!-- .platform-content -->
+</div><!-- .platform-container -->
 
 <?php get_footer(); ?>

@@ -80,6 +80,11 @@ $translations = [
 $t = $translations[$lang] ?? $translations['da'];
 ?>
 
+<div class="platform-container" style="display: grid; grid-template-columns: 300px 1fr; gap: 30px; max-width: 1400px; margin: 0 auto; padding: 2rem;">
+    <?php get_template_part('template-parts/platform-sidebar'); ?>
+    
+    <div class="platform-content" style="min-width: 0;">
+
 <style>
 :root {
     --primary: #2563eb;
@@ -670,6 +675,9 @@ function downloadComplaint() {
     URL.revokeObjectURL(url);
 }
 </script>
+
+    </div><!-- .platform-content -->
+</div><!-- .platform-container -->
 
 <?php get_footer(); ?>
 
