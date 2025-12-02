@@ -117,6 +117,55 @@ get_header();
     color: #2563eb;
 }
 
+/* Tab System Styles */
+.tabs-nav {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #e2e8f0;
+    overflow-x: auto;
+    padding-bottom: 0;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #64748b;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.tab-button:hover {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.tab-button.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+
+.tab-content {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .help-intro {
     background: white;
     border: 1px solid #dbeafe;
@@ -397,99 +446,170 @@ get_header();
             </div>
         </div>
         
-        <div class="help-grid"
-            <div class="help-card">
-                <h3>📄 Klage over afgørelse</h3>
-                <p>Lær hvordan du klager over en afgørelse fra kommunen eller Ankestyrelsen.</p>
-                <ul>
-                    <li>4 ugers klagefrist</li>
-                    <li>Begrundelse og partshøring</li>
-                    <li>Klagevejledning</li>
-                    <li>Dokumentation</li>
-                </ul>
-                <a href="<?php echo home_url('/platform-klagegenerator'); ?>" class="btn-help">Start klagegenerator →</a>
-            </div>
-            
-            <div class="help-card">
-                <h3>🔍 Aktindsigt</h3>
-                <p>Få adgang til din sag og dokumenter hos myndighederne.</p>
-                <ul>
-                    <li>Forvaltningsloven §9</li>
-                    <li>7 dages svarfrist</li>
-                    <li>Hvad kan du få aktindsigt i?</li>
-                    <li>Undtagelser og begrænsninger</li>
-                </ul>
-                <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Spørg Kate AI →</a>
-            </div>
-            
-            <div class="help-card">
-                <h3>👨‍👩‍👧 Anbringelse</h3>
-                <p>Information om anbringelse med og uden samtykke.</p>
-                <ul>
-                    <li>Barnets Lov §76</li>
-                    <li>Årsager til anbringelse</li>
-                    <li>Dine rettigheder som forælder</li>
-                    <li>Samvær og kontakt</li>
-                </ul>
-                <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Læs mere →</a>
-            </div>
-            
-            <div class="help-card">
-                <h3>📋 Handleplan</h3>
-                <p>Krav til handleplaner og hvordan du bliver inddraget.</p>
-                <ul>
-                    <li>Barnets Lov §140</li>
-                    <li>Indhold og mål</li>
-                    <li>Revision hver 6. måned</li>
-                    <li>Forældreinddragelse</li>
-                </ul>
-                <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Få vejledning →</a>
-            </div>
-            
-            <div class="help-card">
-                <h3>🤝 Bisidder</h3>
-                <p>Din ret til at have en bisidder med til møder.</p>
-                <ul>
-                    <li>Hvem kan være bisidder?</li>
-                    <li>Bisidderens rolle</li>
-                    <li>Anmodning om bisidder</li>
-                    <li>Kommunens pligter</li>
-                </ul>
-                <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Få hjælp →</a>
-            </div>
-            
-            <div class="help-card">
-                <h3>📊 Dokumentanalyse</h3>
-                <p>Få dine dokumenter analyseret med Kate AI's 98% præcision.</p>
-                <ul>
-                    <li>Afgørelser</li>
-                    <li>Handleplaner</li>
-                    <li>Børnefaglige undersøgelser</li>
-                    <li>Samværsaftaler</li>
-                </ul>
-                <a href="<?php echo home_url('/platform-dokumenter'); ?>" class="btn-help">Upload dokument →</a>
+        <!-- Tab Content -->
+        <div id="tab-overview" class="tab-content">
+            <!-- Quick Actions already shown above -->
+        </div>
+        
+        <div id="tab-complaint" class="tab-content" style="display: none;">
+            <div style="background: var(--rtf-card); border-radius: 16px; padding: 2rem; box-shadow: 0 14px 35px rgba(15,23,42,0.10);">
+                <h2 style="margin: 0 0 1.5rem 0; color: #1e293b;">📄 Klage Generator</h2>
+                <p style="color: #64748b; margin-bottom: 2rem;">
+                    Brug vores klage generator til at oprette professionelle klager over afgørelser. Kate AI hjælper dig gennem hele processen.
+                </p>
+                
+                <div class="help-grid">
+                    <div class="help-card">
+                        <h3>📄 Klage over afgørelse</h3>
+                        <p>Lær hvordan du klager over en afgørelse fra kommunen eller Ankestyrelsen.</p>
+                        <ul>
+                            <li>4 ugers klagefrist</li>
+                            <li>Begrundelse og partshøring</li>
+                            <li>Klagevejledning</li>
+                            <li>Dokumentation</li>
+                        </ul>
+                        <a href="<?php echo home_url('/platform-klagegenerator'); ?>" class="btn-help">Start klagegenerator →</a>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="kate-embed">
-            <h2 style="margin: 0 0 1.5rem 0; color: #2563eb;">🤖 Spørg Kate AI</h2>
-            <p style="margin-bottom: 1.5rem; color: #64748b;">
-                Kate kan svare på alle dine juridiske spørgsmål direkte her. Prøv at spørge:
-            </p>
-            
-            <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;">
-                <button onclick="askKate('Hvordan klager jeg over en afgørelse?')" style="padding: 0.5rem 1rem; background: #e0f2fe; color: #2563eb; border: 1px solid #93c5fd; border-radius: 999px; cursor: pointer; font-weight: 600;">
-                    💬 Hvordan klager jeg?
-                </button>
-                <button onclick="askKate('Hvad skal en handleplan indeholde?')" style="padding: 0.5rem 1rem; background: #e0f2fe; color: #2563eb; border: 1px solid #93c5fd; border-radius: 999px; cursor: pointer; font-weight: 600;">
-                    📋 Krav til handleplan
-                </button>
-                <button onclick="askKate('Hvordan får jeg aktindsigt?')" style="padding: 0.5rem 1rem; background: #e0f2fe; color: #2563eb; border: 1px solid #93c5fd; border-radius: 999px; cursor: pointer; font-weight: 600;">
-                    🔍 Aktindsigt
-                </button>
+        <div id="tab-guidance" class="tab-content" style="display: none;">
+            <div style="background: var(--rtf-card); border-radius: 16px; padding: 2rem; box-shadow: 0 14px 35px rgba(15,23,42,0.10);">
+                <h2 style="margin: 0 0 1.5rem 0; color: #1e293b;">📚 Råd & Vejledning</h2>
+                <p style="color: #64748b; margin-bottom: 2rem;">
+                    Få hjælp til de mest almindelige juridiske og sociale spørgsmål.
+                </p>
+                
+                <div class="help-grid">
+                    <div class="help-card">
+                        <h3>🔍 Aktindsigt</h3>
+                        <p>Få adgang til din sag og dokumenter hos myndighederne.</p>
+                        <ul>
+                            <li>Forvaltningsloven §9</li>
+                            <li>7 dages svarfrist</li>
+                            <li>Hvad kan du få aktindsigt i?</li>
+                            <li>Undtagelser og begrænsninger</li>
+                        </ul>
+                        <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Spørg Kate AI →</a>
+                    </div>
+                    
+                    <div class="help-card">
+                        <h3>👨‍👩‍👧 Anbringelse</h3>
+                        <p>Information om anbringelse med og uden samtykke.</p>
+                        <ul>
+                            <li>Barnets Lov §76</li>
+                            <li>Årsager til anbringelse</li>
+                            <li>Dine rettigheder som forælder</li>
+                            <li>Samvær og kontakt</li>
+                        </ul>
+                        <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Læs mere →</a>
+                    </div>
+                    
+                    <div class="help-card">
+                        <h3>📋 Handleplan</h3>
+                        <p>Krav til handleplaner og hvordan du bliver inddraget.</p>
+                        <ul>
+                            <li>Barnets Lov §140</li>
+                            <li>Indhold og mål</li>
+                            <li>Revision hver 6. måned</li>
+                            <li>Forældreinddragelse</li>
+                        </ul>
+                        <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Få vejledning →</a>
+                    </div>
+                    
+                    <div class="help-card">
+                        <h3>🤝 Bisidder</h3>
+                        <p>Din ret til at have en bisidder med til møder.</p>
+                        <ul>
+                            <li>Hvem kan være bisidder?</li>
+                            <li>Bisidderens rolle</li>
+                            <li>Anmodning om bisidder</li>
+                            <li>Kommunens pligter</li>
+                        </ul>
+                        <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Få hjælp →</a>
+                    </div>
+                </div>
             </div>
-            
-            <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Gå til Kate AI →</a>
+        </div>
+        
+        <div id="tab-documentation" class="tab-content" style="display: none;">
+            <div style="background: var(--rtf-card); border-radius: 16px; padding: 2rem; box-shadow: 0 14px 35px rgba(15,23,42,0.10);">
+                <h2 style="margin: 0 0 1.5rem 0; color: #1e293b;">📝 Dokumentation Tips</h2>
+                <p style="color: #64748b; margin-bottom: 2rem;">
+                    Lær hvordan du dokumenterer din sag effektivt.
+                </p>
+                
+                <div class="help-grid">
+                    <div class="help-card">
+                        <h3>🎙️ Optagelse af møder</h3>
+                        <p>Du har ret til at optage møder med myndighederne.</p>
+                        <ul>
+                            <li>Informer om optagelsen</li>
+                            <li>Brug diktafon eller smartphone</li>
+                            <li>Gem filen sikkert</li>
+                            <li>Transskribér vigtige dele</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="help-card">
+                        <h3>📸 Foto-dokumentation</h3>
+                        <p>Billeder kan være vigtige beviser i din sag.</p>
+                        <ul>
+                            <li>Tidsstempler på billeder</li>
+                            <li>Tag billeder af dokumenter</li>
+                            <li>Dokumentér fysiske forhold</li>
+                            <li>Sikkerhedskopier altid</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="help-card">
+                        <h3>✍️ Mødereferater</h3>
+                        <p>Lav dine egne noter fra møder.</p>
+                        <ul>
+                            <li>Hvad blev sagt?</li>
+                            <li>Hvem var til stede?</li>
+                            <li>Hvilke beslutninger blev truffet?</li>
+                            <li>Follow-up aftaler</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="help-card">
+                        <h3>📊 Dokumentanalyse</h3>
+                        <p>Få dine dokumenter analyseret med Kate AI's 98% præcision.</p>
+                        <ul>
+                            <li>Afgørelser</li>
+                            <li>Handleplaner</li>
+                            <li>Børnefaglige undersøgelser</li>
+                            <li>Samværsaftaler</li>
+                        </ul>
+                        <a href="<?php echo home_url('/platform-dokumenter'); ?>" class="btn-help">Upload dokument →</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tab-kate" class="tab-content" style="display: none;">
+            <div style="background: var(--rtf-card); border-radius: 16px; padding: 2rem; box-shadow: 0 14px 35px rgba(15,23,42,0.10);">
+                <h2 style="margin: 0 0 1.5rem 0; color: #2563eb;">🤖 Spørg Kate AI</h2>
+                <p style="margin-bottom: 1.5rem; color: #64748b;">
+                    Kate kan svare på alle dine juridiske spørgsmål direkte her. Prøv at spørge:
+                </p>
+                
+                <div style="display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.5rem;">
+                    <button onclick="askKate('Hvordan klager jeg over en afgørelse?')" style="padding: 0.5rem 1rem; background: #e0f2fe; color: #2563eb; border: 1px solid #93c5fd; border-radius: 999px; cursor: pointer; font-weight: 600;">
+                        💬 Hvordan klager jeg?
+                    </button>
+                    <button onclick="askKate('Hvad skal en handleplan indeholde?')" style="padding: 0.5rem 1rem; background: #e0f2fe; color: #2563eb; border: 1px solid #93c5fd; border-radius: 999px; cursor: pointer; font-weight: 600;">
+                        📋 Krav til handleplan
+                    </button>
+                    <button onclick="askKate('Hvordan får jeg aktindsigt?')" style="padding: 0.5rem 1rem; background: #e0f2fe; color: #2563eb; border: 1px solid #93c5fd; border-radius: 999px; cursor: pointer; font-weight: 600;">
+                        🔍 Aktindsigt
+                    </button>
+                </div>
+                
+                <a href="<?php echo home_url('/platform-kate-ai'); ?>" class="btn-help">Gå til Kate AI →</a>
+            </div>
         </div>
         
         <!-- BARNETS LOV LOVOPSLAG -->
@@ -943,10 +1063,9 @@ function showTab(tabName) {
     tabs.forEach(tab => tab.style.display = 'none');
     
     // Fjern active class fra alle knapper
-    const buttons = document.querySelectorAll('.tab-btn');
+    const buttons = document.querySelectorAll('.tab-button');
     buttons.forEach(btn => {
-        btn.style.background = '#f1f5f9';
-        btn.style.color = '#475569';
+        btn.classList.remove('active');
     });
     
     // Vis valgt tab
@@ -956,12 +1075,19 @@ function showTab(tabName) {
     }
     
     // Marker active knap
-    event.target.style.background = '#667eea';
-    event.target.style.color = 'white';
+    if (event && event.target) {
+        event.target.classList.add('active');
+    }
 }
 
-// Hover effekt på action cards
+// Sæt første tab som aktiv ved page load
 document.addEventListener('DOMContentLoaded', function() {
+    const firstButton = document.querySelector('.tab-button');
+    if (firstButton) {
+        firstButton.classList.add('active');
+    }
+    
+    // Hover effekt på action cards
     const cards = document.querySelectorAll('.action-card');
     cards.forEach(card => {
         card.addEventListener('mouseenter', function() {
