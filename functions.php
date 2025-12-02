@@ -73,9 +73,9 @@ function rtf_get_kate_ai_instances() {
         return $instances;
     }
     
-    // Check if vendor is loaded via plugin
+    // Check if vendor is loaded via plugin - CRITICAL CHECK
     if (!defined('RTF_VENDOR_LOADED') || !RTF_VENDOR_LOADED) {
-        error_log('Kate AI: Vendor not loaded. Activate RTF Vendor Loader plugin.');
+        // Vendor not loaded - return null silently (no error)
         return null;
     }
     
@@ -86,8 +86,15 @@ function rtf_get_kate_ai_instances() {
     
     // Load Kate AI classes
     $kate_ai_file = get_template_directory() . '/kate-ai/kate-ai.php';
-    if (file_exists($kate_ai_file)) {
+    if (!file_exists($kate_ai_file)) {
+        return null;
+    }
+    
+    try {
         require_once $kate_ai_file;
+    } catch (Exception $e) {
+        error_log('Kate AI file load failed: ' . $e->getMessage());
+        return null;
     }
     
     // Only initialize if Kate AI classes are loaded
@@ -150,6 +157,9 @@ function rtf_get_kate_ai_instances() {
         
     } catch (Exception $e) {
         error_log('Kate AI initialization failed: ' . $e->getMessage());
+        return null;
+    } catch (Error $e) {
+        error_log('Kate AI initialization error: ' . $e->getMessage());
         return null;
     }
 }
