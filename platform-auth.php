@@ -177,7 +177,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         error_log("RTF Registration Success: User $username (ID: $user_id, Email: $email) created");
         
-        // Redirect to Stripe checkout
+        // Check if this is admin creating user (no payment needed)
+        $admin_create = isset($_POST['admin_create']) && $_POST['admin_create'] === '1';
+        
+        if ($admin_create) {
+            // Admin created user - redirect to admin panel
+            error_log("RTF: Admin created user $username - skipping Stripe");
+            wp_redirect(home_url('/platform-admin-dashboard/?lang=' . $lang . '&user_created=success'));
+            exit;
+        }
+        
+        // Normal user registration - redirect to Stripe checkout
         require_once(__DIR__ . '/stripe-php-13.18.0/init.php');
         \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
         

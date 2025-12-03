@@ -793,29 +793,37 @@ async function saveUser() {
         return;
     }
     
-    // Create user via registration system
+    // Create user via admin endpoint
     try {
         const formData = new FormData();
         formData.append('action', 'register');
+        formData.append('admin_create', '1'); // Flag for admin creation (no Stripe redirect)
         formData.append('_wpnonce', '<?php echo wp_create_nonce("rtf_register"); ?>');
         Object.keys(userData).forEach(key => formData.append(key, userData[key]));
         
-        const response = await fetch('/platform-auth', {
+        const response = await fetch('<?php echo home_url("/platform-auth?lang=" . $lang); ?>', {
             method: 'POST',
             body: formData
         });
         
-        if (response.ok) {
+        const responseText = await response.text();
+        
+        // Check if redirect happened (successful creation)
+        if (response.redirected || response.ok) {
             alert('✓ Bruger oprettet!');
             closeModal();
             loadUsers();
         } else {
-            const text = await response.text();
-            alert('✗ Fejl: ' + text);
+            // Try to extract error from HTML response
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(responseText, 'text/html');
+            const errorDiv = doc.querySelector('.error-message');
+            const errorText = errorDiv ? errorDiv.textContent : responseText.substring(0, 200);
+            alert('✗ Fejl: ' + errorText);
         }
     } catch (error) {
         console.error('Save user error:', error);
-        alert('Fejl: ' + error.message);
+        alert('Fejl ved oprettelse: ' + error.message);
     }
 }
 

@@ -123,6 +123,60 @@ if (isset($_GET['logout'])) {
         <?php get_template_part('template-parts/platform-sidebar'); ?>
         
         <div class="platform-content" style="min-width: 0;">
+            
+            <?php if (isset($_GET['payment']) && $_GET['payment'] === 'success'): ?>
+            <!-- PAYMENT SUCCESS BANNER -->
+            <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <svg style="width: 32px; height: 32px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; font-size: 1.3em;">
+                            <?php echo $lang === 'da' ? '🎉 Betaling gennemført!' : '🎉 Betalning genomförd!'; ?>
+                        </h3>
+                        <p style="margin: 0; opacity: 0.95;">
+                            <?php 
+                            if ($lang === 'da') {
+                                echo 'Dit abonnement er nu aktivt! Du har fuld adgang til alle platformens funktioner.';
+                            } else {
+                                echo 'Din prenumeration är nu aktiv! Du har full tillgång till alla plattformens funktioner.';
+                            }
+                            ?>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
+            <?php if (isset($_GET['payment']) && $_GET['payment'] === 'cancelled'): ?>
+            <!-- PAYMENT CANCELLED BANNER -->
+            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px 30px; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <svg style="width: 32px; height: 32px; fill: currentColor; flex-shrink: 0;" viewBox="0 0 24 24">
+                        <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+                    </svg>
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; font-size: 1.3em;">
+                            <?php echo $lang === 'da' ? 'Betaling annulleret' : 'Betalning avbruten'; ?>
+                        </h3>
+                        <p style="margin: 0; opacity: 0.95;">
+                            <?php 
+                            if ($lang === 'da') {
+                                echo 'Du afbrød betalingen. Få fuld adgang ved at gennemføre betalingen.';
+                            } else {
+                                echo 'Du avbröt betalningen. Få full åtkomst genom att genomföra betalningen.';
+                            }
+                            ?>
+                            <a href="<?php echo home_url('/platform-subscription/?lang=' . $lang); ?>" style="color: white; text-decoration: underline; margin-left: 10px; font-weight: 600;">
+                                <?php echo $lang === 'da' ? 'Prøv igen' : 'Försök igen'; ?>
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
+            
             <!-- Profile Card (at top of content area) -->
             <div class="profile-card" style="background: var(--rtf-card); border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px; overflow: hidden; text-align: center;">
                 <!-- Cover Image -->
