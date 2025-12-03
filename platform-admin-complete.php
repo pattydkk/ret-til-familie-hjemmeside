@@ -43,7 +43,10 @@ $translations = [
         'save' => 'Gem',
         'stripe_id' => 'Stripe ID',
         'created' => 'Oprettet',
-        'last_login' => 'Sidste Login'
+        'last_login' => 'Sidste Login',
+        'is_admin' => 'Administrator',
+        'make_admin' => 'Gør til administrator',
+        'admin_rights_desc' => 'Giv denne bruger fuld administrator adgang til platformen'
     ]
 ];
 
@@ -436,6 +439,16 @@ $t = $translations[$lang];
                 </select>
             </div>
             
+            <div class="form-group" style="margin-top: 15px; padding: 15px; background-color: rgba(37, 99, 235, 0.1); border-radius: 8px; border: 1px solid #2563eb; display: block !important;">
+                <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600; color: #1e293b;">
+                    <input type="checkbox" id="is_admin" name="is_admin" value="1" style="width: 18px; height: 18px; margin-right: 10px; cursor: pointer;">
+                    <span>👑 <?php echo $t['make_admin']; ?></span>
+                </label>
+                <small style="display: block; margin-top: 8px; color: #64748b; font-size: 13px;">
+                    <?php echo $t['admin_rights_desc']; ?>
+                </small>
+            </div>
+            
             <div class="form-actions">
                 <button type="button" class="btn-danger" onclick="closeModal()"><?php echo $t['cancel']; ?></button>
                 <button type="button" class="btn-success" onclick="saveUser()"><?php echo $t['save']; ?></button>
@@ -625,7 +638,8 @@ async function saveUser() {
         full_name: document.getElementById('full_name').value,
         phone: document.getElementById('phone').value,
         birthday: document.getElementById('birthday').value || '2000-01-01',
-        subscription_status: document.getElementById('subscription_status').value
+        subscription_status: document.getElementById('subscription_status').value,
+        is_admin: document.getElementById('is_admin').checked ? 1 : 0
     };
     
     if (!userData.username || !userData.email || !userData.password || !userData.full_name) {
