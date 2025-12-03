@@ -1,49 +1,131 @@
 </main>
 
-<?php 
-// Show PLATFORM STATISTICS counter ONLY on homepage - REAL-TIME DATA
-if (is_front_page() || is_home()): 
-    global $wpdb;
-    $total_users = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}rtf_platform_users");
-    $active_users = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}rtf_platform_users WHERE subscription_status = 'active'");
-    $total_posts = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}rtf_platform_posts");
-    $total_messages = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}rtf_platform_messages");
+<?php
+// Show foster care statistics counter ONLY on homepage - LIVE REAL-TIME DATA
+if (is_front_page() || is_home()):
 ?>
-<div id="platform-stats-counter" style="background: linear-gradient(135deg, #eef2ff 0%, #f9fafb 100%); border-top: 2px solid #6366f1; padding: 1.5rem 1rem; text-align: center;">
-    <div style="max-width: 1000px; margin: 0 auto;">
-        <div style="font-size: 0.9rem; color: #475569; margin-bottom: 1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
-            🚀 Ret til Familie Platform - Live Statistik
+<div id="foster-care-counter" style="background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 1.25rem 1rem; text-align: center;">
+    <div style="max-width: 900px; margin: 0 auto;">
+        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 500;">
+            🏠 Børn fjernet fra hjemmet / Omhändertagna barn
         </div>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 0 auto;">
-            <!-- Total Users -->
-            <div style="background: white; padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
-                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">👥 Medlemmer i alt</div>
-                <div style="font-size: 2rem; font-weight: 700; color: #1e40af; font-family: 'Arial', sans-serif;"><?php echo number_format($total_users); ?></div>
+        <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; align-items: center;">
+            <!-- Denmark Counter -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.75rem; color: #64748b;">🇩🇰</span>
+                <span id="dk-count" style="font-size: 1.25rem; font-weight: 700; color: #1e40af; font-family: 'Arial', sans-serif;">-</span>
+                <span id="dk-confidence" style="font-size: 0.7rem; color: #16a34a; background: #f0fdf4; padding: 0.15rem 0.4rem; border-radius: 10px;">98%</span>
             </div>
-            
-            <!-- Active Subscriptions -->
-            <div style="background: white; padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
-                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">✅ Aktive abonnementer</div>
-                <div style="font-size: 2rem; font-weight: 700; color: #047857; font-family: 'Arial', sans-serif;"><?php echo number_format($active_users); ?></div>
-            </div>
-            
-            <!-- Total Posts -->
-            <div style="background: white; padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
-                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">📝 Posts delt</div>
-                <div style="font-size: 2rem; font-weight: 700; color: #d97706; font-family: 'Arial', sans-serif;"><?php echo number_format($total_posts); ?></div>
-            </div>
-            
-            <!-- Total Messages -->
-            <div style="background: white; padding: 1.25rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #8b5cf6;">
-                <div style="font-size: 0.75rem; color: #64748b; margin-bottom: 0.5rem; font-weight: 600; text-transform: uppercase;">💬 Beskeder sendt</div>
-                <div style="font-size: 2rem; font-weight: 700; color: #7c3aed; font-family: 'Arial', sans-serif;"><?php echo number_format($total_messages); ?></div>
+
+            <!-- Sweden Counter -->
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.75rem; color: #64748b;">🇸🇪</span>
+                <span id="se-count" style="font-size: 1.25rem; font-weight: 700; color: #1e40af; font-family: 'Arial', sans-serif;">-</span>
+                <span id="se-confidence" style="font-size: 0.7rem; color: #16a34a; background: #f0fdf4; padding: 0.15rem 0.4rem; border-radius: 10px;">98%</span>
             </div>
         </div>
-        <div style="margin-top: 1rem; font-size: 0.7rem; color: #94a3b8;">
-            ⚡ Live data opdateres automatisk • Alle tal er real-time fra databasen
+        <div style="margin-top: 0.5rem; font-size: 0.65rem; color: #94a3b8; line-height: 1.4;">
+            <span id="dk-updated"></span> | <span id="se-updated"></span><br>
+            Data: <a href="https://ast.dk" target="_blank" style="color: #64748b; text-decoration: none;">Ankestyrelsen</a> (DK) •
+            <a href="https://www.socialstyrelsen.se" target="_blank" style="color: #64748b; text-decoration: none;">Socialstyrelsen</a> (SE)
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    let currentDK = 0;
+    let currentSE = 0;
+
+    function animateCounter(element, start, end, duration) {
+        const startTime = performance.now();
+        const difference = end - start;
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+            const current = Math.floor(start + difference * easeOutQuart);
+            element.textContent = current.toLocaleString('da-DK');
+            
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    function formatDateTime(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMinutes = Math.floor((now - date) / 60000);
+
+        if (diffMinutes < 1) return 'nu';
+        if (diffMinutes < 60) return diffMinutes + ' min';
+
+        const hours = Math.floor(diffMinutes / 60);
+        if (hours < 24) return hours + 't';
+
+        return date.toLocaleString('da-DK', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    async function updateStats() {
+        try {
+            const response = await fetch('<?php echo rest_url("kate/v1/foster-care-stats"); ?>');
+            const data = await response.json();
+
+            if (data.success && data.stats) {
+                const dkElement = document.getElementById('dk-count');
+                const seElement = document.getElementById('se-count');
+                const dkUpdated = document.getElementById('dk-updated');
+                const seUpdated = document.getElementById('se-updated');
+                const dkConfidence = document.getElementById('dk-confidence');
+                const seConfidence = document.getElementById('se-confidence');
+
+                if (data.stats.DK) {
+                    const targetDK = data.stats.DK.estimate;
+                    if (currentDK === 0) {
+                        currentDK = targetDK;
+                        dkElement.textContent = targetDK.toLocaleString('da-DK');
+                    } else {
+                        animateCounter(dkElement, currentDK, targetDK, 1500);
+                        currentDK = targetDK;
+                    }
+                    dkUpdated.textContent = 'DK: ' + formatDateTime(data.stats.DK.updated);
+                    dkConfidence.textContent = data.stats.DK.confidence.toFixed(1) + '%';
+                }
+
+                if (data.stats.SE) {
+                    const targetSE = data.stats.SE.estimate;
+                    if (currentSE === 0) {
+                        currentSE = targetSE;
+                        seElement.textContent = targetSE.toLocaleString('da-DK');
+                    } else {
+                        animateCounter(seElement, currentSE, targetSE, 1500);
+                        currentSE = targetSE;
+                    }
+                    seUpdated.textContent = 'SE: ' + formatDateTime(data.stats.SE.updated);
+                    seConfidence.textContent = data.stats.SE.confidence.toFixed(1) + '%';
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch foster care statistics:', error);
+        }
+    }
+
+    // Update immediately on load
+    updateStats();
+    
+    // Update every 5 minutes (real-time updates)
+    setInterval(updateStats, 5 * 60 * 1000);
+})();
+</script>
 <?php endif; ?>
 
 <footer class="site-footer">
