@@ -180,32 +180,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     // Check if username or email exists
     $exists = $wpdb->get_var($wpdb->prepare("SELECT COUNT(*) FROM $table WHERE username = %s OR email = %s", $username, $email));
     
+    if ($debug_mode) {
+        $debug_messages[] = "Checking duplicates - Found: $exists";
+    }
+    
     if ($exists) {
         $error = $lang === 'da' ? 'Brugernavn eller email er allerede i brug' : ($lang === 'sv' ? 'Användarnamn eller e-post används redan' : 'Username or email already in use');
     } else {
-        $insert_result = $wpdb->insert($table, array(
+        // Prepare data for insert
+        $user_data = array(
             'username' => $username,
             'email' => $email,
             'password' => $password,
             'full_name' => $full_name,
             'birthday' => $birthday,
             'phone' => $phone,
-            'case_type' => $case_type,
-            'age' => $age,
-            'bio' => $bio,
             'language_preference' => $language_preference,
             'country' => $country,
             'subscription_status' => 'inactive',
             'is_admin' => 0,
             'is_active' => 1
-        ));
+        );
+        
+        // Only add optional fields if they have values
+        if (!empty($case_type)) {
+            $user_data['case_type'] = $case_type;
+        }
+        if (!empty($age) && $age > 0) {
+            $user_data['age'] = $age;
+        }
+        if (!empty($bio)) {
+            $user_data['bio'] = $bio;
+        }
+        
+        if ($debug_mode) {
+            $debug_messages[] = "Attempting insert with data: " . print_r($user_data, true);
+        }
+        
+        $insert_result = $wpdb->insert($table, $user_data);
         
         if ($insert_result === false) {
-            // Database error
+            // Database error - LOG IT!
+            error_log('RTF Registration Error: ' . $wpdb->last_error);
+            error_log('RTF Registration Data: ' . print_r($user_data, true));
+            
             if ($debug_mode) {
-                wp_die('Database error: ' . $wpdb->last_error);
+                wp_die('Database error: ' . $wpdb->last_error . '<br><br>Data attempted: <pre>' . print_r($user_data, true) . '</pre>');
             }
-            $error = $lang === 'da' ? 'Der opstod en fejl - prøv igen' : ($lang === 'sv' ? 'Ett fel uppstod - försök igen' : 'An error occurred - try again');
+            $error = $lang === 'da' ? 'Der opstod en fejl ved oprettelse af bruger. Kontakt support hvis problemet fortsætter.' : ($lang === 'sv' ? 'Ett fel uppstod vid skapandet av användare. Kontakta support om problemet fortsätter.' : 'An error occurred creating user. Contact support if problem persists.');
         } else {
             $user_id = $wpdb->insert_id;
             
