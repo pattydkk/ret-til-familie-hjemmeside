@@ -1152,13 +1152,18 @@ function rtf_force_create_pages() {
     set_time_limit(300);
     
     echo '<html><head><meta charset="utf-8"><title>RTF Setup</title>';
-    echo '<style>body{font-family:Arial;max-width:900px;margin:50px auto;padding:20px;background:#f8fafc}';
+    echo '<style>body{font-family:Arial;max-width:1200px;margin:50px auto;padding:20px;background:#f8fafc}';
     echo '.success{color:#059669;padding:10px;background:#d1fae5;border-left:4px solid #059669;margin:10px 0}';
     echo '.error{color:#dc2626;padding:10px;background:#fee2e2;border-left:4px solid #dc2626;margin:10px 0}';
-    echo '.info{color:#2563eb;padding:10px;background:#dbeafe;border-left:4px solid #2563eb;margin:10px 0}</style>';
+    echo '.info{color:#2563eb;padding:10px;background:#dbeafe;border-left:4px solid #2563eb;margin:10px 0}';
+    echo '.warning{color:#d97706;padding:10px;background:#fef3c7;border-left:4px solid #d97706;margin:10px 0}';
+    echo 'table{width:100%;border-collapse:collapse;margin:15px 0;background:white}';
+    echo 'th,td{padding:12px;text-align:left;border-bottom:1px solid #e5e7eb}';
+    echo 'th{background:#f3f4f6;font-weight:600}</style>';
     echo '</head><body>';
-    echo '<h1 style="color: #2563eb;">🚀 RTF Platform Setup</h1>';
+    echo '<h1 style="color: #2563eb;">🚀 RTF Platform Setup & Diagnostics</h1>';
     
+    // Database tables
     try {
         echo '<div class="info"><strong>📊 Opretter database tabeller...</strong></div>';
         rtf_create_platform_tables();
@@ -1167,14 +1172,102 @@ function rtf_force_create_pages() {
         echo '<div class="error">❌ Fejl ved oprettelse af tabeller: ' . $e->getMessage() . '</div>';
     }
     
+    // Pages creation with detailed output
     try {
-        echo '<div class="info"><strong>📄 Opretter alle sider...</strong></div>';
-        rtf_create_pages_menu_on_switch();
-        echo '<div class="success">✅ 25 sider oprettet med templates</div>';
+        echo '<div class="info"><strong>📄 Opretter/verificerer alle sider...</strong></div>';
+        
+        $pages = array(
+            'forside' => 'Forside',
+            'ydelser' => 'Ydelser',
+            'om-os' => 'Om os',
+            'kontakt' => 'Kontakt',
+            'akademiet' => 'Akademiet',
+            'stoet-os' => 'Støt os',
+            'borger-platform' => 'Borger Platform',
+        );
+        
+        $platform_pages = array(
+            'test-db' => 'Database Test',
+            'platform-auth' => 'Platform Login',
+            'platform-profil' => 'Min Profil',
+            'platform-subscription' => 'Abonnement',
+            'platform-vaeg' => 'Min Væg',
+            'platform-chat' => 'Beskeder',
+            'platform-billeder' => 'Billede Galleri',
+            'platform-dokumenter' => 'Dokumenter',
+            'platform-find-borgere' => 'Find Borgere',
+            'platform-venner' => 'Venner',
+            'platform-indstillinger' => 'Indstillinger',
+            'platform-nyheder' => 'Nyheder',
+            'platform-forum' => 'Forum',
+            'platform-sagshjaelp' => 'Sagshjælp',
+            'platform-kate-ai' => 'Kate AI Assistent',
+            'platform-admin-dashboard' => 'Admin Dashboard',
+            'platform-rapporter' => 'Rapporter & Analyser',
+        );
+        
+        $all_pages = array_merge($pages, $platform_pages);
+        
+        echo '<table>';
+        echo '<tr><th>Side Slug</th><th>Titel</th><th>Status</th><th>Template</th><th>URL</th></tr>';
+        
+        foreach ($all_pages as $slug => $title) {
+            $existing = get_page_by_path($slug);
+            $template_file = '';
+            
+            if ($slug === 'borger-platform') {
+                $template_file = 'borger-platform.php';
+            } elseif (strpos($slug, 'platform-') === 0) {
+                $template_file = $slug . '.php';
+            }
+            
+            if ($existing) {
+                // Page exists, update template
+                if ($template_file && file_exists(get_template_directory() . '/' . $template_file)) {
+                    update_post_meta($existing->ID, '_wp_page_template', $template_file);
+                    $status = '✅ Eksisterer (template opdateret)';
+                } else {
+                    $status = '✅ Eksisterer';
+                }
+                $page_id = $existing->ID;
+            } else {
+                // Create new page
+                $page_id = wp_insert_post(array(
+                    'post_title' => $title,
+                    'post_name' => $slug,
+                    'post_status' => 'publish',
+                    'post_type' => 'page',
+                    'post_content' => '',
+                ));
+                
+                if ($page_id && $template_file && file_exists(get_template_directory() . '/' . $template_file)) {
+                    update_post_meta($page_id, '_wp_page_template', $template_file);
+                    $status = '🆕 Oprettet med template';
+                } else {
+                    $status = '🆕 Oprettet';
+                }
+            }
+            
+            $url = home_url('/' . $slug . '/');
+            $template_display = $template_file ? $template_file : 'default';
+            
+            echo "<tr>";
+            echo "<td><code>$slug</code></td>";
+            echo "<td>$title</td>";
+            echo "<td>$status</td>";
+            echo "<td><code>$template_display</code></td>";
+            echo "<td><a href='$url' target='_blank' style='color:#2563eb'>Test →</a></td>";
+            echo "</tr>";
+        }
+        
+        echo '</table>';
+        echo '<div class="success">✅ Alle ' . count($all_pages) . ' sider verificeret/oprettet</div>';
+        
     } catch (Exception $e) {
         echo '<div class="error">❌ Fejl ved oprettelse af sider: ' . $e->getMessage() . '</div>';
     }
     
+    // Admin user
     try {
         echo '<div class="info"><strong>👤 Opretter admin bruger...</strong></div>';
         rtf_create_default_admin();
@@ -1186,6 +1279,7 @@ function rtf_force_create_pages() {
         echo '<div class="error">❌ Fejl ved oprettelse af admin: ' . $e->getMessage() . '</div>';
     }
     
+    // Flush permalinks
     try {
         echo '<div class="info"><strong>🔄 Flusher permalinks...</strong></div>';
         flush_rewrite_rules();
@@ -1195,20 +1289,12 @@ function rtf_force_create_pages() {
     }
     
     echo '<h2 style="color: #059669; margin-top: 30px;">✅ SETUP GENNEMFØRT!</h2>';
-    echo '<div class="info"><strong>📋 Test disse sider nu:</strong>';
-    echo '<ul style="line-height: 1.8;">';
-    echo '<li>🏠 <a href="' . home_url('/') . '" target="_blank" style="color:#2563eb">Forside</a></li>';
-    echo '<li>🌐 <a href="' . home_url('/borger-platform/') . '" target="_blank" style="color:#2563eb">Borgerplatform Landing</a></li>';
-    echo '<li>🔐 <a href="' . home_url('/platform-auth/') . '" target="_blank" style="color:#2563eb">Login/Registrering</a></li>';
-    echo '<li>🧪 <a href="' . home_url('/test-db/') . '" target="_blank" style="color:#2563eb">Database Test</a></li>';
-    echo '<li>👤 <a href="' . home_url('/platform-profil/') . '" target="_blank" style="color:#2563eb">Min Profil (kræver login)</a></li>';
-    echo '</ul></div>';
     
-    echo '<div class="success" style="margin-top:20px"><strong>🎯 NÆSTE TRIN:</strong><br>';
-    echo '1. Log ind med admin: patrickfoerslev@gmail.com / Ph1357911<br>';
-    echo '2. Test at du kan se profil og alle platform funktioner<br>';
-    echo '3. Opret en test bruger for at verificere registrering virker<br>';
-    echo '4. Admin har automatisk fri adgang til alt uden abonnement</div>';
+    echo '<div class="warning"><strong>⚠️ VIGTIGT - NÆSTE TRIN:</strong><br>';
+    echo '1. Scroll op og verificer at ALLE sider viser ✅ eller 🆕<br>';
+    echo '2. Klik på "Test →" links for at verificere hver side virker<br>';
+    echo '3. Log ind med admin: patrickfoerslev@gmail.com / Ph1357911<br>';
+    echo '4. Test platform-find-borgere specifikt: <a href="' . home_url('/platform-find-borgere/') . '" target="_blank" style="color:#2563eb">Klik her</a></div>';
     
     echo '</body></html>';
     exit;
