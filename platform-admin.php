@@ -415,7 +415,7 @@ body {
     </div>
 
     <!-- User Management Tab -->
-    <div class="admin-section">
+    <div class="admin-section" id="tab-users">
         <h2><?php echo $t['users']; ?></h2>
         
         <div class="admin-toolbar">
@@ -899,6 +899,7 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.style.background = 'var(--admin-card)';
         btn.style.color = '#e2e8f0';
+        btn.style.border = '1px solid var(--admin-border)';
         btn.classList.remove('active');
     });
     
@@ -909,12 +910,17 @@ function switchTab(tabName) {
     }
     
     // Mark button as active
-    event.target.style.background = 'var(--admin-primary)';
-    event.target.style.color = 'white';
-    event.target.classList.add('active');
+    if (event && event.target) {
+        event.target.style.background = 'var(--admin-primary)';
+        event.target.style.color = 'white';
+        event.target.style.border = 'none';
+        event.target.classList.add('active');
+    }
     
     // Load content for tab
-    if (tabName === 'news') {
+    if (tabName === 'users') {
+        loadUsers();
+    } else if (tabName === 'news') {
         loadNews();
     } else if (tabName === 'posts') {
         loadPosts();
