@@ -157,196 +157,100 @@ if (isset($_GET['logout'])) {
             <div class="main-content">
                 <!-- PROFILE INFO -->
                 <div class="profile-info" style="background: var(--rtf-card); padding: 40px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); margin-bottom: 30px;">
-                    <h1 style="margin-bottom: 30px; color: var(--rtf-text);"><?php echo esc_html($txt['title']); ?></h1>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                        <h1 style="margin: 0; color: var(--rtf-text);"><?php echo esc_html($txt['title']); ?></h1>
+                        <a href="<?php echo home_url('/platform-indstillinger/?lang=' . $lang); ?>" class="btn-primary" style="padding: 12px 24px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <svg style="width: 18px; height: 18px; fill: currentColor;" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+                            <?php echo $lang === 'da' ? 'Rediger Profil' : 'Redigera Profil'; ?>
+                        </a>
+                    </div>
                     
-                    <form id="profileUpdateForm">
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 30px;">
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['username']); ?></label>
-                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->username); ?></p>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['email']); ?></label>
-                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->email); ?></p>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['fullname']); ?></label>
-                                <input type="text" name="full_name" value="<?php echo esc_attr($current_user->full_name); ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['birthday']); ?></label>
-                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($birthday_display); ?></p>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Sagstype' : 'Ärendetyp'; ?></label>
-                                <select name="case_type" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                                    <option value=""><?php echo $lang === 'da' ? 'Vælg sagstype' : 'Välj ärendetyp'; ?></option>
-                                    <option value="custody" <?php echo $current_user->case_type === 'custody' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad'; ?></option>
-                                    <option value="visitation" <?php echo $current_user->case_type === 'visitation' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Samvær' : 'Umgänge'; ?></option>
-                                    <option value="divorce" <?php echo $current_user->case_type === 'divorce' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa'; ?></option>
-                                    <option value="support" <?php echo $current_user->case_type === 'support' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag'; ?></option>
-                                    <option value="other" <?php echo $current_user->case_type === 'other' ? 'selected' : ''; ?>><?php echo $lang === 'da' ? 'Andet' : 'Annat'; ?></option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Land' : 'Land'; ?></label>
-                                <select name="country" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                                    <option value="DK" <?php echo $current_user->country === 'DK' ? 'selected' : ''; ?>>Danmark</option>
-                                    <option value="SE" <?php echo $current_user->country === 'SE' ? 'selected' : ''; ?>>Sverige</option>
-                                    <option value="NO" <?php echo $current_user->country === 'NO' ? 'selected' : ''; ?>>Norge</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Alder' : 'Ålder'; ?></label>
-                                <input type="number" name="age" value="<?php echo esc_attr($current_user->age); ?>" min="18" max="120" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Telefonnummer' : 'Telefonnummer'; ?></label>
-                                <input type="tel" name="phone" value="<?php echo esc_attr($current_user->phone); ?>" placeholder="<?php echo $lang === 'da' ? '+45 12 34 56 78' : '+46 70 123 45 67'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'By' : 'Stad'; ?></label>
-                                <input type="text" name="city" value="<?php echo esc_attr($current_user->city ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'København' : 'Stockholm'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Postnummer' : 'Postnummer'; ?></label>
-                                <input type="text" name="postal_code" value="<?php echo esc_attr($current_user->postal_code ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? '2000' : '100 00'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div style="grid-column: 1 / -1;">
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Adresse' : 'Adress'; ?></label>
-                                <input type="text" name="address" value="<?php echo esc_attr($current_user->address ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'Gadenavn 123' : 'Gatnamn 123'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Sprog præference' : 'Språkpreferens'; ?></label>
-                                <select name="language_preference" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                                    <option value="da_DK" <?php echo $current_user->language_preference === 'da_DK' ? 'selected' : ''; ?>>🇩🇰 Dansk</option>
-                                    <option value="sv_SE" <?php echo $current_user->language_preference === 'sv_SE' ? 'selected' : ''; ?>>🇸🇪 Svenska</option>
-                                    <option value="en_US" <?php echo $current_user->language_preference === 'en_US' ? 'selected' : ''; ?>>🇬🇧 English</option>
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['member_since']); ?></label>
-                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo rtf_format_date($current_user->created_at); ?></p>
-                            </div>
-                            
-                            <div style="grid-column: 1 / -1;">
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Kort biografi' : 'Kort biografi'; ?></label>
-                                <textarea name="bio" rows="4" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc; resize: vertical;" placeholder="<?php echo $lang === 'da' ? 'Fortæl lidt om dig selv...' : 'Berätta lite om dig själv...'; ?>"><?php echo esc_textarea($current_user->bio); ?></textarea>
-                            </div>
-                            
-                            <div style="grid-column: 1 / -1;">
-                                <h3 style="margin: 20px 0 15px; color: var(--rtf-text); display: flex; align-items: center; gap: 10px;">
-                                    <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24"><path d="M16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2m-5.15 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56M14.34 14H9.66c-.1-.66-.16-1.32-.16-2 0-.68.06-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2M12 19.96c-.83-1.2-1.5-2.53-1.91-3.96h3.82c-.41 1.43-1.08 2.76-1.91 3.96M8 8H5.08C6.03 6.34 7.57 5.06 9.4 4.44 8.8 5.55 8.35 6.75 8 8m-2.92 8H8c.35 1.25.8 2.45 1.4 3.56-1.83-.62-3.37-1.9-4.32-3.56M4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2M12 4.03c.83 1.2 1.5 2.54 1.91 3.97h-3.82c.41-1.43 1.08-2.77 1.91-3.97M18.92 8h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56M12 2C6.47 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/></svg>
-                                    <?php echo $lang === 'da' ? 'Sociale Links & Web' : 'Sociala länkar & Webb'; ?>
-                                </h3>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">🌐 <?php echo $lang === 'da' ? 'Hjemmeside' : 'Hemsida'; ?></label>
-                                <input type="url" name="website" value="<?php echo esc_attr($current_user->website ?? ''); ?>" placeholder="https://example.com" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">💼 <?php echo $lang === 'da' ? 'Erhverv' : 'Yrke'; ?></label>
-                                <input type="text" name="occupation" value="<?php echo esc_attr($current_user->occupation ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'Dit erhverv' : 'Ditt yrke'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">📘 Facebook</label>
-                                <input type="url" name="facebook_url" value="<?php echo esc_attr($current_user->facebook_url ?? ''); ?>" placeholder="https://facebook.com/ditprofil" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">🐦 Twitter / X</label>
-                                <input type="url" name="twitter_url" value="<?php echo esc_attr($current_user->twitter_url ?? ''); ?>" placeholder="https://twitter.com/ditbrugernavn" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">📷 Instagram</label>
-                                <input type="url" name="instagram_url" value="<?php echo esc_attr($current_user->instagram_url ?? ''); ?>" placeholder="https://instagram.com/ditbrugernavn" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">💼 LinkedIn</label>
-                                <input type="url" name="linkedin_url" value="<?php echo esc_attr($current_user->linkedin_url ?? ''); ?>" placeholder="https://linkedin.com/in/ditprofil" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div style="grid-column: 1 / -1;">
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">🎯 <?php echo $lang === 'da' ? 'Interesser (kommasepareret)' : 'Intressen (kommaseparerade)'; ?></label>
-                                <input type="text" name="interests" value="<?php echo esc_attr($current_user->interests ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'Familie, lovgivning, sport...' : 'Familj, lagstiftning, sport...'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
-                            </div>
-                            
-                            <div style="grid-column: 1 / -1;">
-                                <h3 style="margin: 20px 0 15px; color: var(--rtf-text); display: flex; align-items: center; gap: 10px;">
-                                    <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-                                    <?php echo $lang === 'da' ? 'Sikkerhed & Notifikationer' : 'Säkerhet & Notifikationer'; ?>
-                                </h3>
-                            </div>
-                            
-                            <div style="grid-column: 1 / -1; background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px solid #e0f2fe;">
-                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px;">
-                                    <input type="checkbox" name="email_notifications" value="1" <?php echo ($current_user->email_notifications ?? 1) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
-                                    <div>
-                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">📧 <?php echo $lang === 'da' ? 'Email notifikationer' : 'E-postmeddelanden'; ?></div>
-                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Modtag email når du får nye beskeder eller svar' : 'Ta emot e-post när du får nya meddelanden eller svar'; ?></div>
-                                    </div>
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px;">
-                                    <input type="checkbox" name="two_factor_enabled" value="1" <?php echo ($current_user->two_factor_enabled ?? 0) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
-                                    <div>
-                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">🔐 <?php echo $lang === 'da' ? 'To-faktor godkendelse (2FA)' : 'Tvåfaktorsautentisering (2FA)'; ?></div>
-                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Ekstra sikkerhed ved login med SMS kode' : 'Extra säkerhet vid inloggning med SMS-kod'; ?></div>
-                                    </div>
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px;">
-                                    <input type="checkbox" name="show_online_status" value="1" <?php echo ($current_user->show_online_status ?? 1) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
-                                    <div>
-                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">🟢 <?php echo $lang === 'da' ? 'Vis online status' : 'Visa onlinestatus'; ?></div>
-                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Lad andre se når du er online' : 'Låt andra se när du är online'; ?></div>
-                                    </div>
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
-                                    <input type="checkbox" name="allow_friend_requests" value="1" <?php echo ($current_user->allow_friend_requests ?? 1) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
-                                    <div>
-                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">👥 <?php echo $lang === 'da' ? 'Tillad venneanmodninger' : 'Tillåt vänförfrågningar'; ?></div>
-                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Modtag anmodninger fra andre brugere' : 'Ta emot förfrågningar från andra användare'; ?></div>
-                                    </div>
-                                </label>
-                            </div>
-                            
-                            <div>
-                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['subscription']); ?></label>
-                                <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?></p>
-                            </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo esc_html($txt['username']); ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;"><?php echo esc_html($current_user->username); ?></p>
                         </div>
-
-                        <div style="display: flex; gap: 15px;">
-                            <button type="submit" class="btn-primary" style="padding: 15px 30px; border: none; cursor: pointer;">
-                                <?php echo $lang === 'da' ? 'Gem ændringer' : 'Spara ändringar'; ?>
-                            </button>
-                            <a href="<?php echo home_url('/platform-subscription/?lang=' . $lang); ?>" class="btn-secondary" style="padding: 15px 30px; text-decoration: none; display: inline-block;">
-                                <?php echo esc_html($txt['manage_sub']); ?>
-                            </a>
-                            <a href="?logout=1" class="btn-secondary" style="padding: 15px 30px; text-decoration: none; display: inline-block;">
-                                <?php echo esc_html($txt['logout']); ?>
-                            </a>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo esc_html($txt['email']); ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;"><?php echo esc_html($current_user->email); ?></p>
                         </div>
-                    </form>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo esc_html($txt['fullname']); ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;"><?php echo esc_html($current_user->full_name); ?></p>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo esc_html($txt['birthday']); ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;"><?php echo esc_html($birthday_display); ?></p>
+                        </div>
+                        
+                        <?php if ($current_user->case_type): ?>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo $lang === 'da' ? 'Sagstype' : 'Ärendetyp'; ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;">
+                                <?php 
+                                $case_types = [
+                                    'custody' => $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad',
+                                    'visitation' => $lang === 'da' ? 'Samvær' : 'Umgänge',
+                                    'divorce' => $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa',
+                                    'support' => $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag',
+                                    'other' => $lang === 'da' ? 'Andet' : 'Annat'
+                                ];
+                                echo esc_html($case_types[$current_user->case_type] ?? $current_user->case_type);
+                                ?>
+                            </p>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo $lang === 'da' ? 'Land' : 'Land'; ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;">
+                                <?php 
+                                $countries = ['DK' => 'Danmark', 'SE' => 'Sverige', 'NO' => 'Norge'];
+                                echo esc_html($countries[$current_user->country] ?? $current_user->country);
+                                ?>
+                            </p>
+                        </div>
+                        
+                        <?php if ($current_user->city): ?>
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo $lang === 'da' ? 'By' : 'Stad'; ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;"><?php echo esc_html($current_user->city); ?></p>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo esc_html($txt['member_since']); ?></label>
+                            <p style="font-size: 1.1em; color: var(--rtf-text); margin: 0;"><?php echo rtf_format_date($current_user->created_at); ?></p>
+                        </div>
+                        
+                        <div>
+                            <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px; font-size: 0.9em;"><?php echo esc_html($txt['subscription']); ?></label>
+                            <p style="font-size: 1.1em; margin: 0;">
+                                <span style="padding: 6px 12px; border-radius: 20px; font-size: 0.9em; font-weight: 600; <?php echo $current_user->subscription_status === 'active' ? 'background: #d1fae5; color: #065f46;' : 'background: #fee2e2; color: #991b1b;'; ?>">
+                                    <?php echo esc_html($current_user->subscription_status === 'active' ? $txt['active'] : $txt['inactive']); ?>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <?php if ($current_user->bio): ?>
+                    <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0f2fe;">
+                        <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 12px; font-size: 0.9em;"><?php echo $lang === 'da' ? 'Om mig' : 'Om mig'; ?></label>
+                        <p style="font-size: 1em; color: var(--rtf-text); line-height: 1.6; margin: 0;"><?php echo nl2br(esc_html($current_user->bio)); ?></p>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <div style="display: flex; gap: 15px; margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0f2fe;">
+                        <a href="<?php echo home_url('/platform-subscription/?lang=' . $lang); ?>" class="btn-secondary" style="padding: 12px 24px; text-decoration: none; display: inline-block;">
+                            <?php echo esc_html($txt['manage_sub']); ?>
+                        </a>
+                        <a href="?logout=1" class="btn-secondary" style="padding: 12px 24px; text-decoration: none; display: inline-block;">
+                            <?php echo esc_html($txt['logout']); ?>
+                        </a>
+                    </div>
                 </div>
                 
                 <!-- DASHBOARD STATISTICS -->
@@ -417,6 +321,107 @@ if (isset($_GET['logout'])) {
                                     <span style="color: var(--rtf-muted); font-size: 0.9em;"><?php echo rtf_time_ago($session->created_at); ?></span>
                                 </div>
                             <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <!-- Document Analysis Overview -->
+                    <h3 style="margin: 30px 0 20px; color: var(--rtf-text); display: flex; align-items: center; gap: 10px;">
+                        <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                        <?php echo $lang === 'da' ? 'Dokument Analyser' : 'Dokumentanalyser'; ?>
+                    </h3>
+                    <div style="background: #f8fafc; padding: 20px; border-radius: 12px;">
+                        <?php
+                        // Get document analyses with findings
+                        $analyses = $wpdb->get_results($wpdb->prepare(
+                            "SELECT da.*, d.file_name, d.created_at as doc_date
+                             FROM {$wpdb->prefix}rtf_platform_document_analysis da
+                             JOIN {$wpdb->prefix}rtf_platform_documents d ON da.document_id = d.id
+                             WHERE da.user_id = %d 
+                             ORDER BY da.analyzed_at DESC 
+                             LIMIT 10",
+                            $current_user->id
+                        ));
+                        
+                        if (empty($analyses)): ?>
+                            <div style="text-align: center; padding: 40px 20px;">
+                                <svg style="width: 64px; height: 64px; fill: #cbd5e1; margin-bottom: 15px;" viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>
+                                <p style="color: var(--rtf-muted); margin-bottom: 15px;"><?php echo $lang === 'da' ? 'Ingen dokument analyser endnu' : 'Inga dokumentanalyser ännu'; ?></p>
+                                <a href="<?php echo home_url('/platform-dokumenter/?lang='.$lang); ?>" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #8b5cf6, #6366f1); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+                                    📄 <?php echo $lang === 'da' ? 'Upload første dokument' : 'Ladda upp första dokumentet'; ?>
+                                </a>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($analyses as $analysis): 
+                                $findings = json_decode($analysis->key_findings, true) ?? [];
+                                $violations = json_decode($analysis->legal_violations, true) ?? [];
+                                $recommendations = json_decode($analysis->recommendations, true) ?? [];
+                                $finding_count = count($findings) + count($violations);
+                            ?>
+                                <div style="padding: 20px; margin-bottom: 15px; background: white; border-radius: 10px; border-left: 4px solid <?php echo $finding_count > 0 ? '#ef4444' : '#10b981'; ?>; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                                        <div>
+                                            <h4 style="margin: 0 0 5px; color: var(--rtf-text); font-size: 1.1em;">
+                                                📄 <?php echo esc_html($analysis->file_name); ?>
+                                            </h4>
+                                            <div style="font-size: 0.85em; color: var(--rtf-muted);">
+                                                Analyseret: <?php echo rtf_time_ago($analysis->analyzed_at); ?>
+                                                <?php if ($analysis->confidence_score): ?>
+                                                    | Sikkerhed: <?php echo round($analysis->confidence_score); ?>%
+                                                <?php endif; ?>
+                                            </div>
+                                        </div>
+                                        <span style="padding: 4px 12px; background: <?php echo $finding_count > 0 ? '#fee2e2' : '#d1fae5'; ?>; color: <?php echo $finding_count > 0 ? '#991b1b' : '#065f46'; ?>; border-radius: 20px; font-size: 0.85em; font-weight: 600;">
+                                            <?php echo $finding_count; ?> <?php echo $lang === 'da' ? 'fund' : 'fynd'; ?>
+                                        </span>
+                                    </div>
+                                    
+                                    <?php if (!empty($violations)): ?>
+                                        <div style="background: #fef2f2; padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+                                            <div style="font-weight: 600; color: #991b1b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                                                <?php echo $lang === 'da' ? 'Juridiske fund' : 'Juridiska fynd'; ?>
+                                            </div>
+                                            <ul style="margin: 0; padding-left: 20px; color: #7f1d1d;">
+                                                <?php foreach (array_slice($violations, 0, 3) as $violation): ?>
+                                                    <li style="margin-bottom: 5px;"><?php echo esc_html($violation); ?></li>
+                                                <?php endforeach; ?>
+                                                <?php if (count($violations) > 3): ?>
+                                                    <li style="color: #991b1b; font-style: italic;">+ <?php echo count($violations) - 3; ?> flere...</li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <?php if (!empty($recommendations)): ?>
+                                        <div style="background: #eff6ff; padding: 12px; border-radius: 6px;">
+                                            <div style="font-weight: 600; color: #1e40af; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                                                <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+                                                <?php echo $lang === 'da' ? 'Anbefalinger' : 'Rekommendationer'; ?>
+                                            </div>
+                                            <ul style="margin: 0; padding-left: 20px; color: #1e40af;">
+                                                <?php foreach (array_slice($recommendations, 0, 2) as $recommendation): ?>
+                                                    <li style="margin-bottom: 5px;"><?php echo esc_html($recommendation); ?></li>
+                                                <?php endforeach; ?>
+                                                <?php if (count($recommendations) > 2): ?>
+                                                    <li style="color: #2563eb; font-style: italic;">+ <?php echo count($recommendations) - 2; ?> flere...</li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
+                                    <?php endif; ?>
+                                    
+                                    <div style="margin-top: 12px; display: flex; gap: 10px;">
+                                        <a href="<?php echo home_url('/platform-dokumenter/?lang='.$lang.'#doc-'.$analysis->document_id); ?>" style="padding: 8px 16px; background: #f1f5f9; color: #334155; text-decoration: none; border-radius: 6px; font-size: 0.9em; font-weight: 600;">
+                                            📋 <?php echo $lang === 'da' ? 'Se detaljer' : 'Se detaljer'; ?>
+                                        </a>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                            
+                            <div style="text-align: center; margin-top: 20px;">
+                                <a href="<?php echo home_url('/platform-dokumenter/?lang='.$lang); ?>" style="color: #6366f1; text-decoration: none; font-weight: 600;">
+                                    → <?php echo $lang === 'da' ? 'Se alle dokumenter' : 'Se alla dokument'; ?>
+                                </a>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -665,36 +670,6 @@ document.getElementById('coverUpload').addEventListener('change', function(e) {
     .catch(err => {
         console.error('Upload error:', err);
         alert('Upload fejlede. Prøv igen.');
-    });
-});
-
-// Profile Update Form
-document.getElementById('profileUpdateForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    const data = Object.fromEntries(formData.entries());
-    
-    fetch('/wp-json/kate/v1/update-profile', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-    })
-    .then(res => res.json())
-    .then(result => {
-        if (result.success) {
-            alert('<?php echo $lang === "da" ? "Profil opdateret!" : "Profil uppdaterad!"; ?>');
-            location.reload();
-        } else {
-            alert(result.message || 'Opdatering fejlede');
-        }
-    })
-    .catch(err => {
-        console.error('Update error:', err);
-        alert('Opdatering fejlede. Prøv igen.');
     });
 });
 </script>
