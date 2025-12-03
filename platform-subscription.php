@@ -1,17 +1,35 @@
 <?php
 /**
  * Template Name: Platform Subscription (Stripe)
+ * KRITISK: Denne side er KUN for EKSISTERENDE brugere der skal opdatere/genaktivere abonnement
+ * NYE brugere SKAL gennem /platform-auth/ for registrering først!
  */
 
 get_header();
 $lang = rtf_get_lang();
 
+// KRITISK CHECK: Kræv login - nye brugere MÅ registrere sig først!
 if (!rtf_is_logged_in()) {
-    wp_redirect(home_url('/platform-auth/?lang=' . $lang));
+    // Redirect til registrering/login side
+    wp_redirect(home_url('/platform-auth/?lang=' . $lang . '&msg=login_required'));
     exit;
 }
 
 $current_user = rtf_get_current_user();
+
+// Ekstra sikkerhed: Verificer bruger findes i database
+global $wpdb;
+$user_exists = $wpdb->get_var($wpdb->prepare(
+    "SELECT COUNT(*) FROM {$wpdb->prefix}rtf_platform_users WHERE id = %d",
+    $current_user->id
+));
+
+if (!$user_exists) {
+    // Bruger session er korrupt - log ud og start forfra
+    session_destroy();
+    wp_redirect(home_url('/platform-auth/?lang=' . $lang . '&msg=session_error'));
+    exit;
+}
 
 $t = array(
     'da' => array(
