@@ -1,7 +1,7 @@
 <?php
 /**
- * Template Name: Platform - Admin Dashboard
- * Complete modern admin panel with full user management
+ * Template Name: Complete Admin Panel
+ * Complete admin dashboard with full user management
  */
 
 get_header();
@@ -43,8 +43,7 @@ $translations = [
         'save' => 'Gem',
         'stripe_id' => 'Stripe ID',
         'created' => 'Oprettet',
-        'last_login' => 'Sidste Login',
-        'refresh' => 'Opdater'
+        'last_login' => 'Sidste Login'
     ]
 ];
 
@@ -60,17 +59,6 @@ $t = $translations[$lang];
     --admin-bg: #0f172a;
     --admin-card: #1e293b;
     --admin-border: #334155;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: var(--admin-bg) !important;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .admin-complete {
@@ -148,8 +136,7 @@ body {
     flex-wrap: wrap;
 }
 
-.admin-toolbar input,
-.admin-toolbar select {
+.admin-toolbar input {
     flex: 1;
     min-width: 200px;
     padding: 12px 15px;
@@ -167,7 +154,6 @@ body {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.2s;
-    white-space: nowrap;
 }
 
 .btn-primary {
@@ -229,7 +215,6 @@ body {
 .action-btns {
     display: flex;
     gap: 8px;
-    flex-wrap: wrap;
 }
 
 .action-btn {
@@ -326,7 +311,6 @@ body {
     gap: 10px;
     justify-content: center;
     margin-top: 20px;
-    flex-wrap: wrap;
 }
 
 .pagination button {
@@ -336,7 +320,6 @@ body {
     border-radius: 6px;
     color: #e2e8f0;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .pagination button:disabled {
@@ -345,10 +328,6 @@ body {
 }
 
 .pagination button.active {
-    background: var(--admin-primary);
-}
-
-.pagination button:not(:disabled):hover {
     background: var(--admin-primary);
 }
 </style>
@@ -387,7 +366,7 @@ body {
         
         <div class="admin-toolbar">
             <input type="text" id="searchInput" placeholder="<?php echo $t['search']; ?>">
-            <select id="statusFilter">
+            <select id="statusFilter" style="padding: 12px; background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 8px; color: #e2e8f0;">
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -397,7 +376,7 @@ body {
                 ➕ <?php echo $t['create_user']; ?>
             </button>
             <button class="btn-primary" onclick="refreshUsers()">
-                🔄 <?php echo $t['refresh']; ?>
+                🔄 Refresh
             </button>
         </div>
 
@@ -650,38 +629,37 @@ async function saveUser() {
     };
     
     if (!userData.username || !userData.email || !userData.password || !userData.full_name) {
-        alert('Udfyld venligst alle påkrævede felter');
+        alert('Please fill all required fields');
         return;
     }
     
     // Create user via registration system
     try {
-        const formData = new FormData();
-        formData.append('action', 'register');
-        formData.append('_wpnonce', '<?php echo wp_create_nonce("rtf_register"); ?>');
-        Object.keys(userData).forEach(key => formData.append(key, userData[key]));
-        
         const response = await fetch('/platform-auth', {
             method: 'POST',
-            body: formData
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                action: 'register',
+                _wpnonce: '<?php echo wp_create_nonce("rtf_register"); ?>',
+                ...userData
+            })
         });
         
         if (response.ok) {
-            alert('✓ Bruger oprettet!');
+            alert('✓ User created successfully!');
             closeModal();
             loadUsers();
         } else {
-            const text = await response.text();
-            alert('✗ Fejl: ' + text);
+            alert('✗ Error creating user');
         }
     } catch (error) {
         console.error('Save user error:', error);
-        alert('Fejl: ' + error.message);
+        alert('Error: ' + error.message);
     }
 }
 
 async function activateSubscription(userId) {
-    const days = prompt('Hvor mange dage skal abonnementet aktiveres?', '30');
+    const days = prompt('How many days to activate subscription?', '30');
     if (!days) return;
     
     try {
@@ -698,19 +676,19 @@ async function activateSubscription(userId) {
         const data = await response.json();
         
         if (data.success) {
-            alert('✓ Abonnement aktiveret!');
+            alert('✓ Subscription activated!');
             loadUsers();
         } else {
-            alert('✗ Fejl: ' + (data.message || 'Ukendt fejl'));
+            alert('✗ Error: ' + (data.message || 'Unknown error'));
         }
     } catch (error) {
         console.error('Activate error:', error);
-        alert('Fejl: ' + error.message);
+        alert('Error: ' + error.message);
     }
 }
 
 async function deleteUser(userId, username) {
-    if (!confirm(`🗑️ SLET bruger "${username}"?\n\nDette vil permanent fjerne:\n• Bruger konto\n• Alle opslag og beskeder\n• Al forum aktivitet\n• Alle forbindelser\n\nDette kan IKKE fortrydes!`)) {
+    if (!confirm(`🗑️ DELETE user "${username}"?\n\nThis will permanently remove:\n• User account\n• All posts and messages\n• All forum activity\n• All connections\n\nThis CANNOT be undone!`)) {
         return;
     }
     
@@ -743,11 +721,11 @@ async function deleteUser(userId, username) {
             
             // Reload after animation
             setTimeout(() => {
-                alert('✓ Bruger slettet permanent!');
+                alert('✓ User deleted permanently!');
                 loadUsers();
             }, 500);
         } else {
-            alert('✗ Fejl: ' + (data.message || 'Kunne ikke slette bruger'));
+            alert('✗ Error: ' + (data.message || 'Failed to delete user'));
             if (row) {
                 row.style.backgroundColor = '';
                 row.style.opacity = '1';
@@ -755,7 +733,7 @@ async function deleteUser(userId, username) {
         }
     } catch (error) {
         console.error('Delete error:', error);
-        alert('✗ Fejl: ' + error.message);
+        alert('✗ Error: ' + error.message);
         if (row) {
             row.style.backgroundColor = '';
             row.style.opacity = '1';

@@ -56,8 +56,13 @@ define('RTF_GITHUB_REPO_OWNER', 'hansenhr89dkk');
 define('RTF_GITHUB_REPO_NAME', 'ret-til-familie-hjemmeside');
 define('RTF_GITHUB_BRANCH', 'main');
 
-// Load translations (lightweight, always safe)
+// Load critical dependencies
 require_once get_template_directory() . '/translations.php';
+require_once get_template_directory() . '/includes/class-rtf-user-system.php';
+
+// Initialize global user system instance
+global $rtf_user_system;
+$rtf_user_system = new RtfUserSystem();
 
 // ============================================================================
 // KATE AI INITIALIZATION
@@ -1211,47 +1216,56 @@ function rtf_force_create_pages() {
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
+/**
+ * Check if user is logged in
+ * @return bool
+ */
 function rtf_is_logged_in() {
-    return isset($_SESSION['rtf_user_id']);
+    return isset($_SESSION['rtf_user_id']) && !empty($_SESSION['rtf_user_id']);
 }
 
+/**
+ * Get current logged in user - ALWAYS returns fresh data from database
+ * @return object|null User object or null
+ */
 function rtf_get_current_user() {
     if (!rtf_is_logged_in()) {
         return null;
     }
-    global $wpdb;
-    $table = $wpdb->prefix . 'rtf_platform_users';
-    return $wpdb->get_row($wpdb->prepare("SELECT * FROM $table WHERE id = %d", $_SESSION['rtf_user_id']));
+    
+    global $rtf_user_system;
+    return $rtf_user_system->get_user($_SESSION['rtf_user_id']);
 }
 
+/**
+ * Check if current user is admin
+ * @return bool
+ */
 function rtf_is_admin_user() {
     $user = rtf_get_current_user();
     return $user && $user->is_admin == 1;
 }
 
+/**
+ * Require active subscription - redirect if not subscribed
+ * Admin users always have access
+ */
 function rtf_require_subscription() {
     if (!rtf_is_logged_in()) {
         wp_redirect(home_url('/platform-auth'));
         exit;
     }
     
-    // Admin har altid fri adgang
-    if (rtf_is_admin_user()) {
-        return;
-    }
+    global $rtf_user_system;
+    $user_id = $_SESSION['rtf_user_id'];
     
-    $user = rtf_get_current_user();
-    
-    // DEBUG LOG
-    error_log('RTF SUBSCRIPTION CHECK - User ID: ' . $user->id . ', Email: ' . $user->email . ', Status: ' . $user->subscription_status);
-    
-    if ($user->subscription_status !== 'active') {
-        error_log('RTF SUBSCRIPTION CHECK - BLOCKED! Redirecting to subscription page');
+    // Check subscription using proper system method
+    if (!$rtf_user_system->has_active_subscription($user_id)) {
+        $user = rtf_get_current_user();
+        error_log('RTF Access Denied: User ' . ($user ? $user->username : $user_id) . ' - subscription status: ' . ($user ? $user->subscription_status : 'unknown'));
         wp_redirect(home_url('/platform-subscription?msg=upgrade_required'));
         exit;
     }
-    
-    error_log('RTF SUBSCRIPTION CHECK - ALLOWED! User has active subscription');
 }
 
 function rtf_anonymize_birthday($birthday) {
@@ -1664,6 +1678,36 @@ add_action('rest_api_init', function() {
     register_rest_route('kate/v1', '/admin/create-news', [
         'methods' => 'POST',
         'callback' => 'rtf_api_admin_create_news',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Admin delete user endpoint
+    register_rest_route('kate/v1', '/admin/user/(?P<id>\d+)', [
+        'methods' => 'DELETE',
+        'callback' => 'rtf_api_admin_delete_user',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Admin get users list endpoint
+    register_rest_route('kate/v1', '/admin/users', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_admin_get_users',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Admin update subscription endpoint
+    register_rest_route('kate/v1', '/admin/subscription/(?P<id>\d+)', [
+        'methods' => 'PUT',
+        'callback' => 'rtf_api_admin_update_subscription',
         'permission_callback' => function() {
             $user = rtf_get_current_user();
             return $user && $user->is_admin;
@@ -2505,6 +2549,91 @@ function rtf_api_admin_create_news($request) {
     }
     
     return new WP_REST_Response(['success' => false, 'message' => 'Kunne ikke oprette nyhed'], 500);
+}
+
+/**
+ * Admin delete user endpoint
+ */
+function rtf_api_admin_delete_user($request) {
+    global $rtf_user_system;
+    
+    $user_id = intval($request['id']);
+    
+    if (!$user_id) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Ugyldig bruger ID'], 400);
+    }
+    
+    // Use robust user system for deletion
+    $result = $rtf_user_system->delete_user($user_id);
+    
+    if ($result['success']) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => $result['message']
+        ], 200);
+    }
+    
+    return new WP_REST_Response([
+        'success' => false,
+        'message' => $result['message']
+    ], 500);
+}
+
+/**
+ * Admin get users list endpoint
+ */
+function rtf_api_admin_get_users($request) {
+    global $rtf_user_system;
+    
+    $filters = [
+        'status' => $request->get_param('status') ?: 'all',
+        'search' => $request->get_param('search') ?: '',
+        'limit' => $request->get_param('limit') ?: 20,
+        'offset' => $request->get_param('offset') ?: 0
+    ];
+    
+    $result = $rtf_user_system->admin_get_users($filters);
+    
+    if ($result['success']) {
+        return new WP_REST_Response([
+            'success' => true,
+            'users' => $result['users'],
+            'total' => $result['total']
+        ], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Failed to fetch users'], 500);
+}
+
+/**
+ * Admin update subscription endpoint
+ */
+function rtf_api_admin_update_subscription($request) {
+    global $rtf_user_system;
+    
+    $user_id = intval($request['id']);
+    $body = json_decode($request->get_body(), true);
+    
+    $status = sanitize_text_field($body['status'] ?? '');
+    $days_valid = isset($body['days_valid']) ? intval($body['days_valid']) : null;
+    
+    if (!$user_id || !$status) {
+        return new WP_REST_Response(['success' => false, 'message' => 'User ID and status required'], 400);
+    }
+    
+    $result = $rtf_user_system->admin_update_subscription($user_id, $status, $days_valid);
+    
+    if ($result['success']) {
+        return new WP_REST_Response([
+            'success' => true,
+            'message' => $result['message']
+        ], 200);
+    }
+    
+    return new WP_REST_Response([
+        'success' => false,
+        'message' => $result['message']
+    ], 400);
 }
 
 // REST API endpoint: Send friend request

@@ -44,7 +44,7 @@ try {
     exit();
 }
 
-global $wpdb;
+global $wpdb, $rtf_user_system;
 
 // Håndter forskellige event types
 switch ($event->type) {
@@ -52,100 +52,102 @@ switch ($event->type) {
         $session = $event->data->object;
         
         // Log webhook modtaget
+        error_log('RTF Webhook: ========================================');
         error_log('RTF Webhook: checkout.session.completed received');
-        error_log('RTF Webhook: Customer email: ' . $session->customer_email);
-        error_log('RTF Webhook: Subscription ID: ' . ($session->subscription ?? 'none'));
-        error_log('RTF Webhook: Customer ID: ' . ($session->customer ?? 'none'));
+        error_log('RTF Webhook: Session ID: ' . $session->id);
+        error_log('RTF Webhook: Customer email: ' . ($session->customer_email ?? 'MISSING'));
+        error_log('RTF Webhook: Customer ID: ' . ($session->customer ?? 'MISSING'));
+        error_log('RTF Webhook: Subscription ID: ' . ($session->subscription ?? 'MISSING'));
+        error_log('RTF Webhook: Payment status: ' . ($session->payment_status ?? 'unknown'));
         
-        // Opdater bruger subscription status
         $customer_email = $session->customer_email;
         $subscription_id = $session->subscription ?? null;
         $customer_id = $session->customer ?? null;
         
+        // Validate required data
         if (!$customer_email) {
             error_log('RTF Webhook ERROR: No customer email in session!');
-            break;
+            http_response_code(400);
+            exit('Missing customer email');
         }
         
-        // Find bruger
-        $user = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}rtf_platform_users WHERE email = %s",
-            $customer_email
-        ));
+        if (!$customer_id) {
+            error_log('RTF Webhook ERROR: No customer ID in session!');
+            http_response_code(400);
+            exit('Missing customer ID');
+        }
+        
+        // Find user using robust system
+        $user = $rtf_user_system->get_user_by_email($customer_email);
         
         if (!$user) {
             error_log('RTF Webhook ERROR: User not found with email: ' . $customer_email);
-            error_log('RTF Webhook: Checking if email exists in database...');
+            error_log('RTF Webhook: Checking database for similar emails...');
             
-            // Debug: List all emails
-            $all_emails = $wpdb->get_col("SELECT email FROM {$wpdb->prefix}rtf_platform_users LIMIT 10");
-            error_log('RTF Webhook: First 10 emails in database: ' . implode(', ', $all_emails));
-            
-            break;
-        }
-        
-        error_log('RTF Webhook: User found - ID: ' . $user->id . ', Username: ' . $user->username);
-        
-        // Beregn end date (30 dage fra nu)
-        $end_date = date('Y-m-d H:i:s', strtotime('+30 days'));
-        
-        error_log('RTF Webhook: Attempting to update user...');
-        error_log('RTF Webhook: Setting subscription_status=active, end_date=' . $end_date);
-        
-        // Opdater bruger med EXPLICIT column names
-        $update_data = [
-            'subscription_status' => 'active',
-            'subscription_end_date' => $end_date
-        ];
-        
-        if ($customer_id) {
-            $update_data['stripe_customer_id'] = $customer_id;
-        }
-        
-        $update_result = $wpdb->update(
-            $wpdb->prefix . 'rtf_platform_users',
-            $update_data,
-            ['email' => $customer_email],
-            ['%s', '%s', '%s'],
-            ['%s']
-        );
-        
-        if ($update_result === false) {
-            error_log('RTF Webhook ERROR: Database update failed!');
-            error_log('RTF Webhook ERROR: ' . $wpdb->last_error);
-            error_log('RTF Webhook ERROR: Last query: ' . $wpdb->last_query);
-        } else {
-            error_log('RTF Webhook SUCCESS: User activated! Rows affected: ' . $update_result);
-            
-            // Verify update
-            $verify_user = $wpdb->get_row($wpdb->prepare(
-                "SELECT subscription_status, subscription_end_date FROM {$wpdb->prefix}rtf_platform_users WHERE email = %s",
+            // Debug: Check for email case mismatch
+            $similar = $wpdb->get_results($wpdb->prepare(
+                "SELECT id, email, username FROM {$wpdb->prefix}rtf_platform_users WHERE LOWER(email) = LOWER(%s)",
                 $customer_email
             ));
             
-            if ($verify_user) {
-                error_log('RTF Webhook VERIFY: Status is now: ' . $verify_user->subscription_status);
-                error_log('RTF Webhook VERIFY: End date is now: ' . $verify_user->subscription_end_date);
+            if ($similar) {
+                error_log('RTF Webhook: Found similar email(s): ' . json_encode($similar));
+            } else {
+                error_log('RTF Webhook: No matching user found at all');
             }
+            
+            http_response_code(404);
+            exit('User not found');
         }
         
-        // Log transaction til payments tabel
-        $payment_insert = $wpdb->insert($wpdb->prefix . 'rtf_stripe_payments', [
-            'user_id' => $user->id,
-            'stripe_customer_id' => $customer_id,
-            'stripe_subscription_id' => $subscription_id,
-            'amount' => 4900, // 49.00 DKK i øre
-            'currency' => 'DKK',
-            'status' => 'completed',
-            'payment_intent_id' => $session->payment_intent ?? '',
-            'created_at' => date('Y-m-d H:i:s')
-        ]);
+        error_log('RTF Webhook: ✓ User found - ID: ' . $user->id . ', Username: ' . $user->username . ', Email: ' . $user->email);
         
-        if ($payment_insert === false) {
-            error_log('RTF Webhook ERROR: Failed to log payment: ' . $wpdb->last_error);
+        // CRITICAL: Activate subscription with customer ID
+        $activated = $rtf_user_system->activate_subscription_by_email($customer_email, $customer_id, 30);
+        
+        if ($activated) {
+            error_log('RTF Webhook: ✓ Subscription activated for user ' . $user->username);
+            
+            // Verify stripe_customer_id was saved
+            $verify = $rtf_user_system->get_user($user->id);
+            if ($verify && $verify->stripe_customer_id === $customer_id) {
+                error_log('RTF Webhook: ✓ Stripe customer ID saved: ' . $customer_id);
+            } else {
+                error_log('RTF Webhook: WARNING - Stripe customer ID may not be saved correctly');
+            }
+            
+            // Log payment using robust system
+            $payment_logged = $rtf_user_system->log_payment([
+                'user_id' => $user->id,
+                'stripe_customer_id' => $customer_id,
+                'stripe_subscription_id' => $subscription_id,
+                'amount' => 4900, // 49.00 DKK
+                'currency' => 'DKK',
+                'status' => 'completed',
+                'payment_intent_id' => $session->payment_intent ?? null
+            ]);
+            
+            if ($payment_logged) {
+                error_log('RTF Webhook: ✓ Payment logged successfully');
+            } else {
+                error_log('RTF Webhook: ERROR - Failed to log payment');
+            }
+            
+            // Verify activation
+            if ($rtf_user_system->has_active_subscription($user->id)) {
+                error_log('RTF Webhook: ✓✓✓ COMPLETE SUCCESS - Subscription is ACTIVE and valid');
+                error_log('RTF Webhook: User ' . $user->username . ' can now access platform');
+            } else {
+                error_log('RTF Webhook: WARNING - Subscription check failed after activation');
+            }
+            
         } else {
-            error_log('RTF Webhook: Payment logged to database (insert_id: ' . $wpdb->insert_id . ')');
+            error_log('RTF Webhook: ✗✗✗ CRITICAL ERROR - Failed to activate subscription for ' . $customer_email);
+            http_response_code(500);
+            exit('Failed to activate subscription');
         }
+        
+        error_log('RTF Webhook: ========================================');
         break;
         
     case 'customer.subscription.updated':

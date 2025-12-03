@@ -1,330 +1,173 @@
 <?php
 /**
- * Template Name: Platform - Komplet Admin Panel
- * Fuld kontrol over brugere, indhold, statistik og system
+ * Template Name: Platform - Admin Dashboard
+ * Complete modern admin panel with full user management
  */
 
 get_header();
-$lang = rtf_get_lang();
 
-// Tjek admin login
-if (!rtf_is_logged_in()) {
-    wp_redirect(home_url('/platform-auth/?lang=' . $lang));
-    exit;
-}
-
+// Check admin access
 $current_user = rtf_get_current_user();
-if (!$current_user->is_admin) {
-    wp_redirect(home_url('/platform-profil/?lang=' . $lang));
+if (!$current_user || !rtf_is_admin_user()) {
+    wp_redirect(home_url('/platform-login'));
     exit;
 }
 
-global $wpdb;
-$users_table = $wpdb->prefix . 'rtf_platform_users';
-$posts_table = $wpdb->prefix . 'rtf_platform_posts';
-$forum_table = $wpdb->prefix . 'rtf_platform_forum_topics';
-$news_table = $wpdb->prefix . 'rtf_platform_news';
-$messages_table = $wpdb->prefix . 'rtf_platform_messages';
+$lang = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : 'da';
 
-// Handle user actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    $action = sanitize_text_field($_POST['action']);
-    $target_user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : 0;
-    
-    if ($target_user_id > 0 && $target_user_id != $current_user->id) {
-        switch ($action) {
-            case 'ban':
-                $wpdb->update($users_table, ['is_active' => 0], ['id' => $target_user_id]);
-                $success_message = "Bruger er blevet blokeret";
-                break;
-            case 'unban':
-                $wpdb->update($users_table, ['is_active' => 1], ['id' => $target_user_id]);
-                $success_message = "Bruger er blevet aktiveret";
-                break;
-            case 'delete':
-                $wpdb->delete($users_table, ['id' => $target_user_id]);
-                $wpdb->delete($posts_table, ['user_id' => $target_user_id]);
-                $wpdb->delete($forum_table, ['user_id' => $target_user_id]);
-                $success_message = "Bruger og alt indhold er blevet slettet";
-                break;
-            case 'make_admin':
-                $wpdb->update($users_table, ['is_admin' => 1], ['id' => $target_user_id]);
-                $success_message = "Bruger er nu administrator";
-                break;
-            case 'remove_admin':
-                $wpdb->update($users_table, ['is_admin' => 0], ['id' => $target_user_id]);
-                $success_message = "Admin rettigheder fjernet";
-                break;
-        }
-    }
-}
-
-// Get statistics
-$stats = [
-    'total_users' => $wpdb->get_var("SELECT COUNT(*) FROM $users_table"),
-    'active_users' => $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE is_active = 1"),
-    'banned_users' => $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE is_active = 0"),
-    'admins' => $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE is_admin = 1"),
-    'total_posts' => $wpdb->get_var("SELECT COUNT(*) FROM $posts_table"),
-    'total_forum' => $wpdb->get_var("SELECT COUNT(*) FROM $forum_table"),
-    'total_news' => $wpdb->get_var("SELECT COUNT(*) FROM $news_table"),
-    'total_messages' => $wpdb->get_var("SELECT COUNT(*) FROM $messages_table"),
-    'new_users_30d' => $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)"),
+// Translations
+$translations = [
+    'da' => [
+        'title' => 'Komplet Admin Panel',
+        'users' => 'Bruger Styring',
+        'create_user' => 'Opret Bruger',
+        'user_list' => 'Bruger Liste',
+        'username' => 'Brugernavn',
+        'email' => 'Email',
+        'password' => 'Adgangskode',
+        'full_name' => 'Fulde Navn',
+        'phone' => 'Telefon',
+        'birthday' => 'Fødselsdag',
+        'subscription' => 'Abonnement',
+        'status' => 'Status',
+        'actions' => 'Handlinger',
+        'edit' => 'Rediger',
+        'delete' => 'Slet',
+        'activate' => 'Aktiver',
+        'deactivate' => 'Deaktiver',
+        'search' => 'Søg brugere...',
+        'total_users' => 'Totale Brugere',
+        'active_subs' => 'Aktive Abonnementer',
+        'create' => 'Opret',
+        'cancel' => 'Annuller',
+        'save' => 'Gem',
+        'stripe_id' => 'Stripe ID',
+        'created' => 'Oprettet',
+        'last_login' => 'Sidste Login',
+        'refresh' => 'Opdater'
+    ]
 ];
 
-// Get all users with pagination
-$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
-$per_page = 20;
-$offset = ($page - 1) * $per_page;
-
-$search = isset($_GET['search']) ? sanitize_text_field($_GET['search']) : '';
-$filter_status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '';
-
-$where = "WHERE 1=1";
-if (!empty($search)) {
-    $where .= $wpdb->prepare(" AND (username LIKE %s OR email LIKE %s OR full_name LIKE %s)", 
-        '%' . $wpdb->esc_like($search) . '%',
-        '%' . $wpdb->esc_like($search) . '%',
-        '%' . $wpdb->esc_like($search) . '%'
-    );
-}
-if ($filter_status === 'active') {
-    $where .= " AND is_active = 1";
-} elseif ($filter_status === 'banned') {
-    $where .= " AND is_active = 0";
-} elseif ($filter_status === 'admin') {
-    $where .= " AND is_admin = 1";
-}
-
-$total_users = $wpdb->get_var("SELECT COUNT(*) FROM $users_table $where");
-$total_pages = ceil($total_users / $per_page);
-
-$users = $wpdb->get_results(
-    "SELECT id, username, email, full_name, country, age, is_active, is_admin, created_at, last_login 
-     FROM $users_table 
-     $where 
-     ORDER BY created_at DESC 
-     LIMIT $per_page OFFSET $offset"
-);
+$t = $translations[$lang];
 ?>
 
 <style>
 :root {
-    --admin-primary: #1e40af;
-    --admin-secondary: #3b82f6;
-    --admin-danger: #dc2626;
-    --admin-success: #16a34a;
+    --admin-primary: #2563eb;
+    --admin-success: #10b981;
+    --admin-danger: #ef4444;
     --admin-warning: #f59e0b;
-    --admin-bg: #f8fafc;
-    --admin-card: #ffffff;
+    --admin-bg: #0f172a;
+    --admin-card: #1e293b;
+    --admin-border: #334155;
 }
 
-.admin-container {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 2rem;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: var(--admin-bg) !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.admin-complete {
     background: var(--admin-bg);
     min-height: 100vh;
+    padding: 20px;
+    color: #e2e8f0;
 }
 
 .admin-header {
-    background: linear-gradient(135deg, var(--admin-primary) 0%, var(--admin-secondary) 100%);
-    color: white;
-    padding: 2rem;
+    background: var(--admin-card);
+    padding: 30px;
     border-radius: 12px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    border: 1px solid var(--admin-border);
 }
 
 .admin-header h1 {
-    margin: 0 0 0.5rem 0;
-    font-size: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.admin-header p {
     margin: 0;
-    opacity: 0.9;
-    font-size: 1.05rem;
+    color: var(--admin-primary);
+    font-size: 2em;
 }
 
-.stats-grid {
+.admin-stats {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
 }
 
 .stat-card {
     background: var(--admin-card);
-    padding: 1.5rem;
+    padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    border-left: 4px solid var(--admin-secondary);
-    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid var(--admin-border);
+    transition: transform 0.2s;
 }
 
 .stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
 }
 
-.stat-card .stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--admin-primary);
-    margin: 0.5rem 0;
-}
-
-.stat-card .stat-label {
-    font-size: 0.9rem;
-    color: #64748b;
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    color: #94a3b8;
+    font-size: 0.9em;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
 
-.admin-tabs {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
+.stat-card .number {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: var(--admin-primary);
 }
 
-.tab-btn {
-    padding: 0.75rem 1.5rem;
+.admin-section {
     background: var(--admin-card);
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: all 0.2s;
-    color: #64748b;
-}
-
-.tab-btn:hover {
-    background: var(--admin-secondary);
-    color: white;
-    border-color: var(--admin-secondary);
-}
-
-.tab-btn.active {
-    background: var(--admin-primary);
-    color: white;
-    border-color: var(--admin-primary);
-}
-
-.admin-card {
-    background: var(--admin-card);
+    padding: 30px;
     border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    margin-bottom: 2rem;
+    margin-bottom: 30px;
+    border: 1px solid var(--admin-border);
 }
 
-.search-bar {
+.admin-section h2 {
+    margin: 0 0 20px 0;
+    color: var(--admin-primary);
+    border-bottom: 2px solid var(--admin-border);
+    padding-bottom: 10px;
+}
+
+.admin-toolbar {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    gap: 15px;
+    margin-bottom: 20px;
     flex-wrap: wrap;
 }
 
-.search-bar input,
-.search-bar select {
-    padding: 0.75rem 1rem;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 1rem;
+.admin-toolbar input,
+.admin-toolbar select {
     flex: 1;
     min-width: 200px;
+    padding: 12px 15px;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 1em;
 }
 
-.search-bar button {
-    padding: 0.75rem 1.5rem;
-    background: var(--admin-primary);
-    color: white;
+.admin-toolbar button {
+    padding: 12px 24px;
     border: none;
     border-radius: 8px;
-    font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
-}
-
-.search-bar button:hover {
-    background: var(--admin-secondary);
-}
-
-.users-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.users-table thead {
-    background: #f1f5f9;
-}
-
-.users-table th,
-.users-table td {
-    padding: 1rem;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.users-table th {
-    font-weight: 700;
-    color: #475569;
-    font-size: 0.875rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.users-table tr:hover {
-    background: #f8fafc;
-}
-
-.user-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.75rem;
     font-weight: 600;
-    display: inline-block;
-}
-
-.badge-active {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.badge-banned {
-    background: #fee2e2;
-    color: #dc2626;
-}
-
-.badge-admin {
-    background: #dbeafe;
-    color: #1e40af;
-}
-
-.action-btns {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.btn {
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
     transition: all 0.2s;
-    text-decoration: none;
-    display: inline-block;
+    white-space: nowrap;
 }
 
 .btn-primary {
@@ -332,17 +175,9 @@ $users = $wpdb->get_results(
     color: white;
 }
 
-.btn-primary:hover {
-    background: var(--admin-secondary);
-}
-
 .btn-success {
     background: var(--admin-success);
     color: white;
-}
-
-.btn-success:hover {
-    background: #15803d;
 }
 
 .btn-danger {
@@ -350,375 +185,582 @@ $users = $wpdb->get_results(
     color: white;
 }
 
-.btn-danger:hover {
-    background: #b91c1c;
+.btn-primary:hover { background: #1d4ed8; }
+.btn-success:hover { background: #059669; }
+.btn-danger:hover { background: #dc2626; }
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.btn-warning {
-    background: var(--admin-warning);
-    color: white;
+.user-table th,
+.user-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
 }
 
-.btn-warning:hover {
-    background: #d97706;
+.user-table th {
+    background: var(--admin-bg);
+    color: #94a3b8;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+
+.user-table tr:hover {
+    background: rgba(37, 99, 235, 0.1);
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.badge-active { background: #064e3b; color: #10b981; }
+.badge-inactive { background: #7f1d1d; color: #ef4444; }
+.badge-expired { background: #78350f; color: #f59e0b; }
+
+.action-btns {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    transform: scale(1.05);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    background: var(--admin-card);
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-content h2 {
+    margin: 0 0 20px 0;
+    color: var(--admin-primary);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+    font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    color: #e2e8f0;
+    font-size: 1em;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 .pagination {
     display: flex;
-    gap: 0.5rem;
+    gap: 10px;
     justify-content: center;
-    margin-top: 2rem;
+    margin-top: 20px;
     flex-wrap: wrap;
 }
 
-.pagination a,
-.pagination span {
-    padding: 0.5rem 1rem;
-    border: 2px solid #e2e8f0;
+.pagination button {
+    padding: 8px 16px;
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border);
     border-radius: 6px;
-    text-decoration: none;
-    color: #64748b;
-    font-weight: 600;
+    color: #e2e8f0;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
-.pagination a:hover {
-    background: var(--admin-secondary);
-    color: white;
-    border-color: var(--admin-secondary);
+.pagination button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
-.pagination .current {
+.pagination button.active {
     background: var(--admin-primary);
-    color: white;
-    border-color: var(--admin-primary);
 }
 
-.success-message {
-    background: #dcfce7;
-    color: #16a34a;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    margin-bottom: 1.5rem;
-    border-left: 4px solid #16a34a;
-    font-weight: 600;
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
+.pagination button:not(:disabled):hover {
+    background: var(--admin-primary);
 }
 </style>
 
-<div class="admin-container">
+<div class="admin-complete">
+    
+    <!-- Header -->
     <div class="admin-header">
-        <h1>
-            <svg width="32" height="32" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
-            Komplet Admin Panel
-        </h1>
-        <p>Velkommen, <?php echo esc_html($current_user->full_name); ?> • Fuld kontrol over platformen</p>
+        <h1>🎛️ <?php echo $t['title']; ?></h1>
+        <p style="margin: 10px 0 0 0; color: #94a3b8;">Complete user management and system control</p>
     </div>
 
-    <?php if (isset($success_message)): ?>
-        <div class="success-message">✅ <?php echo esc_html($success_message); ?></div>
-    <?php endif; ?>
-
-    <!-- Statistics -->
-    <div class="stats-grid">
+    <!-- Stats -->
+    <div class="admin-stats">
         <div class="stat-card">
-            <div class="stat-label">👥 Brugere i alt</div>
-            <div class="stat-value"><?php echo number_format($stats['total_users']); ?></div>
+            <h3><?php echo $t['total_users']; ?></h3>
+            <div class="number" id="stat-total-users">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">✅ Aktive brugere</div>
-            <div class="stat-value"><?php echo number_format($stats['active_users']); ?></div>
+            <h3><?php echo $t['active_subs']; ?></h3>
+            <div class="number" id="stat-active-subs" style="color: var(--admin-success);">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">🚫 Blokerede</div>
-            <div class="stat-value"><?php echo number_format($stats['banned_users']); ?></div>
+            <h3>Inactive Users</h3>
+            <div class="number" id="stat-inactive" style="color: var(--admin-warning);">-</div>
         </div>
         <div class="stat-card">
-            <div class="stat-label">👑 Administratorer</div>
-            <div class="stat-value"><?php echo number_format($stats['admins']); ?></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">📝 Posts</div>
-            <div class="stat-value"><?php echo number_format($stats['total_posts']); ?></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">💬 Forum emner</div>
-            <div class="stat-value"><?php echo number_format($stats['total_forum']); ?></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">📰 Nyheder</div>
-            <div class="stat-value"><?php echo number_format($stats['total_news']); ?></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">📨 Beskeder</div>
-            <div class="stat-value"><?php echo number_format($stats['total_messages']); ?></div>
-        </div>
-        <div class="stat-card" style="border-left-color: var(--admin-success);">
-            <div class="stat-label">🆕 Nye (30 dage)</div>
-            <div class="stat-value"><?php echo number_format($stats['new_users_30d']); ?></div>
+            <h3>With Stripe</h3>
+            <div class="number" id="stat-stripe" style="color: #8b5cf6;">-</div>
         </div>
     </div>
 
-    <!-- Tabs -->
-    <div class="admin-tabs">
-        <button class="tab-btn active" onclick="switchTab('users')">👥 Brugerstyring</button>
-        <button class="tab-btn" onclick="switchTab('content')">📝 Indholdsstyring</button>
-        <button class="tab-btn" onclick="switchTab('settings')">⚙️ Systemindstillinger</button>
-        <button class="tab-btn" onclick="switchTab('logs')">📋 Aktivitetslog</button>
+    <!-- User Management -->
+    <div class="admin-section">
+        <h2><?php echo $t['users']; ?></h2>
+        
+        <div class="admin-toolbar">
+            <input type="text" id="searchInput" placeholder="<?php echo $t['search']; ?>">
+            <select id="statusFilter">
+                <option value="all">All Status</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="expired">Expired</option>
+            </select>
+            <button class="btn-success" onclick="openCreateModal()">
+                ➕ <?php echo $t['create_user']; ?>
+            </button>
+            <button class="btn-primary" onclick="refreshUsers()">
+                🔄 <?php echo $t['refresh']; ?>
+            </button>
+        </div>
+
+        <div id="users-container">
+            <p style="text-align: center; color: #64748b;">Loading users...</p>
+        </div>
+
+        <div class="pagination" id="pagination"></div>
     </div>
 
-    <!-- Users Tab -->
-    <div id="tab-users" class="tab-content active">
-        <div class="admin-card">
-            <h2 style="margin: 0 0 1.5rem 0;">Brugerstyring</h2>
+</div>
+
+<!-- Create/Edit User Modal -->
+<div id="userModal" class="modal">
+    <div class="modal-content">
+        <h2 id="modalTitle"><?php echo $t['create_user']; ?></h2>
+        
+        <form id="userForm" onsubmit="return false;">
+            <input type="hidden" id="userId" value="">
             
-            <form method="get" class="search-bar">
-                <input type="text" name="search" placeholder="Søg bruger (navn, email, brugernavn)..." value="<?php echo esc_attr($search); ?>">
-                <select name="status">
-                    <option value="">Alle statuser</option>
-                    <option value="active" <?php selected($filter_status, 'active'); ?>>Kun aktive</option>
-                    <option value="banned" <?php selected($filter_status, 'banned'); ?>>Kun blokerede</option>
-                    <option value="admin" <?php selected($filter_status, 'admin'); ?>>Kun admins</option>
+            <div class="form-group">
+                <label><?php echo $t['username']; ?> *</label>
+                <input type="text" id="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['email']; ?> *</label>
+                <input type="email" id="email" required>
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['password']; ?> *</label>
+                <input type="password" id="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['full_name']; ?> *</label>
+                <input type="text" id="full_name" required>
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['phone']; ?></label>
+                <input type="tel" id="phone">
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['birthday']; ?></label>
+                <input type="date" id="birthday">
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['subscription']; ?></label>
+                <select id="subscription_status">
+                    <option value="inactive">Inactive</option>
+                    <option value="active">Active</option>
+                    <option value="expired">Expired</option>
                 </select>
-                <button type="submit">🔍 Søg</button>
-                <?php if ($search || $filter_status): ?>
-                    <a href="<?php echo home_url('/platform-admin/?lang=' . $lang); ?>" class="btn btn-warning">Nulstil</a>
-                <?php endif; ?>
-            </form>
-
-            <div style="overflow-x: auto;">
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Bruger</th>
-                            <th>Email</th>
-                            <th>Land</th>
-                            <th>Alder</th>
-                            <th>Status</th>
-                            <th>Oprettet</th>
-                            <th>Sidste login</th>
-                            <th>Handlinger</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($users as $user): ?>
-                            <tr>
-                                <td>#<?php echo $user->id; ?></td>
-                                <td>
-                                    <strong><?php echo esc_html($user->full_name); ?></strong><br>
-                                    <span style="font-size: 0.875rem; color: #64748b;">@<?php echo esc_html($user->username); ?></span>
-                                </td>
-                                <td><?php echo esc_html($user->email); ?></td>
-                                <td>
-                                    <?php 
-                                    $flags = ['DK' => '🇩🇰', 'SE' => '🇸🇪', 'NO' => '🇳🇴'];
-                                    echo isset($flags[$user->country]) ? $flags[$user->country] : '🌍';
-                                    ?>
-                                    <?php echo esc_html($user->country); ?>
-                                </td>
-                                <td><?php echo esc_html($user->age ?? 'N/A'); ?></td>
-                                <td>
-                                    <?php if ($user->is_admin): ?>
-                                        <span class="user-badge badge-admin">👑 Admin</span>
-                                    <?php endif; ?>
-                                    <?php if ($user->is_active): ?>
-                                        <span class="user-badge badge-active">✅ Aktiv</span>
-                                    <?php else: ?>
-                                        <span class="user-badge badge-banned">🚫 Blokeret</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td style="font-size: 0.875rem; color: #64748b;">
-                                    <?php echo date('d/m/Y', strtotime($user->created_at)); ?>
-                                </td>
-                                <td style="font-size: 0.875rem; color: #64748b;">
-                                    <?php echo $user->last_login ? date('d/m/Y H:i', strtotime($user->last_login)) : 'Aldrig'; ?>
-                                </td>
-                                <td>
-                                    <?php if ($user->id != $current_user->id): ?>
-                                        <div class="action-btns">
-                                            <a href="<?php echo home_url('/platform-profil-view/?user_id=' . $user->id); ?>" class="btn btn-primary" target="_blank">👁️ Se</a>
-                                            
-                                            <?php if ($user->is_active): ?>
-                                                <form method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="ban">
-                                                    <input type="hidden" name="user_id" value="<?php echo $user->id; ?>">
-                                                    <button type="submit" class="btn btn-warning" onclick="return confirm('Blokér denne bruger?')">🚫 Blokér</button>
-                                                </form>
-                                            <?php else: ?>
-                                                <form method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="unban">
-                                                    <input type="hidden" name="user_id" value="<?php echo $user->id; ?>">
-                                                    <button type="submit" class="btn btn-success">✅ Aktivér</button>
-                                                </form>
-                                            <?php endif; ?>
-                                            
-                                            <?php if (!$user->is_admin): ?>
-                                                <form method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="make_admin">
-                                                    <input type="hidden" name="user_id" value="<?php echo $user->id; ?>">
-                                                    <button type="submit" class="btn btn-primary" onclick="return confirm('Gør til administrator?')">👑 Admin</button>
-                                                </form>
-                                            <?php else: ?>
-                                                <form method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="remove_admin">
-                                                    <input type="hidden" name="user_id" value="<?php echo $user->id; ?>">
-                                                    <button type="submit" class="btn btn-warning" onclick="return confirm('Fjern admin?')">↓ Fjern Admin</button>
-                                                </form>
-                                            <?php endif; ?>
-                                            
-                                            <form method="post" style="display:inline;">
-                                                <input type="hidden" name="action" value="delete">
-                                                <input type="hidden" name="user_id" value="<?php echo $user->id; ?>">
-                                                <button type="submit" class="btn btn-danger" onclick="return confirm('SLET denne bruger og ALT indhold? Dette kan IKKE fortrydes!')">🗑️ Slet</button>
-                                            </form>
-                                        </div>
-                                    <?php else: ?>
-                                        <span style="color: #64748b; font-style: italic;">Det er dig</span>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
             </div>
-
-            <?php if ($total_pages > 1): ?>
-                <div class="pagination">
-                    <?php if ($page > 1): ?>
-                        <a href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $filter_status; ?>">← Forrige</a>
-                    <?php endif; ?>
-                    
-                    <?php for ($i = max(1, $page - 2); $i <= min($total_pages, $page + 2); $i++): ?>
-                        <?php if ($i == $page): ?>
-                            <span class="current"><?php echo $i; ?></span>
-                        <?php else: ?>
-                            <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $filter_status; ?>"><?php echo $i; ?></a>
-                        <?php endif; ?>
-                    <?php endfor; ?>
-                    
-                    <?php if ($page < $total_pages): ?>
-                        <a href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>&status=<?php echo $filter_status; ?>">Næste →</a>
-                    <?php endif; ?>
-                </div>
-            <?php endif; ?>
-        </div>
-    </div>
-
-    <!-- Content Tab -->
-    <div id="tab-content" class="tab-content">
-        <div class="admin-card">
-            <h2>Indholdsstyring</h2>
-            <p>Se og moderer alt indhold på platformen</p>
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
-                <a href="<?php echo home_url('/platform-nyheder/?lang=' . $lang); ?>" style="text-decoration: none;">
-                    <div class="stat-card" style="border-left-color: var(--admin-success);">
-                        <div class="stat-label">📰 Administrer nyheder</div>
-                        <div class="stat-value"><?php echo number_format($stats['total_news']); ?></div>
-                        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Opret, rediger og slet nyheder</p>
-                    </div>
-                </a>
-                
-                <a href="<?php echo home_url('/platform-forum/?lang=' . $lang); ?>" style="text-decoration: none;">
-                    <div class="stat-card" style="border-left-color: var(--admin-warning);">
-                        <div class="stat-label">💬 Se forum emner</div>
-                        <div class="stat-value"><?php echo number_format($stats['total_forum']); ?></div>
-                        <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Moderer og slet emner</p>
-                    </div>
-                </a>
-                
-                <div class="stat-card" style="border-left-color: var(--admin-secondary);">
-                    <div class="stat-label">📝 Bruger posts</div>
-                    <div class="stat-value"><?php echo number_format($stats['total_posts']); ?></div>
-                    <p style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #64748b;">Se alle brugerposts</p>
-                </div>
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="closeModal()"><?php echo $t['cancel']; ?></button>
+                <button type="button" class="btn-success" onclick="saveUser()"><?php echo $t['save']; ?></button>
             </div>
-        </div>
-    </div>
-
-    <!-- Settings Tab -->
-    <div id="tab-settings" class="tab-content">
-        <div class="admin-card">
-            <h2>Systemindstillinger</h2>
-            <p>Konfigurer platform indstillinger</p>
-            
-            <div style="margin-top: 2rem;">
-                <h3>Platform status</h3>
-                <div style="display: grid; gap: 1rem; margin-top: 1rem;">
-                    <div style="padding: 1rem; background: #f8fafc; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>✅ Platform status: <strong>Aktiv</strong></span>
-                        <span class="user-badge badge-active">Online</span>
-                    </div>
-                    <div style="padding: 1rem; background: #f8fafc; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>🗄️ Database: <strong><?php echo DB_NAME; ?></strong></span>
-                        <span class="user-badge badge-active">Forbundet</span>
-                    </div>
-                    <div style="padding: 1rem; background: #f8fafc; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>📊 Statistik tæller: <strong>Real-time</strong></span>
-                        <span class="user-badge badge-active">Kører</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logs Tab -->
-    <div id="tab-logs" class="tab-content">
-        <div class="admin-card">
-            <h2>Aktivitetslog</h2>
-            <p>De seneste handlinger på platformen</p>
-            
-            <div style="margin-top: 2rem;">
-                <?php
-                $recent_users = $wpdb->get_results(
-                    "SELECT id, username, full_name, created_at FROM $users_table ORDER BY created_at DESC LIMIT 10"
-                );
-                ?>
-                <h3>Seneste registreringer</h3>
-                <table class="users-table" style="margin-top: 1rem;">
-                    <thead>
-                        <tr>
-                            <th>Bruger</th>
-                            <th>Tidspunkt</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($recent_users as $user): ?>
-                            <tr>
-                                <td>
-                                    <strong><?php echo esc_html($user->full_name); ?></strong><br>
-                                    <span style="font-size: 0.875rem; color: #64748b;">@<?php echo esc_html($user->username); ?></span>
-                                </td>
-                                <td><?php echo date('d/m/Y H:i', strtotime($user->created_at)); ?></td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
 
 <script>
-function switchTab(tabName) {
-    // Hide all tabs
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
+const t = <?php echo json_encode($t); ?>;
+let currentPage = 0;
+let totalUsers = 0;
+const limit = 20;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadStats();
+    loadUsers();
+    
+    // Search with debounce
+    let searchTimeout;
+    document.getElementById('searchInput').addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            currentPage = 0;
+            loadUsers();
+        }, 500);
     });
     
-    // Show selected tab
-    document.getElementById('tab-' + tabName).classList.add('active');
-    event.target.classList.add('active');
+    // Status filter
+    document.getElementById('statusFilter').addEventListener('change', function() {
+        currentPage = 0;
+        loadUsers();
+    });
+});
+
+async function loadStats() {
+    try {
+        const response = await fetch('/wp-json/kate/v1/admin/users?limit=10000', {
+            credentials: 'same-origin'
+        });
+        
+        const data = await response.json();
+        
+        if (data.success && data.users) {
+            const users = data.users;
+            document.getElementById('stat-total-users').textContent = users.length;
+            
+            const active = users.filter(u => u.subscription_status === 'active').length;
+            document.getElementById('stat-active-subs').textContent = active;
+            
+            const inactive = users.filter(u => u.subscription_status === 'inactive').length;
+            document.getElementById('stat-inactive').textContent = inactive;
+            
+            const withStripe = users.filter(u => u.stripe_customer_id).length;
+            document.getElementById('stat-stripe').textContent = withStripe;
+        }
+    } catch (error) {
+        console.error('Stats error:', error);
+    }
+}
+
+async function loadUsers() {
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    const offset = currentPage * limit;
+    
+    const url = `/wp-json/kate/v1/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&status=${status}`;
+    
+    try {
+        const response = await fetch(url, { credentials: 'same-origin' });
+        const data = await response.json();
+        
+        if (data.success && data.users) {
+            totalUsers = data.total;
+            displayUsers(data.users);
+            updatePagination();
+            loadStats(); // Refresh stats
+        } else {
+            document.getElementById('users-container').innerHTML = 
+                `<p style="text-align: center; color: #ef4444;">Error loading users</p>`;
+        }
+    } catch (error) {
+        console.error('Load users error:', error);
+        document.getElementById('users-container').innerHTML = 
+            `<p style="text-align: center; color: #ef4444;">Error: ${error.message}</p>`;
+    }
+}
+
+function displayUsers(users) {
+    if (users.length === 0) {
+        document.getElementById('users-container').innerHTML = 
+            `<p style="text-align: center; color: #64748b;">No users found</p>`;
+        return;
+    }
+    
+    let html = '<table class="user-table"><thead><tr>';
+    html += '<th>ID</th>';
+    html += '<th>' + t.username + '</th>';
+    html += '<th>' + t.email + '</th>';
+    html += '<th>Stripe ID</th>';
+    html += '<th>' + t.subscription + '</th>';
+    html += '<th>' + t.created + '</th>';
+    html += '<th>' + t.actions + '</th>';
+    html += '</tr></thead><tbody>';
+    
+    users.forEach(user => {
+        const subClass = user.subscription_status === 'active' ? 'badge-active' : 
+                        user.subscription_status === 'expired' ? 'badge-expired' : 'badge-inactive';
+        
+        const stripeId = user.stripe_customer_id ? 
+            `<small style="color: #10b981;">✓ ${user.stripe_customer_id.substring(0, 12)}...</small>` : 
+            '<small style="color: #64748b;">-</small>';
+        
+        const created = new Date(user.created_at).toLocaleDateString('da-DK');
+        
+        html += `<tr id="user-row-${user.id}">`;
+        html += `<td><strong>${user.id}</strong></td>`;
+        html += `<td>${user.username}</td>`;
+        html += `<td>${user.email}</td>`;
+        html += `<td>${stripeId}</td>`;
+        html += `<td><span class="badge ${subClass}">${user.subscription_status}</span></td>`;
+        html += `<td>${created}</td>`;
+        html += `<td><div class="action-btns">`;
+        
+        if (user.subscription_status !== 'active') {
+            html += `<button class="action-btn btn-success" onclick="activateSubscription(${user.id})">💎 Activate</button>`;
+        }
+        
+        html += `<button class="action-btn btn-danger" onclick="deleteUser(${user.id}, '${user.username}')">🗑️ Delete</button>`;
+        html += `</div></td>`;
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    document.getElementById('users-container').innerHTML = html;
+}
+
+function updatePagination() {
+    const totalPages = Math.ceil(totalUsers / limit);
+    if (totalPages <= 1) {
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+    
+    let html = '';
+    
+    html += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 0 ? 'disabled' : ''}>← Previous</button>`;
+    
+    for (let i = 0; i < Math.min(totalPages, 10); i++) {
+        html += `<button class="${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i + 1}</button>`;
+    }
+    
+    html += `<button onclick="changePage(${currentPage + 1})" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>`;
+    
+    document.getElementById('pagination').innerHTML = html;
+}
+
+function changePage(page) {
+    if (page < 0) return;
+    currentPage = page;
+    loadUsers();
+}
+
+function refreshUsers() {
+    loadUsers();
+}
+
+function openCreateModal() {
+    document.getElementById('modalTitle').textContent = t.create_user;
+    document.getElementById('userForm').reset();
+    document.getElementById('userId').value = '';
+    document.getElementById('userModal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('userModal').classList.remove('show');
+}
+
+async function saveUser() {
+    const userId = document.getElementById('userId').value;
+    const isEdit = !!userId;
+    
+    const userData = {
+        username: document.getElementById('username').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+        full_name: document.getElementById('full_name').value,
+        phone: document.getElementById('phone').value,
+        birthday: document.getElementById('birthday').value || '2000-01-01',
+        subscription_status: document.getElementById('subscription_status').value
+    };
+    
+    if (!userData.username || !userData.email || !userData.password || !userData.full_name) {
+        alert('Udfyld venligst alle påkrævede felter');
+        return;
+    }
+    
+    // Create user via registration system
+    try {
+        const formData = new FormData();
+        formData.append('action', 'register');
+        formData.append('_wpnonce', '<?php echo wp_create_nonce("rtf_register"); ?>');
+        Object.keys(userData).forEach(key => formData.append(key, userData[key]));
+        
+        const response = await fetch('/platform-auth', {
+            method: 'POST',
+            body: formData
+        });
+        
+        if (response.ok) {
+            alert('✓ Bruger oprettet!');
+            closeModal();
+            loadUsers();
+        } else {
+            const text = await response.text();
+            alert('✗ Fejl: ' + text);
+        }
+    } catch (error) {
+        console.error('Save user error:', error);
+        alert('Fejl: ' + error.message);
+    }
+}
+
+async function activateSubscription(userId) {
+    const days = prompt('Hvor mange dage skal abonnementet aktiveres?', '30');
+    if (!days) return;
+    
+    try {
+        const response = await fetch(`/wp-json/kate/v1/admin/subscription/${userId}`, {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                status: 'active',
+                days_valid: parseInt(days)
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('✓ Abonnement aktiveret!');
+            loadUsers();
+        } else {
+            alert('✗ Fejl: ' + (data.message || 'Ukendt fejl'));
+        }
+    } catch (error) {
+        console.error('Activate error:', error);
+        alert('Fejl: ' + error.message);
+    }
+}
+
+async function deleteUser(userId, username) {
+    if (!confirm(`🗑️ SLET bruger "${username}"?\n\nDette vil permanent fjerne:\n• Bruger konto\n• Alle opslag og beskeder\n• Al forum aktivitet\n• Alle forbindelser\n\nDette kan IKKE fortrydes!`)) {
+        return;
+    }
+    
+    const row = document.getElementById(`user-row-${userId}`);
+    if (row) {
+        row.style.backgroundColor = '#7f1d1d';
+        row.style.opacity = '0.5';
+    }
+    
+    try {
+        const response = await fetch(`/wp-json/kate/v1/admin/user/${userId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Remove from DOM
+            if (row) {
+                row.style.transition = 'all 0.3s';
+                row.style.opacity = '0';
+                setTimeout(() => row.remove(), 300);
+            }
+            
+            // Reload after animation
+            setTimeout(() => {
+                alert('✓ Bruger slettet permanent!');
+                loadUsers();
+            }, 500);
+        } else {
+            alert('✗ Fejl: ' + (data.message || 'Kunne ikke slette bruger'));
+            if (row) {
+                row.style.backgroundColor = '';
+                row.style.opacity = '1';
+            }
+        }
+    } catch (error) {
+        console.error('Delete error:', error);
+        alert('✗ Fejl: ' + error.message);
+        if (row) {
+            row.style.backgroundColor = '';
+            row.style.opacity = '1';
+        }
+    }
 }
 </script>
 
