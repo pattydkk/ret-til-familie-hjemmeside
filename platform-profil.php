@@ -208,6 +208,35 @@ if (isset($_GET['logout'])) {
                             </div>
                             
                             <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Telefonnummer' : 'Telefonnummer'; ?></label>
+                                <input type="tel" name="phone" value="<?php echo esc_attr($current_user->phone); ?>" placeholder="<?php echo $lang === 'da' ? '+45 12 34 56 78' : '+46 70 123 45 67'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'By' : 'Stad'; ?></label>
+                                <input type="text" name="city" value="<?php echo esc_attr($current_user->city ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'København' : 'Stockholm'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Postnummer' : 'Postnummer'; ?></label>
+                                <input type="text" name="postal_code" value="<?php echo esc_attr($current_user->postal_code ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? '2000' : '100 00'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div style="grid-column: 1 / -1;">
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Adresse' : 'Adress'; ?></label>
+                                <input type="text" name="address" value="<?php echo esc_attr($current_user->address ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'Gadenavn 123' : 'Gatnamn 123'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Sprog præference' : 'Språkpreferens'; ?></label>
+                                <select name="language_preference" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                                    <option value="da_DK" <?php echo $current_user->language_preference === 'da_DK' ? 'selected' : ''; ?>>🇩🇰 Dansk</option>
+                                    <option value="sv_SE" <?php echo $current_user->language_preference === 'sv_SE' ? 'selected' : ''; ?>>🇸🇪 Svenska</option>
+                                    <option value="en_US" <?php echo $current_user->language_preference === 'en_US' ? 'selected' : ''; ?>>🇬🇧 English</option>
+                                </select>
+                            </div>
+                            
+                            <div>
                                 <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo esc_html($txt['member_since']); ?></label>
                                 <p style="font-size: 1.1em; color: var(--rtf-text);"><?php echo rtf_format_date($current_user->created_at); ?></p>
                             </div>
@@ -215,6 +244,89 @@ if (isset($_GET['logout'])) {
                             <div style="grid-column: 1 / -1;">
                                 <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;"><?php echo $lang === 'da' ? 'Kort biografi' : 'Kort biografi'; ?></label>
                                 <textarea name="bio" rows="4" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc; resize: vertical;" placeholder="<?php echo $lang === 'da' ? 'Fortæl lidt om dig selv...' : 'Berätta lite om dig själv...'; ?>"><?php echo esc_textarea($current_user->bio); ?></textarea>
+                            </div>
+                            
+                            <div style="grid-column: 1 / -1;">
+                                <h3 style="margin: 20px 0 15px; color: var(--rtf-text); display: flex; align-items: center; gap: 10px;">
+                                    <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24"><path d="M16.36 14c.08-.66.14-1.32.14-2 0-.68-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2m-5.15 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56M14.34 14H9.66c-.1-.66-.16-1.32-.16-2 0-.68.06-1.35.16-2h4.68c.09.65.16 1.32.16 2 0 .68-.07 1.34-.16 2M12 19.96c-.83-1.2-1.5-2.53-1.91-3.96h3.82c-.41 1.43-1.08 2.76-1.91 3.96M8 8H5.08C6.03 6.34 7.57 5.06 9.4 4.44 8.8 5.55 8.35 6.75 8 8m-2.92 8H8c.35 1.25.8 2.45 1.4 3.56-1.83-.62-3.37-1.9-4.32-3.56M4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2 0 .68.06 1.34.14 2M12 4.03c.83 1.2 1.5 2.54 1.91 3.97h-3.82c.41-1.43 1.08-2.77 1.91-3.97M18.92 8h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56M12 2C6.47 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/></svg>
+                                    <?php echo $lang === 'da' ? 'Sociale Links & Web' : 'Sociala länkar & Webb'; ?>
+                                </h3>
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">🌐 <?php echo $lang === 'da' ? 'Hjemmeside' : 'Hemsida'; ?></label>
+                                <input type="url" name="website" value="<?php echo esc_attr($current_user->website ?? ''); ?>" placeholder="https://example.com" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">💼 <?php echo $lang === 'da' ? 'Erhverv' : 'Yrke'; ?></label>
+                                <input type="text" name="occupation" value="<?php echo esc_attr($current_user->occupation ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'Dit erhverv' : 'Ditt yrke'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">📘 Facebook</label>
+                                <input type="url" name="facebook_url" value="<?php echo esc_attr($current_user->facebook_url ?? ''); ?>" placeholder="https://facebook.com/ditprofil" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">🐦 Twitter / X</label>
+                                <input type="url" name="twitter_url" value="<?php echo esc_attr($current_user->twitter_url ?? ''); ?>" placeholder="https://twitter.com/ditbrugernavn" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">📷 Instagram</label>
+                                <input type="url" name="instagram_url" value="<?php echo esc_attr($current_user->instagram_url ?? ''); ?>" placeholder="https://instagram.com/ditbrugernavn" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div>
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">💼 LinkedIn</label>
+                                <input type="url" name="linkedin_url" value="<?php echo esc_attr($current_user->linkedin_url ?? ''); ?>" placeholder="https://linkedin.com/in/ditprofil" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div style="grid-column: 1 / -1;">
+                                <label style="display: block; font-weight: 600; color: var(--rtf-muted); margin-bottom: 8px;">🎯 <?php echo $lang === 'da' ? 'Interesser (kommasepareret)' : 'Intressen (kommaseparerade)'; ?></label>
+                                <input type="text" name="interests" value="<?php echo esc_attr($current_user->interests ?? ''); ?>" placeholder="<?php echo $lang === 'da' ? 'Familie, lovgivning, sport...' : 'Familj, lagstiftning, sport...'; ?>" style="width: 100%; padding: 12px; border: 2px solid #e0f2fe; border-radius: 8px; font-size: 1em; color: var(--rtf-text); background: #f8fafc;">
+                            </div>
+                            
+                            <div style="grid-column: 1 / -1;">
+                                <h3 style="margin: 20px 0 15px; color: var(--rtf-text); display: flex; align-items: center; gap: 10px;">
+                                    <svg style="width: 22px; height: 22px; fill: currentColor;" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+                                    <?php echo $lang === 'da' ? 'Sikkerhed & Notifikationer' : 'Säkerhet & Notifikationer'; ?>
+                                </h3>
+                            </div>
+                            
+                            <div style="grid-column: 1 / -1; background: #f8fafc; padding: 20px; border-radius: 12px; border: 2px solid #e0f2fe;">
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    <input type="checkbox" name="email_notifications" value="1" <?php echo ($current_user->email_notifications ?? 1) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">📧 <?php echo $lang === 'da' ? 'Email notifikationer' : 'E-postmeddelanden'; ?></div>
+                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Modtag email når du får nye beskeder eller svar' : 'Ta emot e-post när du får nya meddelanden eller svar'; ?></div>
+                                    </div>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    <input type="checkbox" name="two_factor_enabled" value="1" <?php echo ($current_user->two_factor_enabled ?? 0) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">🔐 <?php echo $lang === 'da' ? 'To-faktor godkendelse (2FA)' : 'Tvåfaktorsautentisering (2FA)'; ?></div>
+                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Ekstra sikkerhed ved login med SMS kode' : 'Extra säkerhet vid inloggning med SMS-kod'; ?></div>
+                                    </div>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 15px;">
+                                    <input type="checkbox" name="show_online_status" value="1" <?php echo ($current_user->show_online_status ?? 1) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">🟢 <?php echo $lang === 'da' ? 'Vis online status' : 'Visa onlinestatus'; ?></div>
+                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Lad andre se når du er online' : 'Låt andra se när du är online'; ?></div>
+                                    </div>
+                                </label>
+                                
+                                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer;">
+                                    <input type="checkbox" name="allow_friend_requests" value="1" <?php echo ($current_user->allow_friend_requests ?? 1) ? 'checked' : ''; ?> style="width: 20px; height: 20px; cursor: pointer;">
+                                    <div>
+                                        <div style="font-weight: 600; color: var(--rtf-text); margin-bottom: 4px;">👥 <?php echo $lang === 'da' ? 'Tillad venneanmodninger' : 'Tillåt vänförfrågningar'; ?></div>
+                                        <div style="font-size: 0.9em; color: var(--rtf-muted);"><?php echo $lang === 'da' ? 'Modtag anmodninger fra andre brugere' : 'Ta emot förfrågningar från andra användare'; ?></div>
+                                    </div>
+                                </label>
                             </div>
                             
                             <div>

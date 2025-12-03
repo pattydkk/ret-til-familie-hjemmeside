@@ -316,8 +316,22 @@ function rtf_create_platform_tables() {
         case_type varchar(100) DEFAULT NULL COMMENT 'custody, visitation, divorce, support, other',
         age int DEFAULT NULL,
         bio text DEFAULT NULL,
+        city varchar(100) DEFAULT NULL,
+        postal_code varchar(20) DEFAULT NULL,
+        address varchar(255) DEFAULT NULL,
+        website varchar(500) DEFAULT NULL,
+        occupation varchar(255) DEFAULT NULL,
+        facebook_url varchar(500) DEFAULT NULL,
+        twitter_url varchar(500) DEFAULT NULL,
+        instagram_url varchar(500) DEFAULT NULL,
+        linkedin_url varchar(500) DEFAULT NULL,
+        interests text DEFAULT NULL,
         language_preference varchar(10) DEFAULT 'da_DK',
         country varchar(5) DEFAULT 'DK',
+        email_notifications tinyint(1) DEFAULT 1,
+        two_factor_enabled tinyint(1) DEFAULT 0,
+        show_online_status tinyint(1) DEFAULT 1,
+        allow_friend_requests tinyint(1) DEFAULT 1,
         is_admin tinyint(1) DEFAULT 0,
         is_active tinyint(1) DEFAULT 1,
         stripe_customer_id varchar(255) DEFAULT NULL,
@@ -333,7 +347,21 @@ function rtf_create_platform_tables() {
     // Add missing columns if they don't exist (for existing installations)
     $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS cover_image varchar(500) DEFAULT NULL AFTER profile_image\");
     $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL COMMENT 'custody, visitation, divorce, support, other' AFTER cover_image\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS age int DEFAULT NULL AFTER case_type\");";
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS age int DEFAULT NULL AFTER case_type\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS city varchar(100) DEFAULT NULL AFTER bio\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS postal_code varchar(20) DEFAULT NULL AFTER city\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS address varchar(255) DEFAULT NULL AFTER postal_code\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS website varchar(500) DEFAULT NULL AFTER address\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS occupation varchar(255) DEFAULT NULL AFTER website\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS facebook_url varchar(500) DEFAULT NULL AFTER occupation\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS twitter_url varchar(500) DEFAULT NULL AFTER facebook_url\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS instagram_url varchar(500) DEFAULT NULL AFTER twitter_url\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS linkedin_url varchar(500) DEFAULT NULL AFTER instagram_url\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS interests text DEFAULT NULL AFTER linkedin_url\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS email_notifications tinyint(1) DEFAULT 1 AFTER country\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS two_factor_enabled tinyint(1) DEFAULT 0 AFTER email_notifications\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS show_online_status tinyint(1) DEFAULT 1 AFTER two_factor_enabled\");
+    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS allow_friend_requests tinyint(1) DEFAULT 1 AFTER show_online_status\");";
 
     // 2. Privacy Settings
     $table_privacy = $wpdb->prefix . 'rtf_platform_privacy';
@@ -2578,6 +2606,22 @@ function rtf_api_update_profile($request) {
     $country = sanitize_text_field($body['country'] ?? 'DK');
     $age = intval($body['age'] ?? 0);
     $bio = sanitize_textarea_field($body['bio'] ?? '');
+    $phone = sanitize_text_field($body['phone'] ?? '');
+    $city = sanitize_text_field($body['city'] ?? '');
+    $postal_code = sanitize_text_field($body['postal_code'] ?? '');
+    $address = sanitize_text_field($body['address'] ?? '');
+    $website = sanitize_text_field($body['website'] ?? '');
+    $occupation = sanitize_text_field($body['occupation'] ?? '');
+    $facebook_url = sanitize_text_field($body['facebook_url'] ?? '');
+    $twitter_url = sanitize_text_field($body['twitter_url'] ?? '');
+    $instagram_url = sanitize_text_field($body['instagram_url'] ?? '');
+    $linkedin_url = sanitize_text_field($body['linkedin_url'] ?? '');
+    $interests = sanitize_textarea_field($body['interests'] ?? '');
+    $language_preference = sanitize_text_field($body['language_preference'] ?? 'da_DK');
+    $email_notifications = isset($body['email_notifications']) ? 1 : 0;
+    $two_factor_enabled = isset($body['two_factor_enabled']) ? 1 : 0;
+    $show_online_status = isset($body['show_online_status']) ? 1 : 0;
+    $allow_friend_requests = isset($body['allow_friend_requests']) ? 1 : 0;
     
     $table_users = $wpdb->prefix . 'rtf_platform_users';
     
@@ -2588,10 +2632,26 @@ function rtf_api_update_profile($request) {
             'case_type' => $case_type,
             'country' => $country,
             'age' => $age,
-            'bio' => $bio
+            'bio' => $bio,
+            'phone' => $phone,
+            'city' => $city,
+            'postal_code' => $postal_code,
+            'address' => $address,
+            'website' => $website,
+            'occupation' => $occupation,
+            'facebook_url' => $facebook_url,
+            'twitter_url' => $twitter_url,
+            'instagram_url' => $instagram_url,
+            'linkedin_url' => $linkedin_url,
+            'interests' => $interests,
+            'language_preference' => $language_preference,
+            'email_notifications' => $email_notifications,
+            'two_factor_enabled' => $two_factor_enabled,
+            'show_online_status' => $show_online_status,
+            'allow_friend_requests' => $allow_friend_requests
         ],
         ['id' => $current_user->id],
-        ['%s', '%s', '%s', '%d', '%s'],
+        ['%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d', '%d', '%d'],
         ['%d']
     );
     
