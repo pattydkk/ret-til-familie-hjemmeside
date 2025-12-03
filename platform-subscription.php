@@ -71,12 +71,11 @@ $t = array(
 );
 $txt = $t[$lang];
 
+// Load Stripe library
+require_once(__DIR__ . '/stripe-php-13.18.0/init.php');
+
 // Handle Stripe Checkout - LIVE IMPLEMENTATION
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'subscribe') {
-    
-    if (!class_exists('\Stripe\Stripe')) {
-        die('Stripe PHP library ikke installeret. Kør: composer install');
-    }
     
     try {
         \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
@@ -147,14 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     </ul>
                 </div>
 
-                <div class="test-mode-notice" style="background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
-                    <strong>⚠️ <?php echo esc_html($txt['test_mode']); ?></strong>
-                    <p style="margin-top: 10px; color: var(--rtf-text);">
-                        <?php echo $lang === 'da' ? 'Stripe keys skal konfigureres i functions.php for ægte betalinger' : ($lang === 'sv' ? 'Stripe-nycklar måste konfigureras i functions.php för riktiga betalningar' : 'Stripe keys must be configured in functions.php for real payments'); ?>
-                    </p>
-                </div>
-
-                <form method="POST" action="" style="text-align: center;">
+                <form method="POST" action="" style="text-align: center; margin-top: 30px;">
                     <input type="hidden" name="action" value="subscribe">
                     <button type="submit" class="btn-primary" style="padding: 20px 60px; font-size: 1.2em;">
                         <?php echo esc_html($txt['subscribe_btn']); ?>
