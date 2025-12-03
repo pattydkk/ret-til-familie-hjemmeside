@@ -460,12 +460,13 @@ body {
                 </select>
             </div>
             
-            <div class="form-group" style="margin-top: 15px; padding: 15px; background-color: rgba(37, 99, 235, 0.1); border-radius: 8px; border: 1px solid var(--admin-primary);">
-                <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600;">
-                    <input type="checkbox" id="is_admin" value="1" style="width: 18px; height: 18px; margin-right: 10px; cursor: pointer;">
-                    👑 <?php echo $t['make_admin']; ?>
+            <!-- ADMIN CHECKBOX SECTION (v1.1) -->
+            <div class="form-group" style="margin-top: 15px; padding: 15px; background-color: rgba(37, 99, 235, 0.1); border-radius: 8px; border: 1px solid var(--admin-primary); display: block !important; visibility: visible !important;">
+                <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600; color: #1e293b;">
+                    <input type="checkbox" id="is_admin" name="is_admin" value="1" style="width: 18px; height: 18px; margin-right: 10px; cursor: pointer;">
+                    <span style="font-size: 16px;">👑 <?php echo $t['make_admin']; ?></span>
                 </label>
-                <small style="display: block; margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                <small style="display: block; margin-top: 8px; color: #64748b; font-size: 13px;">
                     <?php echo $t['admin_rights_desc']; ?>
                 </small>
             </div>
