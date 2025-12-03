@@ -224,8 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $_SESSION['rtf_user_id'] = $user_id;
             $_SESSION['rtf_username'] = $username;
             
-            // Redirect til LIVE Stripe checkout
-            require_once(__DIR__ . '/vendor/autoload.php');
+            // Redirect til LIVE Stripe checkout - direkte include
+            require_once(__DIR__ . '/stripe-php-13.18.0/init.php');
             \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
             
             try {

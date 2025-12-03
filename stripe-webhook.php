@@ -4,7 +4,7 @@
  * Håndterer subscription events fra Stripe
  */
 
-require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/stripe-php-13.18.0/init.php';
 require_once __DIR__ . '/wp-load.php';
 
 // Stripe configuration
