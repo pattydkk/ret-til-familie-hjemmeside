@@ -72,7 +72,7 @@ $is_admin = rtf_is_admin_user();
 
 <nav class="platform-nav" style="background: var(--rtf-card); padding: 20px; border-radius: 16px; box-shadow: 0 14px 35px rgba(15,23,42,0.10); position: sticky; top: 80px; height: fit-content;">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: var(--rtf-text);"><?php echo $is_danish ? 'Platform Menu' : 'Plattform Meny'; ?></h3>
+        <h3 style="margin: 0; color: var(--rtf-text);"><?php echo $t['menu_title']; ?></h3>
         
         <!-- Language Switcher -->
         <div style="display: flex; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 8px;">
