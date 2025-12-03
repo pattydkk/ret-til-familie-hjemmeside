@@ -476,20 +476,37 @@ function rtf_create_platform_tables() {
         KEY user_id (user_id)
     ) $charset_collate;";
 
-    // 10. Cases (Sagshjælp)
+    // 10. Cases (Sagshjælp) - UDVIDET MED NYE FELTER
     $table_cases = $wpdb->prefix . 'rtf_platform_cases';
     $sql_cases = "CREATE TABLE IF NOT EXISTS $table_cases (
         id bigint(20) NOT NULL AUTO_INCREMENT,
         user_id bigint(20) NOT NULL,
         title varchar(255) NOT NULL,
         description text NOT NULL,
-        category varchar(100) DEFAULT NULL,
-        status varchar(50) DEFAULT 'open',
+        category varchar(100) DEFAULT NULL COMMENT 'family, jobcenter, disability, elderly, housing, economy',
+        subcategory varchar(255) DEFAULT NULL COMMENT 'Specific detailed case type',
+        complaint_type varchar(100) DEFAULT NULL COMMENT 'kommune_genoptagelse, ankestyrelsen_familie, patientombuddet, etc',
+        authority varchar(255) DEFAULT NULL COMMENT 'Full name of authority',
+        case_number varchar(100) DEFAULT NULL COMMENT 'Journal/case number from authority',
+        decision_date date DEFAULT NULL COMMENT 'Date of decision being appealed',
+        authority_type varchar(150) DEFAULT NULL COMMENT 'DEPRECATED - use complaint_type instead',
+        authority_name varchar(255) DEFAULT NULL COMMENT 'DEPRECATED - use authority instead',
+        selected_documents longtext DEFAULT NULL COMMENT 'JSON array of document IDs',
+        attached_documents longtext DEFAULT NULL COMMENT 'JSON array of attached document IDs',
+        generated_complaint longtext DEFAULT NULL COMMENT 'AI-generated complaint text by Kate AI',
+        status varchar(50) DEFAULT 'draft' COMMENT 'draft, submitted, pending, approved, rejected, closed',
+        deadline date DEFAULT NULL,
         assigned_admin bigint(20) DEFAULT NULL,
+        notes text DEFAULT NULL,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
-        KEY user_id (user_id)
+        KEY user_id (user_id),
+        KEY category (category),
+        KEY complaint_type (complaint_type),
+        KEY status (status),
+        KEY deadline (deadline),
+        KEY decision_date (decision_date)
     ) $charset_collate;";
 
     // 11. Kate AI Chat (UDVIDET)
@@ -3335,3 +3352,263 @@ if (!wp_next_scheduled('rtf_update_foster_care_stats_hook')) {
     wp_schedule_event(time(), 'hourly', 'rtf_update_foster_care_stats_hook');
 }
 add_action('rtf_update_foster_care_stats_hook', 'rtf_update_foster_care_stats');
+
+/**
+ * =====================================================
+ * SAGSHJÆLP - COMPLAINT GENERATION WITH KATE AI
+ * =====================================================
+ */
+
+/**
+ * Handle complaint generation form submission
+ */
+function rtf_handle_complaint_generation() {
+    // Verify nonce
+    if (!isset($_POST['complaint_nonce']) || !wp_verify_nonce($_POST['complaint_nonce'], 'generate_complaint_action')) {
+        wp_send_json_error('Invalid security token', 403);
+        return;
+    }
+    
+    // Check user authentication
+    if (!is_user_logged_in()) {
+        wp_send_json_error('You must be logged in', 401);
+        return;
+    }
+    
+    global $wpdb;
+    $current_user = wp_get_current_user();
+    $user_id = $current_user->ID;
+    
+    // Get custom user from platform
+    $platform_user = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM {$wpdb->prefix}rtf_platform_users WHERE wp_user_id = %d",
+        $user_id
+    ));
+    
+    if (!$platform_user) {
+        wp_send_json_error('Platform user not found', 404);
+        return;
+    }
+    
+    // Sanitize and validate input
+    $case_category = sanitize_text_field($_POST['case_category'] ?? '');
+    $subcategory = sanitize_text_field($_POST['subcategory'] ?? '');
+    $complaint_type = sanitize_text_field($_POST['complaint_type'] ?? '');
+    $authority = sanitize_text_field($_POST['authority'] ?? '');
+    $case_number = sanitize_text_field($_POST['case_number'] ?? '');
+    $decision_date = sanitize_text_field($_POST['decision_date'] ?? '');
+    $user_email = sanitize_email($_POST['user_email'] ?? $current_user->user_email);
+    $user_phone = sanitize_text_field($_POST['user_phone'] ?? '');
+    $complaint_text = sanitize_textarea_field($_POST['complaint_text'] ?? '');
+    $request_meeting = isset($_POST['request_meeting']) ? 1 : 0;
+    $attached_docs = isset($_POST['attached_docs']) ? array_map('intval', $_POST['attached_docs']) : [];
+    
+    // Validate required fields
+    if (empty($case_category) || empty($complaint_type) || empty($authority) || empty($decision_date) || empty($complaint_text)) {
+        wp_send_json_error('Please fill in all required fields', 400);
+        return;
+    }
+    
+    // Get language preference
+    $lang = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : 'da';
+    
+    // Get attached documents info
+    $documents_info = [];
+    if (!empty($attached_docs)) {
+        $placeholders = implode(',', array_fill(0, count($attached_docs), '%d'));
+        $documents = $wpdb->get_results($wpdb->prepare(
+            "SELECT id, title, document_type, file_path FROM {$wpdb->prefix}rtf_platform_documents 
+             WHERE id IN ($placeholders) AND user_id = %d",
+            array_merge($attached_docs, [$platform_user->id])
+        ));
+        
+        foreach ($documents as $doc) {
+            $documents_info[] = "- {$doc->title} ({$doc->document_type})";
+        }
+    }
+    
+    // Map complaint types to formal names
+    $complaint_type_names = [
+        'kommune_genoptagelse' => ['da' => 'Anmodning om genoptagelse af afgørelse', 'sv' => 'Begäran om omprövning av beslut', 'en' => 'Request for case reopening'],
+        'kommune_klage' => ['da' => 'Klage til kommunen', 'sv' => 'Klagomål till kommunen', 'en' => 'Complaint to municipality'],
+        'ankestyrelsen_familie' => ['da' => 'Klage til Ankestyrelsen - Familie og Beskæftigelse', 'sv' => 'Klagomål till Överklagandenämnden - Familj och Sysselsättning', 'en' => 'Appeal to Social Appeals Board - Family'],
+        'ankestyrelsen_beskæftigelse' => ['da' => 'Klage til Ankestyrelsen - Familie og Beskæftigelse', 'sv' => 'Klagomål till Överklagandenämnden - Sysselsättning', 'en' => 'Appeal to Social Appeals Board - Employment'],
+        'ankestyrelsen_handicap' => ['da' => 'Klage til Ankestyrelsen - Handicap og Social', 'sv' => 'Klagomål till Överklagandenämnden - Handikapp och Social', 'en' => 'Appeal to Social Appeals Board - Disability'],
+        'ankestyrelsen_social' => ['da' => 'Klage til Ankestyrelsen - Handicap og Social', 'sv' => 'Klagomål till Överklagandenämnden - Social', 'en' => 'Appeal to Social Appeals Board - Social'],
+        'patientombuddet' => ['da' => 'Klage til Patientombuddet', 'sv' => 'Klagomål till Patientombudsmannen', 'en' => 'Complaint to Patient Ombudsman'],
+        'sundhedsstyrelsen' => ['da' => 'Klage til Sundhedsstyrelsen', 'sv' => 'Klagomål till Hälsostyrelsen', 'en' => 'Complaint to Health Authority'],
+        'datatilsynet' => ['da' => 'Klage til Datatilsynet', 'sv' => 'Klagomål till Datainspektionen', 'en' => 'Complaint to Data Protection Authority'],
+        'ligebehandlingsnævnet' => ['da' => 'Klage til Ligebehandlingsnævnet', 'sv' => 'Klagomål till Diskrimineringsnämnden', 'en' => 'Complaint to Equal Treatment Board'],
+        'huslejenævn' => ['da' => 'Klage til Huslejenævnet', 'sv' => 'Klagomål till Hyresnämnden', 'en' => 'Complaint to Rent Tribunal']
+    ];
+    
+    $formal_complaint_type = $complaint_type_names[$complaint_type][$lang] ?? $complaint_type_names[$complaint_type]['da'];
+    
+    // Build comprehensive Kate AI prompt
+    $kate_prompt = "Du er en erfaren jurist specialiseret i dansk forvaltningsret og klagesagshåndtering.\n\n";
+    $kate_prompt .= "OPGAVE: Skriv en professionel, juridisk korrekt og velformuleret klage/anmodning baseret på følgende information:\n\n";
+    $kate_prompt .= "=== KLAGENS DETALJER ===\n";
+    $kate_prompt .= "Klagetype: {$formal_complaint_type}\n";
+    $kate_prompt .= "Myndighed der klages over: {$authority}\n";
+    $kate_prompt .= "Sagskategori: {$case_category}\n";
+    if ($subcategory) {
+        $kate_prompt .= "Specifik sagstype: {$subcategory}\n";
+    }
+    if ($case_number) {
+        $kate_prompt .= "Sagsnummer/journalnummer: {$case_number}\n";
+    }
+    $kate_prompt .= "Afgørelsesdato: {$decision_date}\n\n";
+    
+    $kate_prompt .= "=== BORGERENS INFORMATION ===\n";
+    $kate_prompt .= "Navn: {$platform_user->full_name}\n";
+    $kate_prompt .= "Email: {$user_email}\n";
+    if ($user_phone) {
+        $kate_prompt .= "Telefon: {$user_phone}\n";
+    }
+    $kate_prompt .= "\n";
+    
+    $kate_prompt .= "=== BORGERENS BEGRUNDELSE ===\n";
+    $kate_prompt .= "{$complaint_text}\n\n";
+    
+    if (!empty($documents_info)) {
+        $kate_prompt .= "=== VEDLAGTE DOKUMENTER ===\n";
+        $kate_prompt .= implode("\n", $documents_info) . "\n\n";
+    }
+    
+    if ($request_meeting) {
+        $kate_prompt .= "=== SÆRLIGT ØNSKE ===\n";
+        $kate_prompt .= "Borgeren ønsker et møde med myndigheden, hvis dette er muligt.\n\n";
+    }
+    
+    $kate_prompt .= "=== KRAV TIL KLAGEN ===\n";
+    $kate_prompt .= "1. Brug korrekt juridisk terminologi og formelt dansk sprog\n";
+    $kate_prompt .= "2. Strukturer klagen professionelt med overskrifter\n";
+    $kate_prompt .= "3. Inkluder alle relevante oplysninger (navn, sagsnummer, dato osv.)\n";
+    $kate_prompt .= "4. Angiv klart hvad der ønskes (genoptagelse, ændring af afgørelse, etc.)\n";
+    $kate_prompt .= "5. Begrund klagen ud fra borgerens beskrivelse\n";
+    $kate_prompt .= "6. Henvis til relevante lovbestemmelser hvis muligt (servicelov, retssikkerhedslov, forvaltningslov)\n";
+    $kate_prompt .= "7. Afslut professionelt med venlig hilsen og borgerens kontaktinfo\n";
+    $kate_prompt .= "8. Nævn vedlagte dokumenter hvis der er nogen\n";
+    $kate_prompt .= "9. Sørg for klagen er klar til at sende direkte til myndigheden\n\n";
+    
+    $kate_prompt .= "Skriv nu den komplette klage:";
+    
+    // Call Kate AI API
+    $api_key = get_option('kate_ai_api_key');
+    if (!$api_key) {
+        wp_send_json_error('Kate AI API key not configured', 500);
+        return;
+    }
+    
+    $api_response = wp_remote_post('https://api.kate-ai.com/v1/chat/completions', [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type' => 'application/json',
+        ],
+        'body' => json_encode([
+            'model' => 'gpt-4',
+            'messages' => [
+                ['role' => 'system', 'content' => 'Du er en erfaren dansk jurist specialiseret i forvaltningsret.'],
+                ['role' => 'user', 'content' => $kate_prompt]
+            ],
+            'temperature' => 0.7,
+            'max_tokens' => 2500
+        ]),
+        'timeout' => 60
+    ]);
+    
+    if (is_wp_error($api_response)) {
+        wp_send_json_error('Failed to connect to Kate AI: ' . $api_response->get_error_message(), 500);
+        return;
+    }
+    
+    $response_body = json_decode(wp_remote_retrieve_body($api_response), true);
+    
+    if (!isset($response_body['choices'][0]['message']['content'])) {
+        wp_send_json_error('Invalid response from Kate AI', 500);
+        return;
+    }
+    
+    $generated_complaint = $response_body['choices'][0]['message']['content'];
+    
+    // Save case to database
+    $case_title = $formal_complaint_type . ' - ' . $authority;
+    $wpdb->insert(
+        $wpdb->prefix . 'rtf_platform_cases',
+        [
+            'user_id' => $platform_user->id,
+            'title' => $case_title,
+            'category' => $case_category,
+            'subcategory' => $subcategory,
+            'complaint_type' => $complaint_type,
+            'authority' => $authority,
+            'case_number' => $case_number,
+            'decision_date' => $decision_date,
+            'description' => substr($complaint_text, 0, 500),
+            'generated_complaint' => $generated_complaint,
+            'attached_documents' => json_encode($attached_docs),
+            'status' => 'draft',
+            'created_at' => current_time('mysql')
+        ],
+        ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+    );
+    
+    $case_id = $wpdb->insert_id;
+    
+    if (!$case_id) {
+        wp_send_json_error('Failed to save case', 500);
+        return;
+    }
+    
+    // Return success with generated complaint
+    wp_send_json_success([
+        'complaint' => $generated_complaint,
+        'case_id' => $case_id,
+        'message' => 'Complaint generated successfully'
+    ]);
+}
+
+// Register admin-post handlers (for both logged in and non-logged in)
+add_action('admin_post_generate_complaint', 'rtf_handle_complaint_generation');
+add_action('admin_post_nopriv_generate_complaint', 'rtf_handle_complaint_generation');
+
+/**
+ * Update database schema for expanded Sagshjælp system
+ * Adds new columns to rtf_platform_cases table
+ */
+function rtf_update_cases_table_schema() {
+    global $wpdb;
+    $table = $wpdb->prefix . 'rtf_platform_cases';
+    
+    // Check if table exists
+    if ($wpdb->get_var("SHOW TABLES LIKE '$table'") != $table) {
+        return; // Table doesn't exist yet, will be created by activation
+    }
+    
+    // Add new columns if they don't exist
+    $columns_to_add = [
+        'complaint_type' => "ALTER TABLE $table ADD COLUMN complaint_type varchar(100) DEFAULT NULL COMMENT 'kommune_genoptagelse, ankestyrelsen_familie, patientombuddet, etc' AFTER subcategory",
+        'authority' => "ALTER TABLE $table ADD COLUMN authority varchar(255) DEFAULT NULL COMMENT 'Full name of authority' AFTER complaint_type",
+        'case_number' => "ALTER TABLE $table ADD COLUMN case_number varchar(100) DEFAULT NULL COMMENT 'Journal/case number from authority' AFTER authority",
+        'decision_date' => "ALTER TABLE $table ADD COLUMN decision_date date DEFAULT NULL COMMENT 'Date of decision being appealed' AFTER case_number",
+        'attached_documents' => "ALTER TABLE $table ADD COLUMN attached_documents longtext DEFAULT NULL COMMENT 'JSON array of attached document IDs' AFTER selected_documents"
+    ];
+    
+    foreach ($columns_to_add as $column => $sql) {
+        // Check if column exists
+        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table LIKE '$column'");
+        if (empty($column_exists)) {
+            $wpdb->query($sql);
+        }
+    }
+    
+    // Add indexes if they don't exist
+    $wpdb->query("ALTER TABLE $table ADD INDEX IF NOT EXISTS complaint_type (complaint_type)");
+    $wpdb->query("ALTER TABLE $table ADD INDEX IF NOT EXISTS decision_date (decision_date)");
+    
+    // Update default status from 'open' to 'draft' for consistency
+    $wpdb->query("ALTER TABLE $table MODIFY COLUMN status varchar(50) DEFAULT 'draft' COMMENT 'draft, submitted, pending, approved, rejected, closed'");
+}
+
+// Run schema update on admin init
+add_action('admin_init', 'rtf_update_cases_table_schema');
