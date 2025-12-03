@@ -1055,6 +1055,8 @@ function rtf_create_pages_menu_on_switch() {
         'platform-chat' => 'Beskeder',
         'platform-billeder' => 'Billede Galleri',
         'platform-dokumenter' => 'Dokumenter',
+        'platform-find-borgere' => 'Find Borgere',
+        'platform-venner' => 'Venner',
         'platform-indstillinger' => 'Indstillinger',
         'platform-nyheder' => 'Nyheder',
         'platform-forum' => 'Forum',
@@ -1062,7 +1064,6 @@ function rtf_create_pages_menu_on_switch() {
         'platform-kate-ai' => 'Kate AI Assistent',
         'platform-admin-dashboard' => 'Admin Dashboard',
         'platform-admin-users' => 'Admin Users',
-        'platform-venner' => 'Venner',
         'platform-rapporter' => 'Rapporter & Analyser',
     );
 
