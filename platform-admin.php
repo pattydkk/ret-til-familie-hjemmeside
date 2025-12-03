@@ -19,8 +19,15 @@ $lang = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : 'da';
 $translations = [
     'da' => [
         'title' => 'Komplet Admin Panel',
+        'dashboard' => 'Dashboard',
         'users' => 'Bruger Styring',
+        'content' => 'Indhold',
+        'news' => 'Nyheder',
+        'forum' => 'Forum',
+        'posts' => 'Vægindlæg',
+        'moderation' => 'Moderering',
         'create_user' => 'Opret Bruger',
+        'create_news' => 'Opret Nyhed',
         'user_list' => 'Bruger Liste',
         'username' => 'Brugernavn',
         'email' => 'Email',
@@ -38,13 +45,23 @@ $translations = [
         'search' => 'Søg brugere...',
         'total_users' => 'Totale Brugere',
         'active_subs' => 'Aktive Abonnementer',
+        'total_posts' => 'Totale Indlæg',
+        'total_news' => 'Totale Nyheder',
         'create' => 'Opret',
         'cancel' => 'Annuller',
         'save' => 'Gem',
         'stripe_id' => 'Stripe ID',
         'created' => 'Oprettet',
         'last_login' => 'Sidste Login',
-        'refresh' => 'Opdater'
+        'refresh' => 'Opdater',
+        'title_label' => 'Titel',
+        'content_label' => 'Indhold',
+        'publish' => 'Publicer',
+        'author' => 'Forfatter',
+        'date' => 'Dato',
+        'view' => 'Vis',
+        'approve' => 'Godkend',
+        'reject' => 'Afvis'
     ]
 ];
 
@@ -372,16 +389,32 @@ body {
             <div class="number" id="stat-active-subs" style="color: var(--admin-success);">-</div>
         </div>
         <div class="stat-card">
-            <h3>Inactive Users</h3>
-            <div class="number" id="stat-inactive" style="color: var(--admin-warning);">-</div>
+            <h3><?php echo $t['total_posts']; ?></h3>
+            <div class="number" id="stat-posts" style="color: var(--admin-warning);">-</div>
         </div>
         <div class="stat-card">
-            <h3>With Stripe</h3>
-            <div class="number" id="stat-stripe" style="color: #8b5cf6;">-</div>
+            <h3><?php echo $t['total_news']; ?></h3>
+            <div class="number" id="stat-news" style="color: #8b5cf6;">-</div>
         </div>
     </div>
 
-    <!-- User Management -->
+    <!-- Navigation Tabs -->
+    <div style="display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap;">
+        <button class="tab-button active" onclick="switchTab('users')" style="padding: 12px 24px; background: var(--admin-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            👥 <?php echo $t['users']; ?>
+        </button>
+        <button class="tab-button" onclick="switchTab('news')" style="padding: 12px 24px; background: var(--admin-card); color: #e2e8f0; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; font-weight: 600;">
+            📰 <?php echo $t['news']; ?>
+        </button>
+        <button class="tab-button" onclick="switchTab('posts')" style="padding: 12px 24px; background: var(--admin-card); color: #e2e8f0; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; font-weight: 600;">
+            📝 <?php echo $t['posts']; ?>
+        </button>
+        <button class="tab-button" onclick="switchTab('forum')" style="padding: 12px 24px; background: var(--admin-card); color: #e2e8f0; border: 1px solid var(--admin-border); border-radius: 8px; cursor: pointer; font-weight: 600;">
+            💬 <?php echo $t['forum']; ?>
+        </button>
+    </div>
+
+    <!-- User Management Tab -->
     <div class="admin-section">
         <h2><?php echo $t['users']; ?></h2>
         
@@ -408,6 +441,88 @@ body {
         <div class="pagination" id="pagination"></div>
     </div>
 
+    <!-- News Management Tab -->
+    <div class="admin-section" id="tab-news" style="display: none;">
+        <h2>📰 <?php echo $t['news']; ?></h2>
+        
+        <div class="admin-toolbar">
+            <input type="text" id="searchNews" placeholder="Søg nyheder...">
+            <button class="btn-success" onclick="openNewsModal()">
+                ➕ <?php echo $t['create_news']; ?>
+            </button>
+            <button class="btn-primary" onclick="loadNews()">
+                🔄 <?php echo $t['refresh']; ?>
+            </button>
+        </div>
+
+        <div id="news-container">
+            <p style="text-align: center; color: #64748b;">Loading news...</p>
+        </div>
+    </div>
+
+    <!-- Posts Management Tab -->
+    <div class="admin-section" id="tab-posts" style="display: none;">
+        <h2>📝 <?php echo $t['posts']; ?> (Vægindlæg)</h2>
+        
+        <div class="admin-toolbar">
+            <input type="text" id="searchPosts" placeholder="Søg indlæg...">
+            <select id="postStatusFilter">
+                <option value="all">Alle</option>
+                <option value="approved">Godkendte</option>
+                <option value="pending">Afventende</option>
+            </select>
+            <button class="btn-primary" onclick="loadPosts()">
+                🔄 <?php echo $t['refresh']; ?>
+            </button>
+        </div>
+
+        <div id="posts-container">
+            <p style="text-align: center; color: #64748b;">Loading posts...</p>
+        </div>
+    </div>
+
+    <!-- Forum Management Tab -->
+    <div class="admin-section" id="tab-forum" style="display: none;">
+        <h2>💬 <?php echo $t['forum']; ?></h2>
+        
+        <div class="admin-toolbar">
+            <input type="text" id="searchForum" placeholder="Søg forum emner...">
+            <button class="btn-primary" onclick="loadForum()">
+                🔄 <?php echo $t['refresh']; ?>
+            </button>
+        </div>
+
+        <div id="forum-container">
+            <p style="text-align: center; color: #64748b;">Loading forum topics...</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- News Modal -->
+<div id="newsModal" class="modal">
+    <div class="modal-content">
+        <h2 id="newsModalTitle"><?php echo $t['create_news']; ?></h2>
+        
+        <form id="newsForm" onsubmit="return false;">
+            <input type="hidden" id="newsId" value="">
+            
+            <div class="form-group">
+                <label><?php echo $t['title_label']; ?> *</label>
+                <input type="text" id="news_title" required>
+            </div>
+            
+            <div class="form-group">
+                <label><?php echo $t['content_label']; ?> *</label>
+                <textarea id="news_content" rows="10" style="width: 100%; padding: 12px; background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: 8px; color: #e2e8f0; font-size: 1em; font-family: inherit;" required></textarea>
+            </div>
+            
+            <div class="form-actions">
+                <button type="button" class="btn-danger" onclick="closeNewsModal()"><?php echo $t['cancel']; ?></button>
+                <button type="button" class="btn-success" onclick="saveNews()"><?php echo $t['publish']; ?></button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Create/Edit User Modal -->
@@ -494,6 +609,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function loadStats() {
     try {
+        // Load user stats
         const response = await fetch('/wp-json/kate/v1/admin/users?limit=10000', {
             credentials: 'same-origin'
         });
@@ -506,13 +622,22 @@ async function loadStats() {
             
             const active = users.filter(u => u.subscription_status === 'active').length;
             document.getElementById('stat-active-subs').textContent = active;
-            
-            const inactive = users.filter(u => u.subscription_status === 'inactive').length;
-            document.getElementById('stat-inactive').textContent = inactive;
-            
-            const withStripe = users.filter(u => u.stripe_customer_id).length;
-            document.getElementById('stat-stripe').textContent = withStripe;
         }
+        
+        // Load posts count
+        const postsResp = await fetch('/wp-json/wp/v2/posts?per_page=1', {
+            credentials: 'same-origin'
+        });
+        const postsTotal = postsResp.headers.get('X-WP-Total');
+        document.getElementById('stat-posts').textContent = postsTotal || '0';
+        
+        // Load news count from custom table
+        const newsResp = await fetch('/wp-json/wp/v2/pages?per_page=1&parent=0', {
+            credentials: 'same-origin'
+        });
+        const newsTotal = newsResp.headers.get('X-WP-Total');
+        document.getElementById('stat-news').textContent = newsTotal || '0';
+        
     } catch (error) {
         console.error('Stats error:', error);
     }
@@ -760,6 +885,315 @@ async function deleteUser(userId, username) {
             row.style.backgroundColor = '';
             row.style.opacity = '1';
         }
+    }
+}
+
+// Tab switching
+function switchTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.admin-section').forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Remove active class from buttons
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.style.background = 'var(--admin-card)';
+        btn.style.color = '#e2e8f0';
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    const tab = document.getElementById('tab-' + tabName);
+    if (tab) {
+        tab.style.display = 'block';
+    }
+    
+    // Mark button as active
+    event.target.style.background = 'var(--admin-primary)';
+    event.target.style.color = 'white';
+    event.target.classList.add('active');
+    
+    // Load content for tab
+    if (tabName === 'news') {
+        loadNews();
+    } else if (tabName === 'posts') {
+        loadPosts();
+    } else if (tabName === 'forum') {
+        loadForum();
+    }
+}
+
+// News Management
+async function loadNews() {
+    try {
+        const response = await fetch('/wp-json/wp/v2/posts?per_page=20&orderby=date&order=desc', {
+            credentials: 'same-origin'
+        });
+        
+        const news = await response.json();
+        
+        if (news && news.length > 0) {
+            let html = '<table class="user-table"><thead><tr>';
+            html += '<th>ID</th><th>' + t.title_label + '</th><th>' + t.author + '</th><th>' + t.date + '</th><th>' + t.actions + '</th>';
+            html += '</tr></thead><tbody>';
+            
+            news.forEach(item => {
+                const date = new Date(item.date).toLocaleDateString('da-DK');
+                html += '<tr>';
+                html += `<td>${item.id}</td>`;
+                html += `<td>${item.title.rendered}</td>`;
+                html += `<td>Admin</td>`;
+                html += `<td>${date}</td>`;
+                html += `<td><div class="action-btns">`;
+                html += `<button class="action-btn btn-primary" onclick="editNews(${item.id})">✏️ ${t.edit}</button>`;
+                html += `<button class="action-btn btn-danger" onclick="deleteNews(${item.id}, '${item.title.rendered}')">🗑️ ${t.delete}</button>`;
+                html += `</div></td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('news-container').innerHTML = html;
+        } else {
+            document.getElementById('news-container').innerHTML = '<p style="text-align: center; color: #64748b;">Ingen nyheder fundet</p>';
+        }
+    } catch (error) {
+        console.error('Load news error:', error);
+        document.getElementById('news-container').innerHTML = '<p style="text-align: center; color: #ef4444;">Fejl: ' + error.message + '</p>';
+    }
+}
+
+function openNewsModal() {
+    document.getElementById('newsModalTitle').textContent = t.create_news;
+    document.getElementById('newsForm').reset();
+    document.getElementById('newsId').value = '';
+    document.getElementById('newsModal').classList.add('show');
+}
+
+function closeNewsModal() {
+    document.getElementById('newsModal').classList.remove('show');
+}
+
+async function saveNews() {
+    const title = document.getElementById('news_title').value;
+    const content = document.getElementById('news_content').value;
+    
+    if (!title || !content) {
+        alert('Udfyld titel og indhold');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/wp-json/wp/v2/posts', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>'
+            },
+            body: JSON.stringify({
+                title: title,
+                content: content,
+                status: 'publish'
+            })
+        });
+        
+        if (response.ok) {
+            alert('✓ Nyhed oprettet!');
+            closeNewsModal();
+            loadNews();
+            loadStats();
+        } else {
+            alert('✗ Fejl ved oprettelse');
+        }
+    } catch (error) {
+        console.error('Save news error:', error);
+        alert('Fejl: ' + error.message);
+    }
+}
+
+async function deleteNews(newsId, title) {
+    if (!confirm(`Slet nyhed "${title}"?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/wp-json/wp/v2/posts/${newsId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>'
+            }
+        });
+        
+        if (response.ok) {
+            alert('✓ Nyhed slettet!');
+            loadNews();
+            loadStats();
+        } else {
+            alert('✗ Fejl ved sletning');
+        }
+    } catch (error) {
+        console.error('Delete news error:', error);
+        alert('Fejl: ' + error.message);
+    }
+}
+
+// Posts Management
+async function loadPosts() {
+    try {
+        const search = document.getElementById('searchPosts').value;
+        const response = await fetch(`/wp-json/kate/v1/admin/posts?search=${encodeURIComponent(search)}&limit=50`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load posts');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.posts) {
+            let html = '<table class="user-table"><thead><tr>';
+            html += '<th>ID</th><th>' + t.user + '</th><th>' + t.content + '</th><th>' + t.date + '</th><th>' + t.actions + '</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.posts.forEach(post => {
+                const date = new Date(post.created_at).toLocaleDateString('da-DK');
+                const preview = post.content.length > 100 ? post.content.substring(0, 100) + '...' : post.content;
+                html += `<tr id="post-row-${post.id}">`;
+                html += `<td>${post.id}</td>`;
+                html += `<td>${post.username || post.full_name || 'Ukendt'}</td>`;
+                html += `<td>${preview}</td>`;
+                html += `<td>${date}</td>`;
+                html += `<td><div class="action-btns">`;
+                html += `<button class="action-btn btn-danger" onclick="deletePost(${post.id})">🗑️ ${t.delete}</button>`;
+                html += `</div></td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            if (data.total > 0) {
+                html += `<div style="text-align: center; margin-top: 20px; color: #64748b;">Total: ${data.total} indlæg</div>`;
+            }
+            
+            document.getElementById('posts-container').innerHTML = html;
+        } else {
+            document.getElementById('posts-container').innerHTML = '<p style="text-align: center; color: #64748b;">Ingen indlæg fundet</p>';
+        }
+    } catch (error) {
+        console.error('Load posts error:', error);
+        document.getElementById('posts-container').innerHTML = '<p style="text-align: center; color: #ef4444;">Fejl: ' + error.message + '</p>';
+    }
+}
+
+// Delete post
+async function deletePost(postId) {
+    if (!confirm('Er du sikker på du vil slette dette indlæg?')) return;
+    
+    const row = document.getElementById(`post-row-${postId}`);
+    if (row) row.style.opacity = '0.5';
+    
+    try {
+        const response = await fetch(`/wp-json/kate/v1/admin/post/${postId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            if (row) row.remove();
+            alert('✓ Indlæg slettet!');
+            loadPosts();
+            loadStats();
+        } else {
+            alert('✗ Fejl: ' + data.message);
+            if (row) row.style.opacity = '1';
+        }
+    } catch (error) {
+        alert('✗ Fejl: ' + error.message);
+        if (row) row.style.opacity = '1';
+    }
+}
+
+// Forum Management
+async function loadForum() {
+    try {
+        const search = document.getElementById('searchForum').value;
+        const response = await fetch(`/wp-json/kate/v1/admin/forum?search=${encodeURIComponent(search)}&limit=50`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load forum');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success && data.topics) {
+            let html = '<table class="user-table"><thead><tr>';
+            html += '<th>ID</th><th>' + t.user + '</th><th>Titel</th><th>' + t.content + '</th><th>' + t.date + '</th><th>' + t.actions + '</th>';
+            html += '</tr></thead><tbody>';
+            
+            data.topics.forEach(topic => {
+                const date = new Date(topic.created_at).toLocaleDateString('da-DK');
+                const preview = topic.content.length > 100 ? topic.content.substring(0, 100) + '...' : topic.content;
+                const title = topic.title.length > 50 ? topic.title.substring(0, 50) + '...' : topic.title;
+                html += `<tr id="forum-row-${topic.id}">`;
+                html += `<td>${topic.id}</td>`;
+                html += `<td>${topic.username || topic.full_name || 'Ukendt'}</td>`;
+                html += `<td><strong>${title}</strong></td>`;
+                html += `<td>${preview}</td>`;
+                html += `<td>${date}</td>`;
+                html += `<td><div class="action-btns">`;
+                html += `<button class="action-btn btn-danger" onclick="deleteForum(${topic.id})">🗑️ ${t.delete}</button>`;
+                html += `</div></td>`;
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            
+            if (data.total > 0) {
+                html += `<div style="text-align: center; margin-top: 20px; color: #64748b;">Total: ${data.total} emner</div>`;
+            }
+            
+            document.getElementById('forum-container').innerHTML = html;
+        } else {
+            document.getElementById('forum-container').innerHTML = '<p style="text-align: center; color: #64748b;">Ingen forum emner fundet</p>';
+        }
+    } catch (error) {
+        console.error('Load forum error:', error);
+        document.getElementById('forum-container').innerHTML = '<p style="text-align: center; color: #ef4444;">Fejl: ' + error.message + '</p>';
+    }
+}
+
+// Delete forum topic
+async function deleteForum(topicId) {
+    if (!confirm('Er du sikker på du vil slette dette forum emne?')) return;
+    
+    const row = document.getElementById(`forum-row-${topicId}`);
+    if (row) row.style.opacity = '0.5';
+    
+    try {
+        const response = await fetch(`/wp-json/kate/v1/admin/forum/${topicId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin'
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            if (row) row.remove();
+            alert('✓ Forum emne slettet!');
+            loadForum();
+            loadStats();
+        } else {
+            alert('✗ Fejl: ' + data.message);
+            if (row) row.style.opacity = '1';
+        }
+    } catch (error) {
+        alert('✗ Fejl: ' + error.message);
+        if (row) row.style.opacity = '1';
     }
 }
 </script>

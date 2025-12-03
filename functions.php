@@ -1713,6 +1713,46 @@ add_action('rest_api_init', function() {
             return $user && $user->is_admin;
         }
     ]);
+    
+    // Get platform posts (wall posts)
+    register_rest_route('kate/v1', '/admin/posts', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_admin_get_posts',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Get forum topics
+    register_rest_route('kate/v1', '/admin/forum', [
+        'methods' => 'GET',
+        'callback' => 'rtf_api_admin_get_forum',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Delete post
+    register_rest_route('kate/v1', '/admin/post/(?P<id>\d+)', [
+        'methods' => 'DELETE',
+        'callback' => 'rtf_api_admin_delete_post',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
+    // Delete forum topic
+    register_rest_route('kate/v1', '/admin/forum/(?P<id>\d+)', [
+        'methods' => 'DELETE',
+        'callback' => 'rtf_api_admin_delete_forum',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
 });
 
 // ==================== API HANDLER FUNCTIONS ====================
@@ -2634,6 +2674,147 @@ function rtf_api_admin_update_subscription($request) {
         'success' => false,
         'message' => $result['message']
     ], 400);
+}
+
+/**
+ * Admin get platform posts (wall posts)
+ */
+function rtf_api_admin_get_posts($request) {
+    global $wpdb;
+    
+    $limit = intval($request->get_param('limit') ?: 50);
+    $offset = intval($request->get_param('offset') ?: 0);
+    $search = sanitize_text_field($request->get_param('search') ?: '');
+    
+    $posts_table = $wpdb->prefix . 'rtf_platform_posts';
+    $users_table = $wpdb->prefix . 'rtf_platform_users';
+    
+    $where = "WHERE 1=1";
+    if ($search) {
+        $where .= $wpdb->prepare(" AND (p.content LIKE %s OR u.username LIKE %s)", 
+            '%' . $wpdb->esc_like($search) . '%',
+            '%' . $wpdb->esc_like($search) . '%'
+        );
+    }
+    
+    $total = $wpdb->get_var("SELECT COUNT(*) FROM $posts_table p LEFT JOIN $users_table u ON p.user_id = u.id $where");
+    
+    $posts = $wpdb->get_results(
+        "SELECT p.*, u.username, u.full_name 
+         FROM $posts_table p 
+         LEFT JOIN $users_table u ON p.user_id = u.id 
+         $where 
+         ORDER BY p.created_at DESC 
+         LIMIT $limit OFFSET $offset"
+    );
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'posts' => $posts ?: [],
+        'total' => intval($total)
+    ], 200);
+}
+
+/**
+ * Admin get forum topics
+ */
+function rtf_api_admin_get_forum($request) {
+    global $wpdb;
+    
+    $limit = intval($request->get_param('limit') ?: 50);
+    $offset = intval($request->get_param('offset') ?: 0);
+    $search = sanitize_text_field($request->get_param('search') ?: '');
+    
+    $forum_table = $wpdb->prefix . 'rtf_platform_forum';
+    $users_table = $wpdb->prefix . 'rtf_platform_users';
+    
+    $where = "WHERE 1=1";
+    if ($search) {
+        $where .= $wpdb->prepare(" AND (f.title LIKE %s OR f.content LIKE %s OR u.username LIKE %s)", 
+            '%' . $wpdb->esc_like($search) . '%',
+            '%' . $wpdb->esc_like($search) . '%',
+            '%' . $wpdb->esc_like($search) . '%'
+        );
+    }
+    
+    $total = $wpdb->get_var("SELECT COUNT(*) FROM $forum_table f LEFT JOIN $users_table u ON f.user_id = u.id $where");
+    
+    $topics = $wpdb->get_results(
+        "SELECT f.*, u.username, u.full_name 
+         FROM $forum_table f 
+         LEFT JOIN $users_table u ON f.user_id = u.id 
+         $where 
+         ORDER BY f.created_at DESC 
+         LIMIT $limit OFFSET $offset"
+    );
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'topics' => $topics ?: [],
+        'total' => intval($total)
+    ], 200);
+}
+
+/**
+ * Admin delete post
+ */
+function rtf_api_admin_delete_post($request) {
+    global $wpdb;
+    
+    $post_id = intval($request['id']);
+    if (!$post_id) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Invalid post ID'], 400);
+    }
+    
+    $posts_table = $wpdb->prefix . 'rtf_platform_posts';
+    $likes_table = $wpdb->prefix . 'rtf_platform_likes';
+    $comments_table = $wpdb->prefix . 'rtf_platform_comments';
+    $shares_table = $wpdb->prefix . 'rtf_platform_shares';
+    
+    // Delete related data
+    $wpdb->delete($likes_table, ['source_type' => 'post', 'source_id' => $post_id]);
+    $wpdb->delete($comments_table, ['source_type' => 'post', 'source_id' => $post_id]);
+    $wpdb->delete($shares_table, ['source_type' => 'post', 'source_id' => $post_id]);
+    
+    // Delete post
+    $deleted = $wpdb->delete($posts_table, ['id' => $post_id]);
+    
+    if ($deleted) {
+        return new WP_REST_Response(['success' => true, 'message' => 'Post deleted'], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Failed to delete post'], 500);
+}
+
+/**
+ * Admin delete forum topic
+ */
+function rtf_api_admin_delete_forum($request) {
+    global $wpdb;
+    
+    $topic_id = intval($request['id']);
+    if (!$topic_id) {
+        return new WP_REST_Response(['success' => false, 'message' => 'Invalid topic ID'], 400);
+    }
+    
+    $forum_table = $wpdb->prefix . 'rtf_platform_forum';
+    $likes_table = $wpdb->prefix . 'rtf_platform_likes';
+    $comments_table = $wpdb->prefix . 'rtf_platform_comments';
+    $shares_table = $wpdb->prefix . 'rtf_platform_shares';
+    
+    // Delete related data
+    $wpdb->delete($likes_table, ['source_type' => 'forum', 'source_id' => $topic_id]);
+    $wpdb->delete($comments_table, ['source_type' => 'forum', 'source_id' => $topic_id]);
+    $wpdb->delete($shares_table, ['source_type' => 'forum', 'source_id' => $topic_id]);
+    
+    // Delete topic
+    $deleted = $wpdb->delete($forum_table, ['id' => $topic_id]);
+    
+    if ($deleted) {
+        return new WP_REST_Response(['success' => true, 'message' => 'Topic deleted'], 200);
+    }
+    
+    return new WP_REST_Response(['success' => false, 'message' => 'Failed to delete topic'], 500);
 }
 
 // REST API endpoint: Send friend request
