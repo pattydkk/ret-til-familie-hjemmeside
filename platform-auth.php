@@ -7,10 +7,10 @@ get_header();
 $lang = rtf_get_lang();
 
 // Debug mode - show errors
-$debug_mode = isset($_GET['debug']) || true; // Altid slået til under testing
+$debug_mode = isset($_GET['debug']); // Kun slået til med ?debug parameter
 $debug_messages = array();
 
-// Aktivér PHP error display
+// Aktivér PHP error display kun i debug mode
 if ($debug_mode) {
     ini_set('display_errors', 1);
     ini_set('display_startup_errors', 1);
@@ -224,43 +224,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $_SESSION['rtf_user_id'] = $user_id;
             $_SESSION['rtf_username'] = $username;
             
-            // Redirect til LIVE Stripe checkout
-            // Opret Stripe Checkout Session
-            require_once(__DIR__ . '/vendor/stripe/stripe-php/init.php');
-            \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
-            
-            try {
-                $checkout_session = \Stripe\Checkout\Session::create([
+            // Redirect til LIVE Stripe checkout via cURL API (virker uden bibliotek)
+            $stripe_data = [
                 'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success'),
                 'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&payment=cancelled'),
-                'payment_method_types' => ['card'],
-                'mode' => 'subscription',
                 'customer_email' => $email,
                 'client_reference_id' => $user_id,
-                'line_items' => [[
-                    'price' => RTF_STRIPE_PRICE_ID,
-                    'quantity' => 1,
-                ]],
-                'metadata' => [
-                    'user_id' => $user_id,
-                    'username' => $username
-                ]
+            ];
+            
+            $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . RTF_STRIPE_SECRET_KEY,
+                'Content-Type: application/x-www-form-urlencoded'
             ]);
             
-            // Gem Stripe customer ID
-            $wpdb->update($table, 
-                array('stripe_customer_id' => $checkout_session->customer), 
-                array('id' => $user_id)
-            );
+            $post_fields = http_build_query([
+                'success_url' => $stripe_data['success_url'],
+                'cancel_url' => $stripe_data['cancel_url'],
+                'payment_method_types[0]' => 'card',
+                'mode' => 'subscription',
+                'customer_email' => $stripe_data['customer_email'],
+                'client_reference_id' => $stripe_data['client_reference_id'],
+                'line_items[0][price]' => RTF_STRIPE_PRICE_ID,
+                'line_items[0][quantity]' => 1,
+                'metadata[user_id]' => $user_id,
+                'metadata[username]' => $username
+            ]);
             
-            // Redirect til Stripe checkout
-            wp_redirect($checkout_session->url);
-            exit;
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
+            $response = curl_exec($ch);
+            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
             
-            } catch (\Exception $e) {
-                // Hvis Stripe fejler, redirect til subscription side
+            if ($http_code === 200) {
+                $checkout_session = json_decode($response);
+                
+                if (isset($checkout_session->customer)) {
+                    $wpdb->update($table, 
+                        array('stripe_customer_id' => $checkout_session->customer), 
+                        array('id' => $user_id)
+                    );
+                }
+                
+                wp_redirect($checkout_session->url);
+                exit;
+            } else {
                 if ($debug_mode) {
-                    wp_die('Stripe error: ' . $e->getMessage());
+                    wp_die('Stripe API error (HTTP ' . $http_code . '): ' . $response);
                 }
                 wp_redirect(home_url('/platform-subscription/?lang=' . $lang . '&error=stripe'));
                 exit;
