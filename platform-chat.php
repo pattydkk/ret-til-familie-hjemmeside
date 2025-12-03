@@ -11,6 +11,8 @@ if (!rtf_is_logged_in()) {
     exit;
 }
 
+rtf_require_subscription();
+
 $current_user = rtf_get_current_user();
 $user_id = $current_user->id;
 $language = $current_user->language ?? 'da';

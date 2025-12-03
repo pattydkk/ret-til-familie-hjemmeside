@@ -8,6 +8,8 @@ if (!is_user_logged_in()) {
     exit;
 }
 
+rtf_require_subscription();
+
 get_header('platform');
 
 $current_user = wp_get_current_user();

@@ -5,6 +5,7 @@
 get_header();
 $lang = rtf_get_lang();
 if (!rtf_is_logged_in()) { wp_redirect(home_url('/platform-auth/?lang=' . $lang)); exit; }
+rtf_require_subscription();
 $current_user = rtf_get_current_user();
 global $wpdb;
 $table_news = $wpdb->prefix . 'rtf_platform_news';

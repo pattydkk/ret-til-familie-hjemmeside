@@ -10,6 +10,8 @@ if (!rtf_is_logged_in()) {
     exit;
 }
 
+rtf_require_subscription();
+
 get_header();
 ?>
 

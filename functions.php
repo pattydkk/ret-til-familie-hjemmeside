@@ -839,6 +839,124 @@ function rtf_create_platform_tables() {
         KEY last_updated (last_updated)
     ) $charset_collate;";
 
+    // 30. Laws Collection (Lovsamling) - COMPREHENSIVE LAW DATABASE
+    $table_laws = $wpdb->prefix . 'rtf_laws';
+    $sql_laws = "CREATE TABLE IF NOT EXISTS $table_laws (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        law_id varchar(100) NOT NULL UNIQUE COMMENT 'barnets_lov_dk, forvaltningsloven_dk, socialtjanstlagen_se',
+        law_name varchar(255) NOT NULL COMMENT 'Barnets Lov, Forvaltningsloven, etc',
+        country varchar(5) NOT NULL COMMENT 'DK or SE',
+        law_number varchar(50) DEFAULT NULL COMMENT 'LBK nr 1146 af 2022',
+        official_url varchar(500) DEFAULT NULL COMMENT 'Link to retsinformation.dk or riksdagen.se',
+        short_description text DEFAULT NULL,
+        full_description longtext DEFAULT NULL,
+        is_active tinyint(1) DEFAULT 1 COMMENT '1 = active/current law, 0 = deprecated',
+        effective_from date DEFAULT NULL COMMENT 'When law became effective',
+        repealed_date date DEFAULT NULL COMMENT 'When law was repealed/replaced',
+        replaced_by varchar(100) DEFAULT NULL COMMENT 'law_id of replacing law',
+        category varchar(100) DEFAULT NULL COMMENT 'family_law, administrative_law, social_law, etc',
+        tags text DEFAULT NULL COMMENT 'Comma-separated tags for search',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY law_id (law_id),
+        KEY country (country),
+        KEY is_active (is_active),
+        KEY category (category)
+    ) $charset_collate;";
+
+    // 31. Law Paragraphs (Lovparagraffer) - DETAILED PARAGRAPH DATABASE
+    $table_law_paragraphs = $wpdb->prefix . 'rtf_law_paragraphs';
+    $sql_law_paragraphs = "CREATE TABLE IF NOT EXISTS $table_law_paragraphs (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        law_id varchar(100) NOT NULL COMMENT 'References rtf_laws.law_id',
+        paragraph_number varchar(50) NOT NULL COMMENT '§ 47, § 76, § 140, etc',
+        chapter varchar(50) DEFAULT NULL COMMENT 'Kapitel 5, Chapter 3, etc',
+        title varchar(255) DEFAULT NULL COMMENT 'Paragraph title/heading',
+        full_text longtext NOT NULL COMMENT 'Complete paragraph text',
+        summary text DEFAULT NULL COMMENT 'Short summary/explanation',
+        simplified_text longtext DEFAULT NULL COMMENT 'Simplified Danish/Swedish for easy understanding',
+        practical_meaning longtext DEFAULT NULL COMMENT 'What this means in practice',
+        citizen_rights text DEFAULT NULL COMMENT 'Citizens rights under this paragraph',
+        authority_obligations text DEFAULT NULL COMMENT 'What authorities must do',
+        exceptions text DEFAULT NULL COMMENT 'Exceptions to the rule',
+        related_paragraphs varchar(500) DEFAULT NULL COMMENT 'Comma-separated related paragraph IDs',
+        case_examples longtext DEFAULT NULL COMMENT 'JSON array of real case examples',
+        keywords text DEFAULT NULL COMMENT 'Searchable keywords',
+        importance_level varchar(20) DEFAULT 'normal' COMMENT 'critical, high, normal, low',
+        confidence_score decimal(5,2) DEFAULT 100.00 COMMENT 'AI confidence in explanation (0-100)',
+        is_active tinyint(1) DEFAULT 1 COMMENT '1 = current, 0 = deprecated',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY law_id (law_id),
+        KEY paragraph_number (paragraph_number),
+        KEY importance_level (importance_level),
+        KEY is_active (is_active),
+        FULLTEXT KEY search_text (title, full_text, summary, simplified_text, keywords)
+    ) $charset_collate;";
+
+    // 32. Law Interpretations (Juridiske fortolkninger) - CASE LAW & GUIDANCE
+    $table_law_interpretations = $wpdb->prefix . 'rtf_law_interpretations';
+    $sql_law_interpretations = "CREATE TABLE IF NOT EXISTS $table_law_interpretations (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        law_id varchar(100) NOT NULL,
+        paragraph_id bigint(20) DEFAULT NULL COMMENT 'References rtf_law_paragraphs.id',
+        interpretation_type varchar(50) NOT NULL COMMENT 'administrative, judicial, academic, practical',
+        interpretation_title varchar(255) NOT NULL,
+        interpretation_text longtext NOT NULL COMMENT 'Detailed interpretation',
+        source varchar(255) DEFAULT NULL COMMENT 'Court decision, agency guidance, etc',
+        source_date date DEFAULT NULL,
+        source_url varchar(500) DEFAULT NULL,
+        authority varchar(100) DEFAULT NULL COMMENT 'Ankestyrelsen, Højesteret, Högsta förvaltningsdomstolen etc',
+        relevance_score decimal(5,2) DEFAULT 50.00 COMMENT 'How relevant 0-100',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY law_id (law_id),
+        KEY paragraph_id (paragraph_id),
+        KEY interpretation_type (interpretation_type)
+    ) $charset_collate;";
+
+    // 33. Law Notices (Bekendtgørelser / Förordningar) - EXECUTIVE REGULATIONS
+    $table_law_notices = $wpdb->prefix . 'rtf_law_notices';
+    $sql_law_notices = "CREATE TABLE IF NOT EXISTS $table_law_notices (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        law_id varchar(100) NOT NULL COMMENT 'Related law',
+        notice_number varchar(100) NOT NULL COMMENT 'BEK nr 1234 af 2023',
+        notice_title varchar(255) NOT NULL,
+        country varchar(5) NOT NULL COMMENT 'DK or SE',
+        notice_text longtext NOT NULL,
+        summary text DEFAULT NULL,
+        official_url varchar(500) DEFAULT NULL,
+        effective_from date DEFAULT NULL,
+        repealed_date date DEFAULT NULL,
+        is_active tinyint(1) DEFAULT 1,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY law_id (law_id),
+        KEY country (country),
+        KEY is_active (is_active)
+    ) $charset_collate;";
+
+    // 34. Kate AI Context Memory (forbedret kontekst-hukommelse) - USER SESSION CONTEXT
+    $table_kate_context = $wpdb->prefix . 'rtf_kate_context';
+    $sql_kate_context = "CREATE TABLE IF NOT EXISTS $table_kate_context (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        session_id varchar(255) NOT NULL,
+        user_id bigint(20) NOT NULL,
+        context_key varchar(100) NOT NULL COMMENT 'user_country, current_case, mentioned_laws, etc',
+        context_value longtext NOT NULL COMMENT 'JSON stored context data',
+        confidence decimal(5,2) DEFAULT 100.00,
+        expires_at datetime DEFAULT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY session_id (session_id),
+        KEY user_id (user_id),
+        KEY context_key (context_key),
+        KEY expires_at (expires_at)
+    ) $charset_collate;";
+
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     dbDelta($sql_users);
     dbDelta($sql_privacy);
@@ -877,6 +995,13 @@ function rtf_create_platform_tables() {
     
     // Foster care statistics
     dbDelta($sql_foster_stats);
+
+    // Legal knowledge database tables (Step 2 - New comprehensive legal system)
+    dbDelta($sql_laws);
+    dbDelta($sql_law_paragraphs);
+    dbDelta($sql_law_interpretations);
+    dbDelta($sql_law_notices);
+    dbDelta($sql_kate_context);
 
     // Create default admin user
     $existing_admin = $wpdb->get_var("SELECT id FROM $table_users WHERE username = 'admin' LIMIT 1");
@@ -1614,21 +1739,65 @@ function rtf_api_kate_chat($request) {
 
 /**
  * Simple Kate AI response generator (placeholder)
+ * NOW WITH COUNTRY-BASED ROUTING (Step 4 implementation)
  */
 function rtf_kate_simple_response($message) {
     $message_lower = mb_strtolower($message);
     
-    // Keyword matching for common questions
-    if (strpos($message_lower, 'klage') !== false || strpos($message_lower, 'afgørelse') !== false) {
-        return "For at klage over en afgørelse har du **4 ugers klagefrist** fra du modtog afgørelsen.\n\n**Sådan gør du:**\n1. Skriv din klage til den myndighed der traf afgørelsen\n2. Forklar hvorfor du er uenig i afgørelsen\n3. Vedlæg dokumentation hvis relevant\n4. Send klagen inden fristen\n\n📋 Du kan bruge vores **Klagegenerator** til at oprette din klage automatisk.\n\n⚖️ **Juridisk grundlag:** Forvaltningsloven §21 og Barnets Lov §168\n\nHar du brug for hjælp til at formulere din klage?";
+    // Get current user's country for law routing
+    $current_user = rtf_get_current_user();
+    $user_country = $current_user && isset($current_user->country) ? $current_user->country : 'DK'; // Default to Denmark
+    
+    // Store user country in context for future use
+    global $wpdb;
+    $table_context = $wpdb->prefix . 'rtf_kate_context';
+    if ($current_user) {
+        $wpdb->replace($table_context, [
+            'session_id' => session_id(),
+            'user_id' => $current_user->id,
+            'context_key' => 'user_country',
+            'context_value' => json_encode(['country' => $user_country]),
+            'confidence' => 100.00,
+            'expires_at' => date('Y-m-d H:i:s', strtotime('+30 days')),
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ]);
     }
     
-    if (strpos($message_lower, 'aktindsigt') !== false) {
-        return "Du har **ret til aktindsigt** i din egen sag efter Forvaltningsloven §9.\n\n**Sådan søger du aktindsigt:**\n1. Send en skriftlig anmodning til kommunen\n2. Beskriv hvilke dokumenter du ønsker (eller bed om hele sagen)\n3. Kommunen skal svare inden **7 dage**\n4. Hvis de nægter, skal de begrunde hvorfor\n\n**Du kan få:**\n✅ Alle dokumenter i din sag\n✅ Handleplaner og statusrapporter\n✅ Korrespondance om dig\n✅ Børnefaglige undersøgelser\n\n❌ **Undtagelser:**\n- Interne arbejdsdokumenter (notater)\n- Fortrolige oplysninger om andre\n\nVil du have hjælp til at skrive en aktindsigtsanmodning?";
+    // COUNTRY-AWARE KEYWORD MATCHING (Step 4 - Country-Based Content Routing)
+    // Route users to their country's laws: DK users get Danish laws, SE users get Swedish laws
+    
+    // KLAGE / ÖVERKLAGANDE (Complaints/Appeals)
+    if (strpos($message_lower, 'klage') !== false || strpos($message_lower, 'afgørelse') !== false || strpos($message_lower, 'överklaga') !== false || strpos($message_lower, 'överklagande') !== false) {
+        if ($user_country === 'SE') {
+            // Swedish response - Förvaltningslagen överklagande
+            return "För att överklaga ett myndighetsbeslut har du **3 veckors överklagandefrist** från det att du fick beslutet.\n\n**Så här gör du:**\n1. Skriv ditt överklagande till förvaltningsrätten\n2. Ange vilket beslut du överklagar (datum och diarienummer)\n3. Förklara varför du är oemig och hur beslutet ska ändras\n4. Bifoga relevanta handlingar\n5. Skicka inom tidsfristen\n\n📋 Du kan använda vår **Klagogenerator** för att skapa ditt överklagande automatiskt.\n\n⚖️ **Rättsligt grund lag:** Förvaltningslagen (1986:223) § 23\n**Viktigt:** Överklagandet skickas till samma myndighet som fattade beslutet, de vidarebefordrar det till förvaltningsrätten.\n\nBehöver du hjälp att formulera ditt överklagande?";
+        } else {
+            // Danish response - Forvaltningsloven klage
+            return "For at klage over en afgørelse har du **4 ugers klagefrist** fra du modtog afgørelsen.\n\n**Sådan gør du:**\n1. Skriv din klage til den myndighed der traf afgørelsen\n2. Forklar hvorfor du er uenig i afgørelsen\n3. Vedlæg dokumentation hvis relevant\n4. Send klagen inden fristen\n\n📋 Du kan bruge vores **Klagegenerator** til at oprette din klage automatisk.\n\n⚖️ **Juridisk grundlag:** Forvaltningsloven §21 og Barnets Lov §168\n\nHar du brug for hjælp til at formulere din klage?";
+        }
     }
     
-    if (strpos($message_lower, 'anbringelse') !== false || strpos($message_lower, 'tvangsfjernelse') !== false) {
-        return "Anbringelse uden samtykke er reguleret i **Barnets Lov §76**.\n\n**Lovlige grunde til anbringelse:**\n- Alvorlig omsorgssvigt\n- Overgreb eller vold\n- Fysisk/psykisk mishandling\n- Betydelig kriminalitet\n- Misbrugsproblemer hos forældre\n\n**Dine rettigheder:**\n✅ Ret til bisidder ved alle møder (§51)\n✅ Dit barn skal høres (§47)\n✅ Ret til samvær (§83)\n✅ Ret til at klage (§168)\n✅ Handleplan hver 6. måned (§140)\n\n**Vigtigt:**\n- Kommunen skal bevise at dit barn er i fare\n- Anbringelse skal være **proportional** (ikke mere indgribende end nødvendigt)\n- Du kan klage til Ankestyrelsen\n\n📄 Har du modtaget en afgørelse om anbringelse? Jeg kan hjælpe dig med at analysere den.";
+    // AKTINDSIGT / ALLMÄNNA HANDLINGAR (Access to documents)
+    if (strpos($message_lower, 'aktindsigt') !== false || strpos($message_lower, 'allmänna handlingar') !== false || strpos($message_lower, 'handlingar') !== false) {
+        if ($user_country === 'SE') {
+            // Swedish response - Offentlighetsprincipen
+            return "Du har rätt att ta del av **allmänna handlingar** enligt Offentlighets- och sekretesslagen (2009:400).\n\n**Så här begär du handlingar:**\n1. Kontakta myndigheten (kommun/socialtjänst) skriftligt eller muntligt\n2. Ange vilka handlingar du vill ha (eller be om hela ärendet)\n3. Myndigheten ska ge dig svar **omedelbart** eller så snart som möjligt\n4. Om de vägrar, ska de motivera varför (sekretess)\n\n**Du kan få:**\n✅ Alla handlingar i ditt ärende\n✅ Åtgärdsplaner och utredningar\n✅ Korrespondens om dig\n✅ Socialutredningar (med vissa undantag)\n\n❌ **Undantag (sekretess):**\n- Uppgifter om andra personer (om det kan skada dem)\n- Pågående utredningar (temporärt)\n\n⚖️ **Rättsligt grund:** Tryckfrihetsförordningen kap 2 § 1 + Offentlighets- och sekretesslagen 10 kap\n\nBehöver du hjälp att skriva en begäran om allmänna handlingar?";
+        } else {
+            // Danish response - Forvaltningsloven aktindsigt
+            return "Du har **ret til aktindsigt** i din egen sag efter Forvaltningsloven §9.\n\n**Sådan søger du aktindsigt:**\n1. Send en skriftlig anmodning til kommunen\n2. Beskriv hvilke dokumenter du ønsker (eller bed om hele sagen)\n3. Kommunen skal svare inden **7 dage**\n4. Hvis de nægter, skal de begrunde hvorfor\n\n**Du kan få:**\n✅ Alle dokumenter i din sag\n✅ Handleplaner og statusrapporter\n✅ Korrespondance om dig\n✅ Børnefaglige undersøgelser\n\n❌ **Undtagelser:**\n- Interne arbejdsdokumenter (notater)\n- Fortrolige oplysninger om andre\n\n⚖️ **Juridisk grundlag:** Forvaltningsloven §9 og Offentlighedsloven §7\n\nVil du have hjælp til at skrive en aktindsigtsanmodning?";
+        }
+    }
+    
+    // ANBRINGELSE / PLACERING / OMHÄNDERTAGANDE (Foster care/placement)
+    if (strpos($message_lower, 'anbringelse') !== false || strpos($message_lower, 'tvangsfjernelse') !== false || strpos($message_lower, 'placering') !== false || strpos($message_lower, 'omhändertagande') !== false || strpos($message_lower, 'lvu') !== false) {
+        if ($user_country === 'SE') {
+            // Swedish response - LVU (Lag med särskilda bestämmelser om vård av unga)
+            return "Omhändertagande av barn utan samtycke regleras i **LVU** (Lag med särskilda bestämmelser om vård av unga, 1990:52).\n\n**Lagliga grunder för LVU § 2-3:**\n- Allvarliga brister i omsorgen (misshandel, våld)\n- Barnets hälsa eller utveckling äventyras\n- Barnets eget beteende (kriminalitet, missbruk) - § 3\n\n**Dina rättigheter:**\n✅ Rätt till **offentligt biträde** (advokat på statens bekostnad)\n✅ Barnet ska höras (om 6 år eller äldre)\n✅ Rätt till umgänge (LVU § 14)\n✅ Rätt att överklaga till kammarrätten\n✅ Vårdplan ska upprättas och följas upp\n\n**Viktigt:**\n- Socialtjänsten måste **bevisa** att barnet är i fara\n- Omhändertagande ska vara **proportionellt**\n- Förvaltningsrätten beslutar om LVU (inte socialtjänsten)\n\n⚖️ **Rättsligt grund:** LVU § 1-3, § 6 (ansökan), § 14 (umgänge), § 21 (vårdplan)\n\n📄 Har du fått ett LVU-beslut? Jag kan hjälpa dig analysera det och förbereda överklagande.";
+        } else {
+            // Danish response - Barnets Lov §76
+            return "Anbringelse uden samtykke er reguleret i **Barnets Lov §76**.\n\n**Lovlige grunde til anbringelse:**\n- Alvorlig omsorgssvigt\n- Overgreb eller vold\n- Fysisk/psykisk mishandling\n- Betydelig kriminalitet\n- Misbrugsproblemer hos forældre\n\n**Dine rettigheder:**\n✅ Ret til bisidder ved alle møder (§51)\n✅ Dit barn skal høres (§47)\n✅ Ret til samvær (§83)\n✅ Ret til at klage (§168)\n✅ Handleplan hver 6. måned (§140)\n\n**Vigtigt:**\n- Kommunen skal bevise at dit barn er i fare\n- Anbringelse skal være **proportional** (ikke mere indgribende end nødvendigt)\n- Du kan klage til Ankestyrelsen\n\n⚖️ **Juridisk grundlag:** Barnets Lov §76 (anbringelse), §77 (akut anbringelse)\n\n📄 Har du modtaget en afgørelse om anbringelse? Jeg kan hjælpe dig med at analysere den.";
+        }
     }
     
     if (strpos($message_lower, 'handleplan') !== false) {
@@ -1643,8 +1812,12 @@ function rtf_kate_simple_response($message) {
         return "Samvær med anbragte børn er reguleret i **§83**.\n\n**Din ret til samvær:**\n✅ Samvær er **udgangspunktet**\n✅ Kun begrænset hvis det skader barnet\n✅ Kommunen skal bevise at samvær er skadeligt\n✅ Gradvis udvidelse skal overvejes\n\n**Typer af samvær:**\n- Almindeligt samvær (hjemme hos dig)\n- Overvåget samvær (med tilstedeværende voksen)\n- Samvær på institution\n- Telefonsamtaler/videokald\n- Brevkontakt\n\n**Hvis samvær nægtes eller begrænses:**\n1. Kræv **skriftlig begrundelse**\n2. Bed om hyppigere revision\n3. Klag til Ankestyrelsen\n4. Få bisidder til samværsmøder\n\n📅 Vil du have hjælp til at udarbejde et forslag til samværsaftale?";
     }
     
-    // Default response
-    return "Jeg er Kate, din AI-assistent til juridisk vejledning om familie- og socialret.\n\n**Jeg kan hjælpe dig med:**\n- Klager over afgørelser\n- Aktindsigt i din sag\n- Anbringelse og tvangsfj ernelse\n- Handleplaner\n- Samvær med anbragte børn\n- Ret til bisidder\n- Børnesamtaler\n- Analyse af dokumenter\n\n💡 **Prøv at spørge:**\n- \"Hvordan klager jeg over en afgørelse?\"\n- \"Hvordan får jeg aktindsigt?\"\n- \"Hvad er mine rettigheder ved anbringelse?\"\n- \"Hvad skal en handleplan indeholde?\"\n\nHvad kan jeg hjælpe dig med i dag?";
+    // Default response (country-aware)
+    if ($user_country === 'SE') {
+        return "Hej! Jag är Kate, din AI-assistent för juridisk vägledning inom familje- och socialrätt i **Sverige**.\n\n**Jag kan hjälpa dig med:**\n- Överklagande av myndighetsbeslut\n- Begäran om allmänna handlingar (aktinnsyn)\n- LVU och omhändertagande av barn\n- Vårdplaner och uppföljning\n- Umgängesrätt med placerade barn\n- Stöd och företrädare\n- Analys av dokument\n\n💡 **Prova att fråga:**\n- \"Hur överklagar jag ett beslut?\"\n- \"Hur begär jag allmänna handlingar?\"\n- \"Vad är mina rättigheter vid LVU?\"\n- \"Vad ska en vårdplan innehålla?\"\n\n⚖️ **Svensk lagstiftning:** Socialtjänstlagen, LVU, Förvaltningslagen, Offentlighets- och sekretesslagen\n\nVad kan jag hjälpa dig med idag?";
+    } else {
+        return "Jeg er Kate, din AI-assistent til juridisk vejledning om familie- og socialret i **Danmark**.\n\n**Jeg kan hjælpe dig med:**\n- Klager over afgørelser\n- Aktindsigt i din sag\n- Anbringelse og tvangsfjernelse\n- Handleplaner\n- Samvær med anbragte børn\n- Ret til bisidder\n- Børnesamtaler\n- Analyse af dokumenter\n\n💡 **Prøv at spørge:**\n- \"Hvordan klager jeg over en afgørelse?\"\n- \"Hvordan får jeg aktindsigt?\"\n- \"Hvad er mine rettigheder ved anbringelse?\"\n- \"Hvad skal en handleplan indeholde?\"\n\n⚖️ **Dansk lovgivning:** Barnets Lov, Forvaltningsloven, Serviceloven, Retssikkerhedsloven\n\nHvad kan jeg hjælpe dig med i dag?";
+    }
 }
 
 /**

@@ -188,6 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'bio' => $bio,
             'language_preference' => $language_preference,
             'country' => $country,
+            'subscription_status' => 'inactive',
             'is_admin' => 0,
             'is_active' => 1
         ));
@@ -211,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         
         // Redirect til LIVE Stripe checkout
         // Opret Stripe Checkout Session
-        require_once(get_template_directory() . '/stripe-php/init.php');
+        require_once(get_template_directory() . '/vendor/stripe/stripe-php/init.php');
         \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
         
         try {
@@ -346,6 +347,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <option value=""><?php echo $lang === 'da' ? 'Vælg sagstype' : 'Välj ärendetyp'; ?></option>
                         <option value="custody"><?php echo $lang === 'da' ? 'Forældremyndighed' : 'Vårdnad'; ?></option>
                         <option value="visitation"><?php echo $lang === 'da' ? 'Samvær' : 'Umgänge'; ?></option>
+                        <option value="placement"><?php echo $lang === 'da' ? 'Anbringelse' : 'Placering'; ?></option>
+                        <option value="disability"><?php echo $lang === 'da' ? 'Handicap' : 'Funktionsnedsättning'; ?></option>
+                        <option value="jobcenter"><?php echo $lang === 'da' ? 'Jobcenter' : 'Arbetsförmedling'; ?></option>
+                        <option value="pension"><?php echo $lang === 'da' ? 'Førtidspension' : 'Förtidspension'; ?></option>
                         <option value="divorce"><?php echo $lang === 'da' ? 'Skilsmisse' : 'Skilsmässa'; ?></option>
                         <option value="support"><?php echo $lang === 'da' ? 'Børnebidrag' : 'Barnbidrag'; ?></option>
                         <option value="other"><?php echo $lang === 'da' ? 'Andet' : 'Annat'; ?></option>
