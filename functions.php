@@ -446,21 +446,33 @@ function rtf_create_platform_tables() {
         content text NOT NULL,
         country varchar(10) DEFAULT NULL,
         city varchar(100) DEFAULT NULL,
+        category varchar(100) DEFAULT NULL COMMENT 'Main category: familie_born, jobcenter, handicap, etc',
+        subcategory varchar(255) DEFAULT NULL COMMENT 'Specific subcategory',
         case_type varchar(100) DEFAULT NULL,
+        image_url text DEFAULT NULL COMMENT 'Uploaded image URL',
+        gdpr_consent tinyint(1) DEFAULT 0 COMMENT 'User agreed to GDPR terms',
         views int DEFAULT 0,
         replies_count int DEFAULT 0,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY user_id (user_id),
         KEY country (country),
+        KEY category (category),
+        KEY subcategory (subcategory),
         KEY case_type (case_type)
     ) $charset_collate;";
     
     // ALTER TABLE for existing installations - Forum Topics metadata
     $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS country varchar(10) DEFAULT NULL AFTER content");
     $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS city varchar(100) DEFAULT NULL AFTER country");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL AFTER city");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS category varchar(100) DEFAULT NULL COMMENT 'Main category' AFTER city");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS subcategory varchar(255) DEFAULT NULL COMMENT 'Specific subcategory' AFTER category");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL AFTER subcategory");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS image_url text DEFAULT NULL COMMENT 'Uploaded image URL' AFTER case_type");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS gdpr_consent tinyint(1) DEFAULT 0 COMMENT 'GDPR consent' AFTER image_url");
     $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS country (country)");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS category (category)");
+    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS subcategory (subcategory)");
     $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS case_type (case_type)");
 
     // 9. Forum Replies
