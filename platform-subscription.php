@@ -84,6 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'payment_method_types' => ['card'],
             'mode' => 'subscription',
             'customer_email' => $current_user->email,
+            'client_reference_id' => $current_user->id,
             'line_items' => [[
                 'price' => RTF_STRIPE_PRICE_ID,
                 'quantity' => 1,
