@@ -53,6 +53,7 @@ class RtfUserSystem {
         $phone = sanitize_text_field($data['phone']);
         $bio = isset($data['bio']) ? sanitize_textarea_field($data['bio']) : '';
         $language = isset($data['language_preference']) ? sanitize_text_field($data['language_preference']) : 'da_DK';
+        $is_admin = isset($data['is_admin']) ? intval($data['is_admin']) : 0;
         
         // Validate email format
         if (!is_email($email)) {
@@ -116,7 +117,7 @@ class RtfUserSystem {
             'language_preference' => $language,
             'country' => $country,
             'subscription_status' => 'inactive',
-            'is_admin' => 0,
+            'is_admin' => $is_admin,
             'is_active' => 1,
             'created_at' => current_time('mysql')
         ];

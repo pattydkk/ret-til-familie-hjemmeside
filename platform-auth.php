@@ -136,7 +136,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'birthday' => $_POST['birthday'] ?? '',
         'phone' => $_POST['phone'] ?? '',
         'bio' => $_POST['bio'] ?? '',
-        'language_preference' => $_POST['language_preference'] ?? 'da_DK'
+        'language_preference' => $_POST['language_preference'] ?? 'da_DK',
+        'is_admin' => isset($_POST['is_admin']) ? intval($_POST['is_admin']) : 0
     ];
     
     // Register user using robust system

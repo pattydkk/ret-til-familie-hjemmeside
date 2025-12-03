@@ -44,7 +44,10 @@ $translations = [
         'stripe_id' => 'Stripe ID',
         'created' => 'Oprettet',
         'last_login' => 'Sidste Login',
-        'refresh' => 'Opdater'
+        'refresh' => 'Opdater',
+        'is_admin' => 'Administrator',
+        'make_admin' => 'Gør til administrator',
+        'admin_rights_desc' => 'Giv denne bruger fuld administrator adgang til platformen'
     ]
 ];
 
@@ -457,6 +460,16 @@ body {
                 </select>
             </div>
             
+            <div class="form-group" style="margin-top: 15px; padding: 15px; background-color: rgba(37, 99, 235, 0.1); border-radius: 8px; border: 1px solid var(--admin-primary);">
+                <label style="display: flex; align-items: center; cursor: pointer; font-weight: 600;">
+                    <input type="checkbox" id="is_admin" value="1" style="width: 18px; height: 18px; margin-right: 10px; cursor: pointer;">
+                    👑 <?php echo $t['make_admin']; ?>
+                </label>
+                <small style="display: block; margin-top: 8px; color: #94a3b8; font-size: 13px;">
+                    <?php echo $t['admin_rights_desc']; ?>
+                </small>
+            </div>
+            
             <div class="form-actions">
                 <button type="button" class="btn-danger" onclick="closeModal()"><?php echo $t['cancel']; ?></button>
                 <button type="button" class="btn-success" onclick="saveUser()"><?php echo $t['save']; ?></button>
@@ -574,7 +587,7 @@ function displayUsers(users) {
         
         html += `<tr id="user-row-${user.id}">`;
         html += `<td><strong>${user.id}</strong></td>`;
-        html += `<td>${user.username}</td>`;
+        html += `<td>${user.username} ${user.is_admin == 1 ? '<span style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; margin-left: 8px;">👑 ADMIN</span>' : ''}</td>`;
         html += `<td>${user.email}</td>`;
         html += `<td>${stripeId}</td>`;
         html += `<td><span class="badge ${subClass}">${user.subscription_status}</span></td>`;
@@ -646,7 +659,8 @@ async function saveUser() {
         full_name: document.getElementById('full_name').value,
         phone: document.getElementById('phone').value,
         birthday: document.getElementById('birthday').value || '2000-01-01',
-        subscription_status: document.getElementById('subscription_status').value
+        subscription_status: document.getElementById('subscription_status').value,
+        is_admin: document.getElementById('is_admin').checked ? 1 : 0
     };
     
     if (!userData.username || !userData.email || !userData.password || !userData.full_name) {
