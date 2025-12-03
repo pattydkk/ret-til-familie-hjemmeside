@@ -93,55 +93,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $debug_messages[] = "Table: $table";
     }
     
-    // Check if table exists
-    $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table'");
-    if (!$table_exists) {
-        $error = 'Database ikke konfigureret. Kør setup først.';
+    // Try to find user by username OR email
+    $user = $wpdb->get_row($wpdb->prepare(
+        "SELECT * FROM $table WHERE (username = %s OR email = %s) AND is_active = 1",
+        $username_or_email,
+        $username_or_email
+    ));
+    
+    if ($debug_mode) {
+        $debug_messages[] = "User found: " . ($user ? 'YES' : 'NO');
+        if ($user) {
+            $debug_messages[] = "User ID: " . $user->id;
+            $debug_messages[] = "Username: " . $user->username;
+            $debug_messages[] = "Email: " . $user->email;
+            $debug_messages[] = "Password hash exists: " . (!empty($user->password) ? 'YES' : 'NO');
+            $debug_messages[] = "Password verify: " . (password_verify($password, $user->password) ? 'YES' : 'NO');
+        }
+    }
+    
+    if ($user && password_verify($password, $user->password)) {
+        // Regenerate session ID to prevent session fixation attacks
+        session_regenerate_id(true);
+        
+        $_SESSION['rtf_user_id'] = $user->id;
+        $_SESSION['rtf_username'] = $user->username;
+        
         if ($debug_mode) {
-            $debug_messages[] = "ERROR: Table does not exist!";
+            $debug_messages[] = "Login successful! Session ID: " . session_id();
+            $debug_messages[] = "Redirecting to: " . home_url('/platform-profil/?lang=' . $lang);
+        } else {
+            wp_redirect(home_url('/platform-profil/?lang=' . $lang));
+            exit;
         }
     } else {
-        // Try to find user by username OR email
-        $user = $wpdb->get_row($wpdb->prepare(
-            "SELECT * FROM $table WHERE (username = %s OR email = %s) AND is_active = 1",
-            $username_or_email,
-            $username_or_email
-        ));
-        
+        $error = $lang === 'da' ? 'Forkert brugernavn/email eller adgangskode' : ($lang === 'sv' ? 'Fel användarnamn/e-post eller lösenord' : 'Wrong username/email or password');
         if ($debug_mode) {
-            $debug_messages[] = "User found: " . ($user ? 'YES' : 'NO');
+            $debug_messages[] = "Login failed - wrong credentials";
             if ($user) {
-                $debug_messages[] = "User ID: " . $user->id;
-                $debug_messages[] = "Username: " . $user->username;
-                $debug_messages[] = "Email: " . $user->email;
-                $debug_messages[] = "Password hash exists: " . (!empty($user->password) ? 'YES' : 'NO');
-                $debug_messages[] = "Password verify: " . (password_verify($password, $user->password) ? 'YES' : 'NO');
-            }
-        }
-        
-        if ($user && password_verify($password, $user->password)) {
-            // Regenerate session ID to prevent session fixation attacks
-            session_regenerate_id(true);
-            
-            $_SESSION['rtf_user_id'] = $user->id;
-            $_SESSION['rtf_username'] = $user->username;
-            
-            if ($debug_mode) {
-                $debug_messages[] = "Login successful! Session ID: " . session_id();
-                $debug_messages[] = "Redirecting to: " . home_url('/platform-profil/?lang=' . $lang);
+                $debug_messages[] = "User exists but password doesn't match";
             } else {
-                wp_redirect(home_url('/platform-profil/?lang=' . $lang));
-                exit;
-            }
-        } else {
-            $error = $lang === 'da' ? 'Forkert brugernavn/email eller adgangskode' : ($lang === 'sv' ? 'Fel användarnamn/e-post eller lösenord' : 'Wrong username/email or password');
-            if ($debug_mode) {
-                $debug_messages[] = "Login failed - wrong credentials";
-                if ($user) {
-                    $debug_messages[] = "User exists but password doesn't match";
-                } else {
-                    $debug_messages[] = "User not found in database";
-                }
+                $debug_messages[] = "User not found in database";
             }
         }
     }
