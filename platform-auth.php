@@ -7,8 +7,15 @@ get_header();
 $lang = rtf_get_lang();
 
 // Debug mode - show errors
-$debug_mode = isset($_GET['debug']);
+$debug_mode = isset($_GET['debug']) || true; // Altid slået til under testing
 $debug_messages = array();
+
+// Aktivér PHP error display
+if ($debug_mode) {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+}
 
 // Check if already logged in
 if (rtf_is_logged_in()) {
@@ -176,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     if ($exists) {
         $error = $lang === 'da' ? 'Brugernavn eller email er allerede i brug' : ($lang === 'sv' ? 'Användarnamn eller e-post används redan' : 'Username or email already in use');
     } else {
-        $wpdb->insert($table, array(
+        $insert_result = $wpdb->insert($table, array(
             'username' => $username,
             'email' => $email,
             'password' => $password,
@@ -193,30 +200,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'is_active' => 1
         ));
         
-        $user_id = $wpdb->insert_id;
-        
-        // Create privacy settings with GDPR anonymization
-        $wpdb->insert($table_privacy, array(
-            'user_id' => $user_id,
-            'gdpr_anonymize_birthday' => 1,
-            'profile_visibility' => 'all',
-            'show_in_forum' => 1,
-            'allow_messages' => 1
-        ));
-        
-        // Regenerate session ID to prevent session fixation attacks
-        session_regenerate_id(true);
-        
-        $_SESSION['rtf_user_id'] = $user_id;
-        $_SESSION['rtf_username'] = $username;
-        
-        // Redirect til LIVE Stripe checkout
-        // Opret Stripe Checkout Session
-        require_once(get_template_directory() . '/vendor/stripe/stripe-php/init.php');
-        \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
-        
-        try {
-            $checkout_session = \Stripe\Checkout\Session::create([
+        if ($insert_result === false) {
+            // Database error
+            if ($debug_mode) {
+                wp_die('Database error: ' . $wpdb->last_error);
+            }
+            $error = $lang === 'da' ? 'Der opstod en fejl - prøv igen' : ($lang === 'sv' ? 'Ett fel uppstod - försök igen' : 'An error occurred - try again');
+        } else {
+            $user_id = $wpdb->insert_id;
+            
+            // Create privacy settings with GDPR anonymization
+            $wpdb->insert($table_privacy, array(
+                'user_id' => $user_id,
+                'gdpr_anonymize_birthday' => 1,
+                'profile_visibility' => 'all',
+                'show_in_forum' => 1,
+                'allow_messages' => 1
+            ));
+            
+            // Regenerate session ID to prevent session fixation attacks
+            session_regenerate_id(true);
+            
+            $_SESSION['rtf_user_id'] = $user_id;
+            $_SESSION['rtf_username'] = $username;
+            
+            // Redirect til LIVE Stripe checkout
+            // Opret Stripe Checkout Session
+            require_once(__DIR__ . '/vendor/stripe/stripe-php/init.php');
+            \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
+            
+            try {
+                $checkout_session = \Stripe\Checkout\Session::create([
                 'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success'),
                 'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&payment=cancelled'),
                 'payment_method_types' => ['card'],
@@ -243,10 +257,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             wp_redirect($checkout_session->url);
             exit;
             
-        } catch (\Exception $e) {
-            // Hvis Stripe fejler, redirect til subscription side
-            wp_redirect(home_url('/platform-subscription/?lang=' . $lang . '&error=stripe'));
-            exit;
+            } catch (\Exception $e) {
+                // Hvis Stripe fejler, redirect til subscription side
+                if ($debug_mode) {
+                    wp_die('Stripe error: ' . $e->getMessage());
+                }
+                wp_redirect(home_url('/platform-subscription/?lang=' . $lang . '&error=stripe'));
+                exit;
+            }
         }
     }
 }
