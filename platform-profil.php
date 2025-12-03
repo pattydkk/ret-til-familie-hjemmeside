@@ -11,6 +11,14 @@ if (!rtf_is_logged_in()) {
     exit;
 }
 
+// DEBUG: Force refresh user data if ?refresh=1
+if (isset($_GET['refresh']) && $_GET['refresh'] == '1') {
+    // Clear any potential caches
+    if (isset($_SESSION['rtf_user_cache'])) {
+        unset($_SESSION['rtf_user_cache']);
+    }
+}
+
 rtf_require_subscription();
 
 $current_user = rtf_get_current_user();

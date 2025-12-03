@@ -1241,10 +1241,17 @@ function rtf_require_subscription() {
     }
     
     $user = rtf_get_current_user();
+    
+    // DEBUG LOG
+    error_log('RTF SUBSCRIPTION CHECK - User ID: ' . $user->id . ', Email: ' . $user->email . ', Status: ' . $user->subscription_status);
+    
     if ($user->subscription_status !== 'active') {
+        error_log('RTF SUBSCRIPTION CHECK - BLOCKED! Redirecting to subscription page');
         wp_redirect(home_url('/platform-subscription?msg=upgrade_required'));
         exit;
     }
+    
+    error_log('RTF SUBSCRIPTION CHECK - ALLOWED! User has active subscription');
 }
 
 function rtf_anonymize_birthday($birthday) {
