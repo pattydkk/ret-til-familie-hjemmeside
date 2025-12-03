@@ -31,41 +31,70 @@ switch ($event->type) {
     case 'checkout.session.completed':
         $session = $event->data->object;
         
+        // Log webhook modtaget
+        error_log('RTF Webhook: checkout.session.completed received');
+        error_log('RTF Webhook: Customer email: ' . $session->customer_email);
+        error_log('RTF Webhook: Subscription ID: ' . ($session->subscription ?? 'none'));
+        
         // Opdater bruger subscription status
         $customer_email = $session->customer_email;
         $subscription_id = $session->subscription;
+        $customer_id = $session->customer;
         
-        $wpdb->update(
-            $wpdb->prefix . 'rtf_platform_users',
-            [
-                'subscription_status' => 'active',
-                'subscription_id' => $subscription_id,
-                'subscription_start' => current_time('mysql')
-            ],
-            ['email' => $customer_email]
-        );
-        
-        // Log transaction
+        // Find bruger
         $user = $wpdb->get_row($wpdb->prepare(
             "SELECT * FROM {$wpdb->prefix}rtf_platform_users WHERE email = %s",
             $customer_email
         ));
         
-        if ($user) {
-            $wpdb->insert($wpdb->prefix . 'rtf_platform_transactions', [
-                'user_id' => $user->id,
-                'amount' => 49.00,
-                'currency' => 'DKK',
-                'status' => 'completed',
-                'stripe_payment_id' => $session->payment_intent,
-                'description' => 'Månedligt abonnement - Borger Platform',
-                'created_at' => current_time('mysql')
-            ]);
+        if (!$user) {
+            error_log('RTF Webhook ERROR: User not found with email: ' . $customer_email);
+            break;
         }
+        
+        error_log('RTF Webhook: User found - ID: ' . $user->id . ', Username: ' . $user->username);
+        
+        // Beregn end date (30 dage fra nu)
+        $end_date = date('Y-m-d H:i:s', strtotime('+30 days'));
+        
+        // Opdater bruger
+        $update_result = $wpdb->update(
+            $wpdb->prefix . 'rtf_platform_users',
+            [
+                'subscription_status' => 'active',
+                'stripe_customer_id' => $customer_id,
+                'subscription_end_date' => $end_date
+            ],
+            ['email' => $customer_email],
+            ['%s', '%s', '%s'],
+            ['%s']
+        );
+        
+        if ($update_result === false) {
+            error_log('RTF Webhook ERROR: Database update failed: ' . $wpdb->last_error);
+        } else {
+            error_log('RTF Webhook SUCCESS: User activated! Rows affected: ' . $update_result);
+        }
+        
+        // Log transaction
+        $wpdb->insert($wpdb->prefix . 'rtf_stripe_payments', [
+            'user_id' => $user->id,
+            'stripe_customer_id' => $customer_id,
+            'stripe_subscription_id' => $subscription_id,
+            'amount' => 4900, // 49.00 DKK i øre
+            'currency' => 'DKK',
+            'status' => 'completed',
+            'payment_intent_id' => $session->payment_intent ?? '',
+            'created_at' => current_time('mysql')
+        ]);
+        
+        error_log('RTF Webhook: Payment logged to database');
         break;
         
     case 'customer.subscription.updated':
         $subscription = $event->data->object;
+        
+        error_log('RTF Webhook: subscription.updated - ID: ' . $subscription->id . ', Status: ' . $subscription->status);
         
         $status_map = [
             'active' => 'active',
@@ -76,34 +105,44 @@ switch ($event->type) {
         
         $new_status = $status_map[$subscription->status] ?? 'inactive';
         
+        // Opdater end date hvis aktiv
+        $update_data = ['subscription_status' => $new_status];
+        if ($new_status === 'active') {
+            $update_data['subscription_end_date'] = date('Y-m-d H:i:s', $subscription->current_period_end);
+        }
+        
         $wpdb->update(
             $wpdb->prefix . 'rtf_platform_users',
-            ['subscription_status' => $new_status],
-            ['subscription_id' => $subscription->id]
+            $update_data,
+            ['stripe_customer_id' => $subscription->customer]
         );
         break;
         
     case 'customer.subscription.deleted':
         $subscription = $event->data->object;
         
+        error_log('RTF Webhook: subscription.deleted - ID: ' . $subscription->id);
+        
         $wpdb->update(
             $wpdb->prefix . 'rtf_platform_users',
             [
                 'subscription_status' => 'canceled',
-                'subscription_end' => current_time('mysql')
+                'subscription_end_date' => current_time('mysql')
             ],
-            ['subscription_id' => $subscription->id]
+            ['stripe_customer_id' => $subscription->customer]
         );
         break;
         
     case 'invoice.payment_failed':
         $invoice = $event->data->object;
-        $subscription_id = $invoice->subscription;
+        $customer_id = $invoice->customer;
+        
+        error_log('RTF Webhook: invoice.payment_failed - Customer: ' . $customer_id);
         
         $wpdb->update(
             $wpdb->prefix . 'rtf_platform_users',
             ['subscription_status' => 'past_due'],
-            ['subscription_id' => $subscription_id]
+            ['stripe_customer_id' => $customer_id]
         );
         break;
 }
