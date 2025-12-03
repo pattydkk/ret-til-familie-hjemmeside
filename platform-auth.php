@@ -224,42 +224,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $_SESSION['rtf_user_id'] = $user_id;
             $_SESSION['rtf_username'] = $username;
             
-            // Redirect til LIVE Stripe checkout via cURL API (virker uden bibliotek)
-            $stripe_data = [
-                'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success'),
-                'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&payment=cancelled'),
-                'customer_email' => $email,
-                'client_reference_id' => $user_id,
-            ];
+            // Redirect til LIVE Stripe checkout
+            require_once(__DIR__ . '/vendor/autoload.php');
+            \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
             
-            $ch = curl_init('https://api.stripe.com/v1/checkout/sessions');
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                'Authorization: Bearer ' . RTF_STRIPE_SECRET_KEY,
-                'Content-Type: application/x-www-form-urlencoded'
-            ]);
-            
-            $post_fields = http_build_query([
-                'success_url' => $stripe_data['success_url'],
-                'cancel_url' => $stripe_data['cancel_url'],
-                'payment_method_types[0]' => 'card',
-                'mode' => 'subscription',
-                'customer_email' => $stripe_data['customer_email'],
-                'client_reference_id' => $stripe_data['client_reference_id'],
-                'line_items[0][price]' => RTF_STRIPE_PRICE_ID,
-                'line_items[0][quantity]' => 1,
-                'metadata[user_id]' => $user_id,
-                'metadata[username]' => $username
-            ]);
-            
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $post_fields);
-            $response = curl_exec($ch);
-            $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            
-            if ($http_code === 200) {
-                $checkout_session = json_decode($response);
+            try {
+                $checkout_session = \Stripe\Checkout\Session::create([
+                    'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success'),
+                    'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&payment=cancelled'),
+                    'payment_method_types' => ['card'],
+                    'mode' => 'subscription',
+                    'customer_email' => $email,
+                    'client_reference_id' => $user_id,
+                    'line_items' => [[
+                        'price' => RTF_STRIPE_PRICE_ID,
+                        'quantity' => 1,
+                    ]],
+                    'metadata' => [
+                        'user_id' => $user_id,
+                        'username' => $username
+                    ]
+                ]);
                 
                 if (isset($checkout_session->customer)) {
                     $wpdb->update($table, 
@@ -270,9 +255,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 
                 wp_redirect($checkout_session->url);
                 exit;
-            } else {
+                
+            } catch (\Exception $e) {
                 if ($debug_mode) {
-                    wp_die('Stripe API error (HTTP ' . $http_code . '): ' . $response);
+                    wp_die('Stripe error: ' . $e->getMessage());
                 }
                 wp_redirect(home_url('/platform-subscription/?lang=' . $lang . '&error=stripe'));
                 exit;
