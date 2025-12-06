@@ -36,7 +36,12 @@
 
 // Prevent direct access
 if (!defined('ABSPATH')) {
-    exit;
+    exit('WordPress not loaded');
+}
+
+// Ensure WordPress functions are available
+if (!function_exists('get_template_directory')) {
+    exit('WordPress not properly initialized');
 }
 
 // Theme version
@@ -86,13 +91,39 @@ if (file_exists($vendor_autoload)) {
     }
 }
 
-// Load critical dependencies
-require_once get_template_directory() . '/translations.php';
-require_once get_template_directory() . '/includes/class-rtf-user-system.php';
+// Load critical dependencies with error suppression
+$translations_file = get_template_directory() . '/translations.php';
+$user_system_file = get_template_directory() . '/includes/class-rtf-user-system.php';
+
+if (file_exists($translations_file)) {
+    @require_once $translations_file;
+}
+
+if (file_exists($user_system_file)) {
+    @require_once $user_system_file;
+    
+    // Initialize global user system instance
+    if (class_exists('RtfUserSystem')) {
+        global $rtf_user_system;
+        $rtf_user_system = new RtfUserSystem();
+    }
+} else {
+    error_log('RTF Theme ERROR: translations.php not found');
+}
+
+if (file_exists($user_system_file)) {
+    require_once $user_system_file;
+} else {
+    error_log('RTF Theme ERROR: class-rtf-user-system.php not found');
+}
 
 // Initialize global user system instance
 global $rtf_user_system;
-$rtf_user_system = new RtfUserSystem();
+if (class_exists('RtfUserSystem')) {
+    $rtf_user_system = new RtfUserSystem();
+} else {
+    error_log('RTF Theme ERROR: RtfUserSystem class not found');
+}
 
 // ============================================================================
 // KATE AI INITIALIZATION
