@@ -1833,6 +1833,10 @@ add_action('rest_api_init', function() {
         'methods' => 'DELETE',
         'callback' => 'rtf_api_admin_delete_user',
         'permission_callback' => function() {
+            // Check session first
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $user = rtf_get_current_user();
             return $user && $user->is_admin;
         }
@@ -1843,6 +1847,9 @@ add_action('rest_api_init', function() {
         'methods' => 'GET',
         'callback' => 'rtf_api_admin_get_users',
         'permission_callback' => function() {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $user = rtf_get_current_user();
             return $user && $user->is_admin;
         }
@@ -1853,6 +1860,9 @@ add_action('rest_api_init', function() {
         'methods' => 'POST',
         'callback' => 'rtf_api_admin_create_user',
         'permission_callback' => function() {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $user = rtf_get_current_user();
             return $user && $user->is_admin;
         }
@@ -1863,6 +1873,9 @@ add_action('rest_api_init', function() {
         'methods' => 'PUT',
         'callback' => 'rtf_api_admin_update_subscription',
         'permission_callback' => function() {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $user = rtf_get_current_user();
             return $user && $user->is_admin;
         }
@@ -1893,6 +1906,9 @@ add_action('rest_api_init', function() {
         'methods' => 'DELETE',
         'callback' => 'rtf_api_admin_delete_post',
         'permission_callback' => function() {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
+            }
             $user = rtf_get_current_user();
             return $user && $user->is_admin;
         }
