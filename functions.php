@@ -107,22 +107,6 @@ if (file_exists($user_system_file)) {
         global $rtf_user_system;
         $rtf_user_system = new RtfUserSystem();
     }
-} else {
-    error_log('RTF Theme ERROR: translations.php not found');
-}
-
-if (file_exists($user_system_file)) {
-    require_once $user_system_file;
-} else {
-    error_log('RTF Theme ERROR: class-rtf-user-system.php not found');
-}
-
-// Initialize global user system instance
-global $rtf_user_system;
-if (class_exists('RtfUserSystem')) {
-    $rtf_user_system = new RtfUserSystem();
-} else {
-    error_log('RTF Theme ERROR: RtfUserSystem class not found');
 }
 
 // ============================================================================
