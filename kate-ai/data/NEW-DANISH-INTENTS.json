@@ -1,0 +1,62 @@
+[
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_59",
+    "title": "Barnets Lov § 59 - Børnefaglig undersøgelse",
+    "keywords": ["børnefaglig undersøgelse", "§ 59", "paragraf 59", "undersøgelse", "børnesag undersøgelse"],
+    "regex": ["§\\s*59", "paragraf\\s*59", "børnefaglig.*undersøgelse"],
+    "topic": "dansk_undersøgelse",
+    "answer_type": "what",
+    "law_refs": [{"law": "Barnets Lov", "paragraph": "§ 59", "url": "https://www.retsinformation.dk/eli/lta/2022/1146"}],
+    "answer_short": "§ 59 regulerer børnefaglige undersøgelser - kommunen skal undersøge barnets forhold grundigt før afgørelse om anbringelse eller andre indgreb.",
+    "answer_long": ["BARNETS LOV § 59 - BØRNEFAGLIG UNDERSØGELSE", "", "**HVORNÅR SKAL DER LAVES EN UNDERSØGELSE:**", "", "Kommunen skal lave en børnefaglig undersøgelse når:", "• Der er tegn på at et barn har brug for særlig støtte", "• Der overvejes anbringelse uden samtykke", "• Der er tvivl om barnets trivsel", "", "**HVAD UNDERSØGES:**", "", "Undersøgelsen skal belyse:", "• Barnets fysiske, psykiske og sociale udvikling", "• Barnets relation til forældre og søskende", "• Familiens situation og ressourcer", "• Tidligere indsatser og deres effekt", "• Barnets eget perspektiv", "", "**TIDSFRIST:** 4 måneder (max 6 måneder)", "", "**DINE RETTIGHEDER:**", "✓ Du skal høres (partshøring)", "✓ Du kan få aktindsigt", "✓ Du kan kommentere på faktuelle fejl"],
+    "follow_up": ["Kan jeg få aktindsigt i undersøgelsen?", "Hvad hvis jeg er uenig i undersøgelsen?"]
+  },
+  {
+    "intent_id": "AKTINDSIGT_BARNETS_SAG",
+    "title": "Aktindsigt i barnets sag",
+    "keywords": ["aktindsigt", "se dokumenter", "læse sagsakter", "kopi af sag"],
+    "regex": ["aktindsigt", "se.*dokument", "kopi.*sag"],
+    "topic": "dansk_forvaltning",
+    "answer_type": "how",
+    "law_refs": [{"law": "Forvaltningsloven", "paragraph": "§ 9"}],
+    "answer_short": "Du har som part i sagen ret til aktindsigt i alle dokumenter der vedrører din sag - både skriftlige og elektroniske.",
+    "answer_long": ["AKTINDSIGT I BARNETS SAG", "", "Du har ret til:", "• Alle dokumenter i sagen", "• Notater fra møder og samtaler", "• Børnefaglige undersøgelser", "• Handleplaner", "• Korrespondance", "", "**SVARFRIST:** 7 arbejdsdage", "", "**GEBYR:** Normalt GRATIS i børnesager", "", "**HVIS AFSLAG:**", "1. Bed om skriftlig begrundelse", "2. Klag til Ankestyrelsen inden 4 uger"],
+    "follow_up": ["Hvad koster det at få aktindsigt?", "Kan jeg få afslag på aktindsigt?"]
+  },
+  {
+    "intent_id": "SAMVAER_ANBRAGT_BARN",
+    "title": "Samvær med anbragt barn",
+    "keywords": ["samvær", "besøg", "kontakt med barn", "anbragt barn samvær"],
+    "regex": ["samvær.*anbragt", "besøg.*barn", "kontakt.*anbragt"],
+    "topic": "dansk_anbringelse",
+    "answer_type": "what",
+    "law_refs": [{"law": "Barnets Lov", "paragraph": "§ 87"}],
+    "answer_short": "Du har som udgangspunkt ret til samvær med dit anbringet barn. Kommunen fastsætter omfanget, men skal altid tage hensyn til barnets tarv.",
+    "answer_long": ["SAMVÆR MED ANBRAGT BARN", "", "**DIN RET TIL SAMVÆR:**", "• Regelmæssigt samvær", "• Telefonkontakt", "• Brevkontakt", "• Videokald", "", "**HVEM BESTEMMER:** Kommunen fastsætter hvor ofte og hvor længe", "", "**TYPISK SAMVÆR:** 2-4 timer hver 14. dag", "", "**BEGRÆNSNING:** Kun hvis det skader barnet", "", "**AFBRYDELSE:** Kun ved Ankestyrelsens afgørelse"],
+    "follow_up": ["Kan samvær helt afbrydes?", "Hvad hvis barnet ikke vil have samvær?"]
+  },
+  {
+    "intent_id": "KLAGE_ANKESTYRELSEN",
+    "title": "Klage til Ankestyrelsen",
+    "keywords": ["klage", "ankestyrelsen", "klage kommunen", "hvordan klager jeg"],
+    "regex": ["klage.*ankestyrelsen", "klage.*afgørelse", "hvordan.*klager"],
+    "topic": "dansk_forvaltning",
+    "answer_type": "how",
+    "law_refs": [{"law": "Barnets Lov", "paragraph": "§ 167"}],
+    "answer_short": "Du kan klage til Ankestyrelsen over kommunens afgørelser i børnesager - fristen er 4 uger fra du modtog afgørelsen.",
+    "answer_long": ["KLAGE TIL ANKESTYRELSEN", "", "**HVAD KAN DU KLAGE OVER:**", "• Afgørelse om anbringelse", "• Afslag på hjælpeforanstaltninger", "• Samværsafgørelser", "• Handleplaner", "• Afslag på hjemgivelse", "", "**KLAGEFRIST:** 4 uger fra afgørelsen", "", "**HVORDAN:**", "1. Send klage til kommunen (ikke direkte til Ankestyrelsen)", "2. Angiv hvilken afgørelse du klager over", "3. Forklar hvad du er uenig i", "4. Angiv hvilken afgørelse du ønsker", "", "**SAGSBEHANDLINGSTID:** Typisk 3-6 måneder"],
+    "follow_up": ["Hvad hvis jeg kommer for sent med klagen?", "Kan jeg få fri proces?"]
+  },
+  {
+    "intent_id": "BISIDDER_BØRNESAG",
+    "title": "Bisidder i børnesag",
+    "keywords": ["bisidder", "støtteperson", "have nogen med", "medbring person"],
+    "regex": ["bisidder", "støtteperson", "nogen.*med.*møde"],
+    "topic": "dansk_forvaltning",
+    "answer_type": "what",
+    "law_refs": [{"law": "Forvaltningsloven", "paragraph": "§ 8"}],
+    "answer_short": "Du har ret til at medbringe en bisidder til møder med kommunen - det kan være en ven, familiemedlem eller rådgiver.",
+    "answer_long": ["BISIDDER I BØRNESAG", "", "**DIN RET:**", "• Medbringe bisidder til møder", "• Lade bisidder tale på dine vegne", "• Få mødet udsat hvis bisidder er forhindret", "", "**HVEM KAN VÆRE BISIDDER:**", "• Ven eller familiemedlem", "• Socialrådgiver", "• Advokat", "• Frivillig fra Børns Vilkår", "", "**PRAKTISK:**", "✓ Giv kommunen besked på forhånd", "✓ Bisidder må gerne tage notater", "✓ Bisidder kan stille spørgsmål"],
+    "follow_up": ["Betaler kommunen for bisidder?", "Kan jeg have advokat med?"]
+  }
+]

@@ -165,6 +165,18 @@ $is_admin = rtf_is_admin_user();
         <?php echo $t['admin_panel']; ?>
     </a>
     <?php endif; ?>
+    
+    <!-- PWA Install Button -->
+    <button id="pwaInstallBtn" class="nav-link pwa-install-btn" style="display: none; align-items: center; gap: 10px; padding: 12px; margin: 16px 0 8px 0; border-radius: 8px; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; text-decoration: none; font-weight: 600; border: none; width: 100%; cursor: pointer; text-align: left;">
+        <svg style="width: 20px; height: 20px; fill: currentColor;" viewBox="0 0 24 24"><path d="M19 12v7H5v-7H3v7c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-7h-2zm-6 .67l2.59-2.58L17 11.5l-5 5-5-5 1.41-1.41L11 12.67V3h2z"/></svg>
+        <span id="pwaInstallText">
+            <?php 
+            if ($is_danish) echo 'Download som App';
+            elseif ($language === 'sv_SE') echo 'Ladda ner som App';
+            else echo 'Download as App';
+            ?>
+        </span>
+    </button>
 </nav>
 
 <script>
@@ -183,4 +195,39 @@ fetch('/wp-json/kate/v1/messages/unread-count', {
     }
 })
 .catch(err => console.error('Error loading unread count:', err));
+
+// PWA Install functionality
+let deferredPrompt;
+const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (pwaInstallBtn) {
+        pwaInstallBtn.style.display = 'flex';
+    }
+});
+
+if (pwaInstallBtn) {
+    pwaInstallBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            console.log('PWA installed');
+            pwaInstallBtn.style.display = 'none';
+        }
+        
+        deferredPrompt = null;
+    });
+}
+
+window.addEventListener('appinstalled', () => {
+    console.log('PWA was installed');
+    if (pwaInstallBtn) {
+        pwaInstallBtn.style.display = 'none';
+    }
+});
 </script>
