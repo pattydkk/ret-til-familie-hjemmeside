@@ -3,11 +3,9 @@
  * Stripe Webhook Handler
  * Håndterer subscription events fra Stripe
  * 
- * URL: https://dit-domæne.dk/wp-content/themes/dit-theme-navn/stripe-webhook.php
+ * URL: https://rettilfamilie.com/stripe-webhook.php
  * Events: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed
  */
-
-require_once __DIR__ . '/stripe-php-13.18.0/init.php';
 
 // Load WordPress (theme file - need to go up to WordPress root)
 $wp_load_paths = [
@@ -33,6 +31,29 @@ if (!$wp_loaded || !function_exists('wp')) {
     error_log('RTF Webhook: Tried paths: ' . implode(', ', $wp_load_paths));
     http_response_code(500);
     exit('WordPress not loaded');
+}
+
+// Load Stripe via Composer autoload (loaded by functions.php or plugin)
+if (!class_exists('\Stripe\Stripe')) {
+    // Try loading vendor autoload directly as fallback
+    $vendor_paths = [
+        get_template_directory() . '/vendor/autoload.php',
+        __DIR__ . '/vendor/autoload.php'
+    ];
+    
+    foreach ($vendor_paths as $vendor_path) {
+        if (file_exists($vendor_path)) {
+            require_once $vendor_path;
+            error_log('RTF Webhook: Vendor loaded from: ' . $vendor_path);
+            break;
+        }
+    }
+    
+    if (!class_exists('\Stripe\Stripe')) {
+        error_log('RTF Webhook CRITICAL ERROR: Stripe class not available!');
+        http_response_code(500);
+        exit('Stripe library not loaded');
+    }
 }
 
 // Stripe configuration

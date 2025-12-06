@@ -9,7 +9,7 @@ get_header();
 // Check admin access
 $current_user = rtf_get_current_user();
 if (!$current_user || !rtf_is_admin_user()) {
-    wp_redirect(home_url('/platform-login'));
+    wp_redirect(home_url('/platform-auth'));
     exit;
 }
 

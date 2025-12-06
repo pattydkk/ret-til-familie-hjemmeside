@@ -1,11 +1,11 @@
 <?php
 /**
  * Theme Name: Ret til Familie Platform
- * Theme URI: https://rettilf familie.dk
+ * Theme URI: https://rettilfamilie.com
  * Description: Advanced family law platform with Kate AI assistant, multi-language support (DA/SV/EN), real-time chat, reports, and comprehensive case management
  * Version: 2.0.0
  * Author: Ret til Familie
- * Author URI: https://rettiltifamilie.dk
+ * Author URI: https://rettilfamilie.com
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: rtf-platform
@@ -55,6 +55,26 @@ define('RTF_GITHUB_TOKEN', 'ghp_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX');
 define('RTF_GITHUB_REPO_OWNER', 'hansenhr89dkk');
 define('RTF_GITHUB_REPO_NAME', 'ret-til-familie-hjemmeside');
 define('RTF_GITHUB_BRANCH', 'main');
+
+// ============================================================================
+// LOAD COMPOSER VENDOR DEPENDENCIES (CRITICAL!)
+// ============================================================================
+// This MUST load before any Stripe/Kate AI code
+$vendor_autoload = get_template_directory() . '/vendor/autoload.php';
+if (file_exists($vendor_autoload)) {
+    require_once $vendor_autoload;
+    error_log('RTF Theme: Composer vendor loaded successfully');
+    
+    // Verify Stripe is available
+    if (class_exists('\Stripe\Stripe')) {
+        error_log('RTF Theme: Stripe library available');
+    } else {
+        error_log('RTF Theme ERROR: Stripe class not found after loading vendor!');
+    }
+} else {
+    error_log('RTF Theme CRITICAL ERROR: vendor/autoload.php not found at: ' . $vendor_autoload);
+    error_log('RTF Theme: Run "composer install" in theme directory');
+}
 
 // Load critical dependencies
 require_once get_template_directory() . '/translations.php';
@@ -1070,7 +1090,7 @@ function rtf_create_platform_tables() {
     if (!$existing_admin) {
         $wpdb->insert($table_users, array(
             'username' => 'admin',
-            'email' => 'admin@rettilfamilie.dk',
+            'email' => 'admin@rettilfamilie.com',
             'password' => password_hash('admin123', PASSWORD_DEFAULT),
             'full_name' => 'Administrator',
             'is_admin' => 1,

@@ -6,7 +6,7 @@
 
 // Tjek om brugeren er logget ind
 if (!is_user_logged_in()) {
-    wp_redirect(home_url('/platform-login'));
+    wp_redirect(home_url('/platform-auth'));
     exit;
 }
 

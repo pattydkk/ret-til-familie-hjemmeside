@@ -9,6 +9,28 @@
 
 ---
 
+## ⚡ ONE-CLICK SETUP (3 MINUTTER)
+
+### Quick Start
+```bash
+1. Upload tema som .zip → WordPress Admin → Temaer → Upload → Aktiver
+2. Besøg: https://rettilfamilie.com/wp-content/themes/ret-til-familie-hjemmeside/rtf-setup.php
+3. Tilføj Stripe keys i functions.php line 198-199
+4. Login: https://rettilfamilie.com/platform-auth
+   Email: patrickfoersle@gmail.com | Password: AdminRTF2024!
+```
+
+**✅ DONE! Alt er auto-oprettet:**
+- 29 database tabeller
+- 17 platform sider
+- Admin bruger
+- Kate AI system
+- REST API endpoints
+
+**📋 Se AUTO-SETUP-GUIDE.md for komplet guide**
+
+---
+
 ## 🚀 Features
 
 ### Core Functionality
@@ -319,7 +341,7 @@ GET    /wp-json/rtf/v1/health
 - **Wiki**: Full documentation in GitHub Wiki
 
 ### For Users
-- **Email**: support@rettiltifamilie.dk
+- **Email**: support@rettilfamilie.com
 - **Phone**: +45 [phone number]
 - **Chat**: Live chat on website
 

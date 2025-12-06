@@ -207,7 +207,7 @@ chmod -R 777 kate-ai/logs kate-ai/cache kate-ai/data
 ## 📞 Support
 
 **Repository:** https://github.com/hansenhr89dkk/ret-til-familie-hjemmeside
-**Docs:** https://rettiltifamilie.dk/docs
+**Docs:** https://rettilfamilie.com/docs
 
 ---
 

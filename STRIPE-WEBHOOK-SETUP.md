@@ -163,17 +163,17 @@ RTF Webhook ERROR: Invalid signature
 
 ### Eksempel 1: Standard WordPress
 ```
-https://rettilfamilie.dk/wp-content/themes/rtf-platform/stripe-webhook.php
+https://rettilfamilie.com/wp-content/themes/rtf-platform/stripe-webhook.php
 ```
 
 ### Eksempel 2: WordPress i undermappe
 ```
-https://rettilfamilie.dk/blog/wp-content/themes/rtf-platform/stripe-webhook.php
+https://rettilfamilie.com/blog/wp-content/themes/rtf-platform/stripe-webhook.php
 ```
 
 ### Eksempel 3: Subdomain
 ```
-https://platform.rettilfamilie.dk/wp-content/themes/rtf-platform/stripe-webhook.php
+https://platform.rettilfamilie.com/wp-content/themes/rtf-platform/stripe-webhook.php
 ```
 
 ---

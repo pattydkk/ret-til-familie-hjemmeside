@@ -1,0 +1,169 @@
+========================================
+ RET TIL FAMILIE - QUICK START GUIDE
+========================================
+
+⏱️ SETUP TID: 3 MINUTTER
+
+========================================
+ STEP 1: UPLOAD TEMA
+========================================
+
+1. Pak hele mappen som .zip
+2. WordPress Admin → Udseende → Temaer
+3. Klik "Tilføj nyt" → "Upload tema"
+4. Upload .zip og klik "Aktiver"
+
+========================================
+ STEP 2: AUTO-SETUP (KØR ÉN GANG)
+========================================
+
+Besøg denne URL i din browser:
+
+https://rettilfamilie.com/wp-content/themes/ret-til-familie-hjemmeside/rtf-setup.php
+
+Dette opretter AUTOMATISK:
+✅ 29 database tabeller
+✅ 17 platform sider
+✅ Admin bruger
+✅ Kate AI system
+✅ REST API endpoints
+✅ Navigation menu
+
+========================================
+ STEP 3: STRIPE KEYS (PÅKRÆVET)
+========================================
+
+1. Gå til: https://dashboard.stripe.com/apikeys
+2. Kopier dine keys (sk_live_... og pk_live_...)
+3. Åbn functions.php i tema editor
+4. Find line 198-199:
+   $stripe_secret_key = 'din_stripe_secret_key_her';
+   $stripe_publishable_key = 'din_stripe_publishable_key_her';
+5. Udskift med dine rigtige keys
+6. Gem filen
+
+========================================
+ STEP 4: TEST SYSTEM
+========================================
+
+Login URL:
+https://rettilfamilie.com/platform-auth
+
+Standard Admin Login:
+Email: patrickfoersle@gmail.com
+Password: AdminRTF2024!
+
+⚠️ SKIFT PASSWORD EFTER FØRSTE LOGIN!
+
+Admin Panel:
+https://rettilfamilie.com/platform-admin-dashboard
+
+========================================
+ DONE! ✅
+========================================
+
+Dit site kører nu med:
+- Bruger registrering (via Stripe)
+- Chat system
+- Forum
+- Kate AI assistent
+- Admin panel
+- Rapport downloads
+
+========================================
+ VERIFICER INSTALLATION
+========================================
+
+System Test (viser status på alle komponenter):
+https://rettilfamilie.com/wp-content/themes/ret-til-familie-hjemmeside/ADMIN-SYSTEM-TEST.php
+
+Skal vise:
+✅ Session: AKTIV
+✅ Admin bruger: patrickfoersle@gmail.com
+✅ Database: 29/29 tabeller
+✅ REST API: Alle endpoints aktive
+
+========================================
+ HVIS NOGET FEJLER
+========================================
+
+Problem: Kan ikke logge ind som admin
+Løsning: Besøg denne URL:
+https://rettilfamilie.com/wp-content/themes/ret-til-familie-hjemmeside/EMERGENCY-ADMIN-FIX.php
+
+Problem: Database tabeller mangler
+Løsning: Kør rtf-setup.php igen (kan køres flere gange)
+
+Problem: Stripe virker ikke
+Løsning: Tjek at keys i functions.php er korrekte
+
+========================================
+ NÆSTE SKRIDT
+========================================
+
+1. Test bruger registrering
+2. Test admin panel funktioner
+3. Test chat system
+4. Test forum
+5. Test Kate AI
+6. Upload rapporter
+7. Skift til Stripe LIVE keys (fra test keys)
+8. Backup database regelmæssigt
+
+========================================
+ SUPPORT FILER
+========================================
+
+Komplet Setup Guide:
+AUTO-SETUP-GUIDE.md
+
+System Audit Rapport:
+DYBTGAAENDE-SYSTEM-AUDIT.md
+
+Teknisk Installation:
+INSTALLATION_GUIDE.md
+
+========================================
+ SYSTEM OVERSIGT
+========================================
+
+Platform Sider (17):
+- /platform-auth (Login)
+- /platform-profil (Profil)
+- /platform-admin-dashboard (Admin)
+- /platform-chat (Chat)
+- /platform-forum (Forum)
+- /platform-kate-ai (Kate AI)
+- /platform-rapporter (Rapporter)
+- ... og 10 andre
+
+Database Tabeller (29):
+- rtf_platform_users
+- rtf_platform_messages
+- rtf_platform_posts
+- rtf_platform_forum_topics
+- rtf_kate_chat_sessions
+- rtf_stripe_subscriptions
+- ... og 23 andre
+
+REST API Endpoints (21):
+- /wp-json/kate/v1/admin/*
+- /wp-json/kate/v1/messages/*
+- /wp-json/kate/v1/chat
+- /wp-json/kate/v1/reports/*
+- ... og 17 andre
+
+========================================
+ STATUS
+========================================
+
+✅ Klar til ONE-CLICK deployment
+⏱️ Setup tid: ~3 minutter
+🧪 Test tid: ~10 minutter
+🚀 Total tid til live: ~15 minutter
+
+========================================
+
+For detaljeret hjælp, se AUTO-SETUP-GUIDE.md
+
+========================================

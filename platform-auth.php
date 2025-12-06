@@ -111,10 +111,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         
         // Normal user registration - redirect to Stripe
-        $stripe_init = get_template_directory() . '/stripe-php-13.18.0/init.php';
-        
-        if (!file_exists($stripe_init)) {
-            error_log("RTF Stripe Error: Library not found at " . $stripe_init);
+        // Stripe library loaded via functions.php vendor autoload
+        if (!class_exists('\Stripe\Stripe')) {
+            error_log("RTF Stripe Error: Stripe class not available");
             
             global $wpdb;
             $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
@@ -124,7 +123,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             $error = ($lang === 'da') ? 'Betalingssystem ikke tilgængeligt. Kontakt support.' : 
                      (($lang === 'sv') ? 'Betalningssystem inte tillgängligt. Kontakta support.' : 'Payment system unavailable.');
         } else {
-            require_once($stripe_init);
             
             if (!defined('RTF_STRIPE_SECRET_KEY') || empty(RTF_STRIPE_SECRET_KEY)) {
                 error_log("RTF Stripe Error: Secret key not configured");
@@ -181,9 +179,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     error_log("RTF Stripe: Success URL: " . home_url('/platform-profil/?lang=' . $lang . '&payment=success'));
                     error_log("RTF Stripe: ========================================");
                     
-                    // Clear output buffer and redirect to Stripe Checkout
-                    ob_end_clean();
-                    wp_redirect($checkout_session->url);
+                    // CRITICAL: Clear ALL output buffers and force redirect
+                    while (ob_get_level()) {
+                        ob_end_clean();
+                    }
+                    
+                    // Set headers to prevent caching
+                    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+                    header('Cache-Control: post-check=0, pre-check=0', false);
+                    header('Pragma: no-cache');
+                    
+                    // MULTI-LAYER REDIRECT APPROACH
+                    // Try 1: PHP header redirect (most reliable)
+                    header('Location: ' . $checkout_session->url);
+                    
+                    // Try 2: HTML meta refresh (fallback for header issues)
+                    echo '<!DOCTYPE html><html><head>';
+                    echo '<meta http-equiv="refresh" content="0;url=' . esc_url($checkout_session->url) . '">';
+                    echo '<title>Omdirigerer til betaling...</title>';
+                    echo '<style>body{font-family:Arial;text-align:center;padding:100px;background:#f8fafc;}';
+                    echo '.loader{border:8px solid #e0f2fe;border-top:8px solid #2563eb;border-radius:50%;';
+                    echo 'width:60px;height:60px;animation:spin 1s linear infinite;margin:20px auto;}';
+                    echo '@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
+                    echo '</head><body>';
+                    echo '<div class="loader"></div>';
+                    echo '<h2>Omdirigerer til sikker betaling...</h2>';
+                    echo '<p>Du bliver automatisk videresendt til Stripe. Hvis ikke, <a href="' . esc_url($checkout_session->url) . '">klik her</a>.</p>';
+                    
+                    // Try 3: JavaScript redirect (triple redundancy)
+                    echo '<script>';
+                    echo 'setTimeout(function(){ window.location.href = "' . esc_js($checkout_session->url) . '"; }, 100);';
+                    echo '</script>';
+                    echo '</body></html>';
                     exit;
                     
                 } catch (\Stripe\Exception\InvalidRequestException $e) {

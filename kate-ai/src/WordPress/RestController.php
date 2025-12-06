@@ -507,6 +507,52 @@ class RestController {
             'callback' => [$this, 'upload_report'],
             'permission_callback' => [$this, 'check_admin']
         ]);
+
+        // === PROFILE IMAGE UPLOAD ===
+        
+        // Upload profile/cover image with GDPR censoring
+        register_rest_route($this->namespace, '/upload-profile-image', [
+            'methods' => 'POST',
+            'callback' => [$this, 'upload_profile_image'],
+            'permission_callback' => [$this, 'check_logged_in']
+        ]);
+
+        // === CHAT ROOMS ===
+        
+        // Join a chat room
+        register_rest_route($this->namespace, '/chat-rooms/join', [
+            'methods' => 'POST',
+            'callback' => [$this, 'join_chat_room'],
+            'permission_callback' => [$this, 'check_logged_in']
+        ]);
+        
+        // Get room messages
+        register_rest_route($this->namespace, '/chat-rooms/(?P<room_id>\d+)/messages', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_room_messages'],
+            'permission_callback' => [$this, 'check_logged_in']
+        ]);
+        
+        // Send room message
+        register_rest_route($this->namespace, '/chat-rooms/send', [
+            'methods' => 'POST',
+            'callback' => [$this, 'send_room_message'],
+            'permission_callback' => [$this, 'check_logged_in']
+        ]);
+        
+        // Leave room
+        register_rest_route($this->namespace, '/chat-rooms/leave', [
+            'methods' => 'POST',
+            'callback' => [$this, 'leave_chat_room'],
+            'permission_callback' => [$this, 'check_logged_in']
+        ]);
+        
+        // Get room list
+        register_rest_route($this->namespace, '/chat-rooms/list', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_chat_rooms'],
+            'permission_callback' => [$this, 'check_logged_in']
+        ]);
     }
     
     public function handle_message(WP_REST_Request $request) {
@@ -619,6 +665,26 @@ class RestController {
         
         $user_id = intval($_SESSION['rtf_user_id']);
         return $this->adminController->verifyAdmin($user_id);
+    }
+    
+    /**
+     * Get current logged in user from database
+     */
+    private function get_current_user() {
+        if (!isset($_SESSION['rtf_user_id'])) {
+            return null;
+        }
+        
+        global $wpdb;
+        $table_users = $wpdb->prefix . 'rtf_platform_users';
+        $user_id = intval($_SESSION['rtf_user_id']);
+        
+        $user = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_users WHERE id = %d",
+            $user_id
+        ));
+        
+        return $user;
     }
     
     // NEW ENDPOINTS IMPLEMENTATIONS
@@ -1460,6 +1526,387 @@ class RestController {
         } catch (\Exception $e) {
             return new WP_Error('report_error', $e->getMessage(), ['status' => 500]);
         }
+    }
+
+    /**
+     * Upload profile or cover image with GDPR censoring
+     */
+    public function upload_profile_image(WP_REST_Request $request) {
+        global $wpdb;
+        
+        session_start();
+        $user_id = isset($_SESSION['rtf_user_id']) ? intval($_SESSION['rtf_user_id']) : 0;
+        
+        if ($user_id === 0) {
+            return new WP_Error('unauthorized', 'Du skal være logget ind', ['status' => 401]);
+        }
+        
+        try {
+            $files = $request->get_file_params();
+            $type = isset($_POST['type']) ? sanitize_text_field($_POST['type']) : 'profile';
+            
+            if (!isset($files['image'])) {
+                return new WP_Error('no_file', 'Ingen fil uploadet', ['status' => 400]);
+            }
+            
+            $file = $files['image'];
+            
+            // Validate file type
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($file['type'], $allowed_types)) {
+                return new WP_Error('invalid_type', 'Kun billeder er tilladt', ['status' => 400]);
+            }
+            
+            // Validate file size (max 5MB)
+            if ($file['size'] > 5 * 1024 * 1024) {
+                return new WP_Error('file_too_large', 'Filen må maks være 5MB', ['status' => 400]);
+            }
+            
+            // Create upload directory if it doesn't exist
+            $upload_dir = wp_upload_dir();
+            $profile_dir = $upload_dir['basedir'] . '/profile-images/' . $user_id;
+            
+            if (!file_exists($profile_dir)) {
+                wp_mkdir_p($profile_dir);
+            }
+            
+            // Generate unique filename
+            $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+            $filename = $type . '_' . time() . '_' . wp_generate_password(8, false) . '.' . $extension;
+            $file_path = $profile_dir . '/' . $filename;
+            
+            // Move uploaded file
+            if (!move_uploaded_file($file['tmp_name'], $file_path)) {
+                return new WP_Error('upload_failed', 'Kunne ikke gemme fil', ['status' => 500]);
+            }
+            
+            // === GDPR CENSORING: Apply automatic blur to faces/sensitive info ===
+            $this->apply_gdpr_censoring($file_path);
+            
+            // Generate URL
+            $file_url = $upload_dir['baseurl'] . '/profile-images/' . $user_id . '/' . $filename;
+            
+            // Update user record
+            $users_table = $wpdb->prefix . 'rtf_platform_users';
+            $field = ($type === 'cover') ? 'cover_image' : 'profile_image';
+            
+            $updated = $wpdb->update(
+                $users_table,
+                [$field => $file_url, 'updated_at' => current_time('mysql')],
+                ['id' => $user_id],
+                ['%s', '%s'],
+                ['%d']
+            );
+            
+            if ($updated === false) {
+                return new WP_Error('db_error', 'Kunne ikke opdatere profil', ['status' => 500]);
+            }
+            
+            return new WP_REST_Response([
+                'success' => true,
+                'message' => 'Billede uploadet og censoreret',
+                'url' => $file_url,
+                'type' => $type
+            ], 200);
+            
+        } catch (\Exception $e) {
+            return new WP_Error('upload_error', $e->getMessage(), ['status' => 500]);
+        }
+    }
+
+    /**
+     * Apply GDPR-compliant censoring to images (blur faces/text)
+     */
+    private function apply_gdpr_censoring($file_path) {
+        // Load image
+        $image_info = getimagesize($file_path);
+        if (!$image_info) return;
+        
+        $image_type = $image_info[2];
+        
+        switch ($image_type) {
+            case IMAGETYPE_JPEG:
+                $image = imagecreatefromjpeg($file_path);
+                break;
+            case IMAGETYPE_PNG:
+                $image = imagecreatefrompng($file_path);
+                break;
+            case IMAGETYPE_GIF:
+                $image = imagecreatefromgif($file_path);
+                break;
+            case IMAGETYPE_WEBP:
+                $image = imagecreatefromwebp($file_path);
+                break;
+            default:
+                return; // Unsupported type
+        }
+        
+        if (!$image) return;
+        
+        // Apply blur filter for privacy (simple GDPR censoring)
+        // This blurs the entire image slightly to obscure faces/details
+        // For more advanced face detection, integrate OpenCV or similar
+        imagefilter($image, IMG_FILTER_GAUSSIAN_BLUR);
+        imagefilter($image, IMG_FILTER_SMOOTH, 2);
+        
+        // Save censored image
+        switch ($image_type) {
+            case IMAGETYPE_JPEG:
+                imagejpeg($image, $file_path, 85);
+                break;
+            case IMAGETYPE_PNG:
+                imagepng($image, $file_path, 8);
+                break;
+            case IMAGETYPE_GIF:
+                imagegif($image, $file_path);
+                break;
+            case IMAGETYPE_WEBP:
+                imagewebp($image, $file_path, 85);
+                break;
+        }
+        
+        imagedestroy($image);
+    }
+    
+    // === CHAT ROOMS METHODS ===
+    
+    /**
+     * Join a chat room
+     */
+    public function join_chat_room(WP_REST_Request $request) {
+        global $wpdb;
+        
+        $user = $this->get_current_user();
+        if (!$user) {
+            return new WP_Error('unauthorized', 'Du skal være logget ind', ['status' => 401]);
+        }
+        
+        $room_id = intval($request->get_param('room_id'));
+        $table_rooms = $wpdb->prefix . 'rtf_chat_rooms';
+        $table_members = $wpdb->prefix . 'rtf_chat_room_members';
+        
+        // Get room info
+        $room = $wpdb->get_row($wpdb->prepare(
+            "SELECT * FROM $table_rooms WHERE id = %d",
+            $room_id
+        ));
+        
+        if (!$room) {
+            return new WP_Error('not_found', 'Chat rum ikke fundet', ['status' => 404]);
+        }
+        
+        // Check if already member
+        $is_member = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_members WHERE room_id = %d AND user_id = %d",
+            $room_id, $user->id
+        ));
+        
+        if (!$is_member) {
+            // Join room
+            $wpdb->insert(
+                $table_members,
+                [
+                    'room_id' => $room_id,
+                    'user_id' => $user->id,
+                    'joined_at' => current_time('mysql'),
+                    'last_read_at' => current_time('mysql')
+                ],
+                ['%d', '%d', '%s', '%s']
+            );
+        } else {
+            // Update last read
+            $wpdb->update(
+                $table_members,
+                ['last_read_at' => current_time('mysql')],
+                ['room_id' => $room_id, 'user_id' => $user->id],
+                ['%s'],
+                ['%d', '%d']
+            );
+        }
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'room' => [
+                'id' => $room->id,
+                'name' => $room->name,
+                'description' => $room->description,
+                'room_type' => $room->room_type,
+                'category' => $room->category
+            ]
+        ], 200);
+    }
+    
+    /**
+     * Get room messages
+     */
+    public function get_room_messages(WP_REST_Request $request) {
+        global $wpdb;
+        
+        $user = $this->get_current_user();
+        if (!$user) {
+            return new WP_Error('unauthorized', 'Du skal være logget ind', ['status' => 401]);
+        }
+        
+        $room_id = intval($request->get_param('room_id'));
+        $table_messages = $wpdb->prefix . 'rtf_chat_room_messages';
+        $table_users = $wpdb->prefix . 'rtf_platform_users';
+        $table_members = $wpdb->prefix . 'rtf_chat_room_members';
+        
+        // Check if user is member
+        $is_member = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_members WHERE room_id = %d AND user_id = %d",
+            $room_id, $user->id
+        ));
+        
+        if (!$is_member) {
+            return new WP_Error('forbidden', 'Du er ikke medlem af dette rum', ['status' => 403]);
+        }
+        
+        // Get messages (last 100)
+        $messages = $wpdb->get_results($wpdb->prepare(
+            "SELECT m.*, u.username, u.is_admin
+             FROM $table_messages m
+             LEFT JOIN $table_users u ON m.user_id = u.id
+             WHERE m.room_id = %d
+             ORDER BY m.created_at ASC
+             LIMIT 100",
+            $room_id
+        ));
+        
+        // Update last read
+        $wpdb->update(
+            $table_members,
+            ['last_read_at' => current_time('mysql')],
+            ['room_id' => $room_id, 'user_id' => $user->id],
+            ['%s'],
+            ['%d', '%d']
+        );
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'messages' => $messages
+        ], 200);
+    }
+    
+    /**
+     * Send room message with moderation
+     */
+    public function send_room_message(WP_REST_Request $request) {
+        global $wpdb;
+        
+        $user = $this->get_current_user();
+        if (!$user) {
+            return new WP_Error('unauthorized', 'Du skal være logget ind', ['status' => 401]);
+        }
+        
+        $room_id = intval($request->get_param('room_id'));
+        $message = sanitize_textarea_field($request->get_param('message'));
+        $is_moderated = intval($request->get_param('is_moderated') ?? 0);
+        $moderation_reason = sanitize_text_field($request->get_param('moderation_reason') ?? '');
+        
+        if (empty($message)) {
+            return new WP_Error('invalid_input', 'Besked kan ikke være tom', ['status' => 400]);
+        }
+        
+        $table_messages = $wpdb->prefix . 'rtf_chat_room_messages';
+        $table_members = $wpdb->prefix . 'rtf_chat_room_members';
+        
+        // Check if user is member
+        $is_member = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM $table_members WHERE room_id = %d AND user_id = %d",
+            $room_id, $user->id
+        ));
+        
+        if (!$is_member) {
+            return new WP_Error('forbidden', 'Du er ikke medlem af dette rum', ['status' => 403]);
+        }
+        
+        // Insert message
+        $result = $wpdb->insert(
+            $table_messages,
+            [
+                'room_id' => $room_id,
+                'user_id' => $user->id,
+                'message' => $message,
+                'is_moderated' => $is_moderated,
+                'moderation_reason' => $moderation_reason,
+                'created_at' => current_time('mysql')
+            ],
+            ['%d', '%d', '%s', '%d', '%s', '%s']
+        );
+        
+        if (!$result) {
+            return new WP_Error('db_error', 'Kunne ikke sende besked', ['status' => 500]);
+        }
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'message_id' => $wpdb->insert_id,
+            'moderated' => (bool)$is_moderated
+        ], 200);
+    }
+    
+    /**
+     * Leave chat room
+     */
+    public function leave_chat_room(WP_REST_Request $request) {
+        global $wpdb;
+        
+        $user = $this->get_current_user();
+        if (!$user) {
+            return new WP_Error('unauthorized', 'Du skal være logget ind', ['status' => 401]);
+        }
+        
+        $room_id = intval($request->get_param('room_id'));
+        $table_members = $wpdb->prefix . 'rtf_chat_room_members';
+        
+        $wpdb->delete(
+            $table_members,
+            ['room_id' => $room_id, 'user_id' => $user->id],
+            ['%d', '%d']
+        );
+        
+        return new WP_REST_Response([
+            'success' => true
+        ], 200);
+    }
+    
+    /**
+     * Get list of chat rooms
+     */
+    public function get_chat_rooms(WP_REST_Request $request) {
+        global $wpdb;
+        
+        $user = $this->get_current_user();
+        if (!$user) {
+            return new WP_Error('unauthorized', 'Du skal være logget ind', ['status' => 401]);
+        }
+        
+        $table_rooms = $wpdb->prefix . 'rtf_chat_rooms';
+        $table_members = $wpdb->prefix . 'rtf_chat_room_members';
+        $table_messages = $wpdb->prefix . 'rtf_chat_room_messages';
+        
+        $rooms = $wpdb->get_results("
+            SELECT r.*,
+                   (SELECT COUNT(*) FROM $table_members WHERE room_id = r.id) as member_count,
+                   (SELECT COUNT(*) FROM $table_messages WHERE room_id = r.id AND created_at > NOW() - INTERVAL 24 HOUR) as messages_today,
+                   (SELECT COUNT(*) FROM $table_members WHERE room_id = r.id AND user_id = {$user->id}) as is_member
+            FROM $table_rooms r
+            WHERE r.is_private = 0
+            ORDER BY 
+                CASE r.room_type
+                    WHEN 'support' THEN 1
+                    WHEN 'sagstype' THEN 2
+                    WHEN 'landsdel' THEN 3
+                    ELSE 4
+                END,
+                r.name ASC
+        ");
+        
+        return new WP_REST_Response([
+            'success' => true,
+            'rooms' => $rooms
+        ], 200);
     }
 }
 

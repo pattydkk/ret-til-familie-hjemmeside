@@ -89,8 +89,12 @@ $t = array(
 );
 $txt = $t[$lang];
 
-// Load Stripe library
-require_once(__DIR__ . '/stripe-php-13.18.0/init.php');
+// Stripe library loaded via functions.php vendor autoload
+// Verify Stripe is available
+if (!class_exists('\Stripe\Stripe')) {
+    error_log('Platform Subscription ERROR: Stripe class not available! Check vendor autoload.');
+    die('Stripe library not loaded. Contact administrator.');
+}
 
 // Handle Stripe Checkout - LIVE IMPLEMENTATION
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'subscribe') {
@@ -102,21 +106,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             'payment_method_types' => ['card'],
             'mode' => 'subscription',
             'customer_email' => $current_user->email,
-            'client_reference_id' => $current_user->id,
+            'client_reference_id' => (string)$current_user->id,
             'line_items' => [[
                 'price' => RTF_STRIPE_PRICE_ID,
                 'quantity' => 1,
             ]],
-            'success_url' => home_url('/platform-profil/?lang=' . $lang . '&subscribed=1'),
-            'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&canceled=1'),
+            'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success&session_id={CHECKOUT_SESSION_ID}'),
+            'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&payment=cancelled'),
+            'subscription_data' => [
+                'metadata' => [
+                    'user_id' => (string)$current_user->id,
+                    'username' => $current_user->username,
+                    'email' => $current_user->email,
+                    'rtf_platform' => 'true'
+                ]
+            ],
             'metadata' => [
-                'user_id' => $current_user->id,
-                'username' => $current_user->username
+                'user_id' => (string)$current_user->id,
+                'username' => $current_user->username,
+                'email' => $current_user->email
             ]
         ]);
         
-        // Redirect til Stripe Checkout
-        wp_redirect($checkout_session->url);
+        // MULTI-LAYER REDIRECT like platform-auth.php
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Location: ' . $checkout_session->url);
+        
+        // Fallback with HTML
+        echo '<!DOCTYPE html><html><head>';
+        echo '<meta http-equiv="refresh" content="0;url=' . esc_url($checkout_session->url) . '">';
+        echo '<title>Omdirigerer til betaling...</title>';
+        echo '<style>body{font-family:Arial;text-align:center;padding:100px;background:#f8fafc;}';
+        echo '.loader{border:8px solid #e0f2fe;border-top:8px solid #2563eb;border-radius:50%;';
+        echo 'width:60px;height:60px;animation:spin 1s linear infinite;margin:20px auto;}';
+        echo '@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}</style>';
+        echo '</head><body>';
+        echo '<div class="loader"></div>';
+        echo '<h2>Omdirigerer til sikker betaling...</h2>';
+        echo '<p>Du bliver automatisk videresendt til Stripe. Hvis ikke, <a href="' . esc_url($checkout_session->url) . '">klik her</a>.</p>';
+        echo '<script>setTimeout(function(){ window.location.href = "' . esc_js($checkout_session->url) . '"; }, 100);</script>';
+        echo '</body></html>';
         exit;
         
     } catch (\Stripe\Exception\ApiErrorException $e) {

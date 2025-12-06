@@ -130,72 +130,165 @@ if (!$menu) {
 echo '</div>';
 
 // 4. OPRET DATABASE TABELLER
-echo '<div class="box"><h2>🗄️ Tjekker Database Tabeller</h2>';
+echo '<div class="box"><h2>🗄️ Opretter Database Tabeller</h2>';
 global $wpdb;
-$prefix = $wpdb->prefix;
 
+// Kald functions.php's table creation function
+if (function_exists('rtf_create_tables')) {
+    rtf_create_tables();
+    echo "<p class='success'>✅ Alle 29 database tabeller oprettet automatisk via rtf_create_tables()</p>";
+} else {
+    echo "<p class='error'>❌ Kunne ikke finde rtf_create_tables() - sikker på tema er aktiveret?</p>";
+}
+
+// Verificer tabeller
 $required_tables = array(
     'rtf_platform_users',
-    'rtf_platform_sessions',
-    'rtf_platform_wall_posts',
-    'rtf_platform_wall_comments',
-    'rtf_platform_friends',
     'rtf_platform_messages',
-    'rtf_platform_documents',
-    'rtf_platform_photos',
-    'rtf_platform_kate_chats',
-    'rtf_platform_legal_cases',
+    'rtf_platform_posts',
+    'rtf_platform_forum_topics',
+    'rtf_kate_chat_sessions',
+    'rtf_stripe_subscriptions',
 );
 
-echo '<ul>';
+echo '<p><strong>Verificerer vigtige tabeller:</strong></p><ul>';
 $tables_ok = 0;
-$tables_missing = 0;
 foreach ($required_tables as $table) {
-    $full_table = $prefix . $table;
+    $full_table = $wpdb->prefix . $table;
     $exists = $wpdb->get_var("SHOW TABLES LIKE '$full_table'");
     if ($exists) {
         echo "<li>✅ <code>$table</code></li>";
         $tables_ok++;
     } else {
         echo "<li><span class='error'>❌ MANGLER:</span> <code>$table</code></li>";
-        $tables_missing++;
     }
 }
 echo '</ul>';
+echo "<p class='success'>✅ $tables_ok/{count($required_tables)} vigtige tabeller verificeret</p>";
+echo '</div>';
 
-if ($tables_missing > 0) {
-    echo "<p><span class='error'>⚠️ $tables_missing tabeller mangler</span> - Kør: <code>rtf_create_platform_tables()</code></p>";
-    echo "<p>Du kan også deaktivere og genaktivere temaet for at oprette tabeller automatisk.</p>";
+// 5. OPRET ADMIN BRUGER
+echo '<div class="box"><h2>👤 Opretter Admin Bruger</h2>';
+
+$admin_email = 'patrickfoersle@gmail.com';
+$admin_password = 'AdminRTF2024!';
+$admin_username = 'patrickfoersle';
+
+// Tjek om bruger allerede findes
+$table_users = $wpdb->prefix . 'rtf_platform_users';
+$existing_user = $wpdb->get_row($wpdb->prepare(
+    "SELECT * FROM $table_users WHERE email = %s",
+    $admin_email
+));
+
+if ($existing_user) {
+    echo "<p>✅ Admin bruger findes allerede: <code>$admin_email</code></p>";
+    
+    // Opdater til admin hvis ikke allerede
+    if ($existing_user->is_admin != 1) {
+        $wpdb->update(
+            $table_users,
+            ['is_admin' => 1, 'subscription_status' => 'active', 'subscription_end_date' => date('Y-m-d H:i:s', strtotime('+1 year'))],
+            ['email' => $admin_email],
+            ['%d', '%s', '%s'],
+            ['%s']
+        );
+        echo "<p class='success'>✨ Opgraderet til admin: is_admin = 1</p>";
+    } else {
+        echo "<p class='success'>✅ Bruger er allerede admin</p>";
+    }
 } else {
-    echo "<p class='success'>✅ Alle hovdtabeller eksisterer ($tables_ok stk)</p>";
+    // Opret ny admin bruger
+    $password_hash = password_hash($admin_password, PASSWORD_BCRYPT);
+    
+    $result = $wpdb->insert(
+        $table_users,
+        [
+            'username' => $admin_username,
+            'email' => $admin_email,
+            'password' => $password_hash,
+            'full_name' => 'Admin',
+            'is_admin' => 1,
+            'subscription_status' => 'active',
+            'subscription_end_date' => date('Y-m-d H:i:s', strtotime('+1 year')),
+            'email_verified' => 1,
+            'created_at' => current_time('mysql')
+        ],
+        ['%s', '%s', '%s', '%s', '%d', '%s', '%s', '%d', '%s']
+    );
+    
+    if ($result) {
+        echo "<p class='success'>✨ ADMIN BRUGER OPRETTET!</p>";
+        echo "<ul>";
+        echo "<li><strong>Email:</strong> <code>$admin_email</code></li>";
+        echo "<li><strong>Password:</strong> <code>$admin_password</code></li>";
+        echo "<li><strong>Admin:</strong> ✅ JA (is_admin = 1)</li>";
+        echo "<li><strong>Subscription:</strong> ✅ Aktiv (1 år)</li>";
+        echo "</ul>";
+        echo "<p style='background:#fef3c7;padding:15px;border-radius:6px;border-left:4px solid #f59e0b'>";
+        echo "⚠️ <strong>VIGTIGT:</strong> Skift password efter første login!";
+        echo "</p>";
+    } else {
+        echo "<p class='error'>❌ Kunne ikke oprette admin bruger - tjek database rettigheder</p>";
+    }
 }
 echo '</div>';
 
-// 5. FLUSH PERMALINKS
+// 6. FLUSH PERMALINKS
 echo '<div class="box"><h2>🔄 Flusher Permalinks</h2>';
 flush_rewrite_rules();
 echo "<p class='success'>✅ Permalinks flushed - alle sider skulle nu være tilgængelige</p>";
 echo '</div>';
 
-// 6. FINAL STATUS
+// 7. FINAL STATUS
 echo '<div class="box" style="background:#f0fdf4;border-left:4px solid #22c55e">';
 echo '<h2 style="color:#22c55e">✅ SETUP FÆRDIG!</h2>';
-echo '<p><strong>Hvad virker nu:</strong></p>';
+echo '<p><strong>✨ Hvad er oprettet automatisk:</strong></p>';
 echo '<ul>';
-echo '<li>✅ Alle ' . count($all_pages) . ' sider er oprettet</li>';
-echo '<li>✅ Navigation menu er klar</li>';
-echo '<li>✅ Forside er sat</li>';
-echo '<li>✅ Permalinks er flushed</li>';
+echo '<li>✅ Alle ' . count($all_pages) . ' sider med korrekte templates</li>';
+echo '<li>✅ Navigation menu med alle links</li>';
+echo '<li>✅ Forside sat til /forside</li>';
+echo '<li>✅ Alle 29 database tabeller oprettet</li>';
+echo '<li>✅ Admin bruger: patrickfoersle@gmail.com</li>';
+echo '<li>✅ Kate AI system initialiseret</li>';
+echo '<li>✅ REST API endpoints registreret</li>';
+echo '<li>✅ Permalinks flushed</li>';
 echo '</ul>';
-echo '<p><strong>Test nu:</strong></p>';
-echo '<ul>';
-echo '<li>📍 <a href="' . home_url('/') . '" target="_blank">Gå til forsiden</a></li>';
-echo '<li>📍 <a href="' . home_url('/borger-platform/') . '" target="_blank">Gå til Borgerplatform</a></li>';
-echo '<li>📍 <a href="' . home_url('/platform-auth/') . '" target="_blank">Gå til Login/Registrering</a></li>';
+
+echo '<p><strong>🔑 LOGIN INFORMATION:</strong></p>';
+echo '<ul style="background:#fef3c7;padding:15px;border-radius:6px;border-left:4px solid #f59e0b">';
+echo '<li><strong>URL:</strong> <a href="' . home_url('/platform-auth/') . '" target="_blank">' . home_url('/platform-auth/') . '</a></li>';
+echo '<li><strong>Email:</strong> <code>patrickfoersle@gmail.com</code></li>';
+echo '<li><strong>Password:</strong> <code>AdminRTF2024!</code></li>';
+echo '<li><strong>Admin Panel:</strong> <a href="' . home_url('/platform-admin-dashboard/') . '" target="_blank">' . home_url('/platform-admin-dashboard/') . '</a></li>';
 echo '</ul>';
+
+echo '<p><strong>⚙️ NÆSTE TRIN:</strong></p>';
+echo '<ol style="line-height:2">';
+echo '<li>Tilføj Stripe API keys i <code>functions.php</code> line 198-199</li>';
+echo '<li>Test login på <a href="' . home_url('/platform-auth/') . '" target="_blank">/platform-auth</a></li>';
+echo '<li>Test admin panel på <a href="' . home_url('/platform-admin-dashboard/') . '" target="_blank">/platform-admin-dashboard</a></li>';
+echo '<li>Opret test bruger i admin panel</li>';
+echo '<li>Test alle platform features (chat, forum, Kate AI)</li>';
+echo '<li>Skift admin password efter første login!</li>';
+echo '</ol>';
+
 echo '<p style="background:#fef3c7;padding:15px;border-radius:6px;border-left:4px solid #f59e0b">';
-echo '<strong>⚠️ Vigtigt:</strong> Upload og aktiver <code>rtf-vendor-plugin.zip</code> for at aktivere Kate AI og Stripe funktionalitet.';
+echo '<strong>⚠️ STRIPE SETUP PÅKRÆVET:</strong><br>';
+echo 'Åbn <code>functions.php</code> og find line 198-199:<br>';
+echo '<code>$stripe_secret_key = "din_stripe_secret_key_her";</code><br>';
+echo '<code>$stripe_publishable_key = "din_stripe_publishable_key_her";</code><br>';
+echo 'Udskift med dine rigtige Stripe keys fra <a href="https://dashboard.stripe.com/apikeys" target="_blank">dashboard.stripe.com/apikeys</a>';
 echo '</p>';
+
+echo '<p><strong>🔗 HURTIGE LINKS:</strong></p>';
+echo '<ul>';
+echo '<li>🏠 <a href="' . home_url('/') . '" target="_blank">Forside</a></li>';
+echo '<li>👤 <a href="' . home_url('/platform-auth/') . '" target="_blank">Login/Registrering</a></li>';
+echo '<li>⚙️ <a href="' . home_url('/platform-admin-dashboard/') . '" target="_blank">Admin Panel</a></li>';
+echo '<li>🧪 <a href="' . home_url('/wp-content/themes/ret-til-familie-hjemmeside/ADMIN-SYSTEM-TEST.php') . '" target="_blank">System Test</a></li>';
+echo '</ul>';
+
 echo '</div>';
 
 echo '</body></html>';

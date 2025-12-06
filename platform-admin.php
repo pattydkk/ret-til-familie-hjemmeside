@@ -9,7 +9,7 @@ get_header();
 // Check admin access
 $current_user = rtf_get_current_user();
 if (!$current_user || !rtf_is_admin_user()) {
-    wp_redirect(home_url('/platform-login'));
+    wp_redirect(home_url('/platform-auth'));
     exit;
 }
 
@@ -793,25 +793,29 @@ async function saveUser() {
         return;
     }
     
-    // Create user via registration system
+    console.log('Creating user with data:', userData);
+    
     try {
-        const formData = new FormData();
-        formData.append('action', 'register');
-        formData.append('_wpnonce', '<?php echo wp_create_nonce("rtf_register"); ?>');
-        Object.keys(userData).forEach(key => formData.append(key, userData[key]));
-        
-        const response = await fetch('/platform-auth', {
+        const response = await fetch('/wp-json/kate/v1/admin/user', {
             method: 'POST',
-            body: formData
+            credentials: 'same-origin',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(userData)
         });
         
-        if (response.ok) {
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (data.success) {
             alert('✓ Bruger oprettet!');
             closeModal();
             loadUsers();
+            loadStats();
         } else {
-            const text = await response.text();
-            alert('✗ Fejl: ' + text);
+            alert('✗ Fejl: ' + (data.error || data.message || 'Ukendt fejl'));
         }
     } catch (error) {
         console.error('Save user error:', error);

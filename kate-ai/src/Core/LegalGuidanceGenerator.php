@@ -116,7 +116,7 @@ class LegalGuidanceGenerator
                 }
             } catch (\Exception $e) {
                 if ($this->logger) {
-                    $this->logger->error("Guidance search failed: " . $e->getMessage());
+                    $this->logger->log('error', "Guidance search failed: " . $e->getMessage(), 'guidance_search_error', [], 0);
                 }
             }
         }
@@ -188,7 +188,7 @@ class LegalGuidanceGenerator
             'resources' => $this->buildResourcesList($relevantIntents, $onlineResources),
             'next_steps' => $this->buildNextSteps($situationType, $details),
             'related_topics' => $this->buildRelatedTopics($situationType, $relevantIntents),
-            'generated_at' => current_time('mysql'),
+            'generated_at' => \current_time('mysql'),
             'confidence' => $this->calculateConfidence($relevantIntents, $onlineResources)
         ];
 

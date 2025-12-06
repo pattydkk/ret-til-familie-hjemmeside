@@ -81,7 +81,7 @@ define('RTF_STRIPE_WEBHOOK_SECRET', 'whsec_XXXXXXXXXX');
 I Stripe Dashboard → Webhooks → Add Endpoint:
 
 ```
-Endpoint URL: https://rettilfamilie.dk/wp-json/stripe/v1/webhook
+Endpoint URL: https://rettilfamilie.com/wp-json/stripe/v1/webhook
 Events to listen:
   ✅ checkout.session.completed
   ✅ customer.subscription.created
@@ -157,7 +157,7 @@ Status:   Aktiv med aktivt abonnement
 
 #### 1. **Login som Admin**
 ```
-URL: https://rettilfamilie.dk/platform-auth/
+URL: https://rettilfamilie.com/platform-auth/
 Email: patrickfoerslev@gmail.com
 Password: Ph1357911
 ```
@@ -170,7 +170,7 @@ SHOW TABLES LIKE 'wp_rtf_%';
 
 #### 3. **Test Health Check**
 ```bash
-curl https://rettilfamilie.dk/wp-json/rtf/v1/health
+curl https://rettilfamilie.com/wp-json/rtf/v1/health
 ```
 
 Forventet output:
@@ -210,9 +210,9 @@ Forventet output:
 6. Verificer svensk svar
 
 #### 6. **Test 3-Sprog System**
-- Dansk: https://rettilfamilie.dk/
-- Svensk: https://rettilfamilie.dk/?lang=sv
-- Engelsk: https://rettilfamilie.dk/?lang=en
+- Dansk: https://rettilfamilie.com/
+- Svensk: https://rettilfamilie.com/?lang=sv
+- Engelsk: https://rettilfamilie.com/?lang=en
 
 Verificer alle 17 platform sider har korrekte oversættelser.
 
@@ -326,7 +326,7 @@ require_once get_template_directory() . '/translations.php';
 - API Dokumentation: `/kate-ai/docs/API.md`
 
 ### **Links**
-- Website: https://rettilfamilie.dk
+- Website: https://rettilfamilie.com
 - Facebook (DK): https://www.facebook.com/profile.php?id=61581408422790
 - Facebook (SE): https://www.facebook.com/profile.php?id=61584459144206
 - YouTube: https://www.youtube.com/@RettilFamilie
@@ -378,7 +378,7 @@ Dit RTF Platform er nu **100% klart** til brug med:
 **Log ind og begynd at bruge platformen!**
 
 ```
-URL: https://rettilfamilie.dk/platform-auth/
+URL: https://rettilfamilie.com/platform-auth/
 Email: patrickfoerslev@gmail.com
 Password: Ph1357911
 ```

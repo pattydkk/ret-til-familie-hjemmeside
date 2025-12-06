@@ -1,295 +1,405 @@
 <?php
 /**
- * COMPLETE SYSTEM VERIFICATION TEST
- * Verifies entire RTF platform is working correctly
+ * SYSTEM VERIFICATION & TEST PAGE
+ * Tjek at alt er klar til live
  */
 
-// Load WordPress
-require_once(__DIR__ . '/wp-load.php');
+// Find WordPress
+$wp_load_paths = [
+    __DIR__ . '/../../../wp-load.php',
+    __DIR__ . '/../../wp-load.php',
+    __DIR__ . '/../wp-load.php',
+];
 
-echo "<style>
-body { background: #0f172a; color: #e2e8f0; font-family: monospace; padding: 20px; }
-.section { background: #1e293b; padding: 20px; margin: 20px 0; border-radius: 8px; border: 1px solid #334155; }
-.success { color: #10b981; }
-.error { color: #ef4444; }
-.warning { color: #f59e0b; }
-h1, h2 { color: #2563eb; }
-.check { margin: 10px 0; padding: 10px; background: #0f172a; border-radius: 4px; }
-</style>";
-
-echo "<h1>🔍 RTF PLATFORM - KOMPLET SYSTEM VERIFIKATION</h1>";
-echo "<p>Genereret: " . date('Y-m-d H:i:s') . "</p>";
-
-// ==================== 1. CLASS SYSTEM ====================
-echo "<div class='section'>";
-echo "<h2>1️⃣ RTFUSERSYSTEM CLASS</h2>";
-
-if (class_exists('RtfUserSystem')) {
-    echo "<div class='check success'>✓ RtfUserSystem class exists</div>";
-    
-    global $rtf_user_system;
-    if ($rtf_user_system && $rtf_user_system instanceof RtfUserSystem) {
-        echo "<div class='check success'>✓ Global \$rtf_user_system instance active</div>";
-        
-        // Check methods
-        $methods = ['register', 'authenticate', 'get_user', 'delete_user', 'activate_subscription_by_email', 'log_payment', 'has_active_subscription', 'admin_get_users'];
-        foreach ($methods as $method) {
-            if (method_exists($rtf_user_system, $method)) {
-                echo "<div class='check success'>✓ Method: {$method}()</div>";
-            } else {
-                echo "<div class='check error'>✗ MISSING Method: {$method}()</div>";
-            }
-        }
-    } else {
-        echo "<div class='check error'>✗ Global instance NOT initialized</div>";
+foreach ($wp_load_paths as $path) {
+    if (file_exists($path)) {
+        require_once($path);
+        break;
     }
-} else {
-    echo "<div class='check error'>✗ RtfUserSystem class NOT FOUND</div>";
 }
-echo "</div>";
 
-// ==================== 2. DATABASE TABLES ====================
-echo "<div class='section'>";
-echo "<h2>2️⃣ DATABASE TABELLER</h2>";
+if (!function_exists('wp')) {
+    die("WordPress ikke fundet - kør dette script fra WordPress tema mappen");
+}
 
 global $wpdb;
-$required_tables = [
-    'rtf_platform_users',
-    'rtf_platform_privacy',
-    'rtf_stripe_payments',
-    'rtf_platform_posts',
-    'rtf_platform_messages',
-    'rtf_platform_forum',
-    'rtf_platform_friends'
-];
 
-foreach ($required_tables as $table) {
-    $full_table = $wpdb->prefix . $table;
-    $exists = $wpdb->get_var("SHOW TABLES LIKE '$full_table'");
-    
-    if ($exists) {
-        $count = $wpdb->get_var("SELECT COUNT(*) FROM $full_table");
-        echo "<div class='check success'>✓ {$table} ({$count} records)</div>";
-    } else {
-        echo "<div class='check error'>✗ MISSING: {$table}</div>";
-    }
-}
-
-// Check rtf_platform_users columns
-$users_table = $wpdb->prefix . 'rtf_platform_users';
-$columns = $wpdb->get_results("SHOW COLUMNS FROM $users_table");
-$required_columns = ['stripe_customer_id', 'subscription_status', 'subscription_end_date'];
-
-echo "<h3>Critical User Columns:</h3>";
-foreach ($required_columns as $col) {
-    $found = false;
-    foreach ($columns as $column) {
-        if ($column->Field === $col) {
-            $found = true;
-            break;
-        }
-    }
-    if ($found) {
-        echo "<div class='check success'>✓ Column: {$col}</div>";
-    } else {
-        echo "<div class='check error'>✗ MISSING Column: {$col}</div>";
-    }
-}
-echo "</div>";
-
-// ==================== 3. REST API ENDPOINTS ====================
-echo "<div class='section'>";
-echo "<h2>3️⃣ REST API ENDPOINTS</h2>";
-
-$endpoints = [
-    'kate/v1/admin/user/(?P<id>\d+)' => 'DELETE',
-    'kate/v1/admin/users' => 'GET',
-    'kate/v1/admin/subscription/(?P<id>\d+)' => 'PUT'
-];
-
-$rest_server = rest_get_server();
-$routes = $rest_server->get_routes();
-
-foreach ($endpoints as $route => $method) {
-    $pattern = '#^/kate/v1/admin#';
-    $found = false;
-    
-    foreach ($routes as $route_pattern => $handlers) {
-        if (preg_match($pattern, $route_pattern)) {
-            foreach ($handlers as $handler) {
-                if (in_array($method, $handler['methods'])) {
-                    $found = true;
-                    echo "<div class='check success'>✓ {$method} {$route_pattern}</div>";
-                    break 2;
-                }
-            }
-        }
-    }
-    
-    if (!$found) {
-        echo "<div class='check error'>✗ MISSING: {$method} {$route}</div>";
-    }
-}
-echo "</div>";
-
-// ==================== 4. HANDLER FUNCTIONS ====================
-echo "<div class='section'>";
-echo "<h2>4️⃣ API HANDLER FUNCTIONS</h2>";
-
-$handlers = [
-    'rtf_api_admin_delete_user',
-    'rtf_api_admin_get_users',
-    'rtf_api_admin_update_subscription'
-];
-
-foreach ($handlers as $handler) {
-    if (function_exists($handler)) {
-        echo "<div class='check success'>✓ Function: {$handler}()</div>";
-    } else {
-        echo "<div class='check error'>✗ MISSING Function: {$handler}()</div>";
-    }
-}
-echo "</div>";
-
-// ==================== 5. USER STATISTICS ====================
-echo "<div class='section'>";
-echo "<h2>5️⃣ BRUGER STATISTIK</h2>";
-
-$users_table = $wpdb->prefix . 'rtf_platform_users';
-
-$total = $wpdb->get_var("SELECT COUNT(*) FROM $users_table");
-$active = $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE subscription_status = 'active'");
-$with_stripe = $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE stripe_customer_id IS NOT NULL AND stripe_customer_id != ''");
-$admins = $wpdb->get_var("SELECT COUNT(*) FROM $users_table WHERE is_admin = 1");
-
-echo "<div class='check'>📊 Total brugere: <strong>{$total}</strong></div>";
-echo "<div class='check success'>✓ Aktive subscriptions: <strong>{$active}</strong></div>";
-echo "<div class='check success'>✓ Med Stripe Customer ID: <strong>{$with_stripe}</strong></div>";
-echo "<div class='check warning'>👑 Admins: <strong>{$admins}</strong></div>";
-
-// Recent users
-$recent = $wpdb->get_results("SELECT id, username, email, subscription_status, stripe_customer_id, created_at FROM $users_table ORDER BY created_at DESC LIMIT 5");
-
-echo "<h3>Seneste 5 brugere:</h3>";
-foreach ($recent as $user) {
-    $stripe_status = $user->stripe_customer_id ? "✓ Stripe" : "✗ No Stripe";
-    echo "<div class='check'>[ID {$user->id}] {$user->username} ({$user->email}) - {$user->subscription_status} - {$stripe_status}</div>";
-}
-echo "</div>";
-
-// ==================== 6. STRIPE INTEGRATION ====================
-echo "<div class='section'>";
-echo "<h2>6️⃣ STRIPE INTEGRATION</h2>";
-
-$payments_table = $wpdb->prefix . 'rtf_stripe_payments';
-$payment_count = $wpdb->get_var("SELECT COUNT(*) FROM $payments_table");
-$payment_total = $wpdb->get_var("SELECT SUM(amount) FROM $payments_table WHERE status = 'completed'");
-
-echo "<div class='check'>💰 Total betalinger logget: <strong>{$payment_count}</strong></div>";
-echo "<div class='check success'>💵 Total revenue: <strong>" . number_format($payment_total / 100, 2) . " DKK</strong></div>";
-
-// Recent payments
-$recent_payments = $wpdb->get_results("SELECT * FROM $payments_table ORDER BY created_at DESC LIMIT 5");
-
-echo "<h3>Seneste 5 betalinger:</h3>";
-foreach ($recent_payments as $payment) {
-    $amount = number_format($payment->amount / 100, 2);
-    echo "<div class='check'>[ID {$payment->user_id}] {$amount} {$payment->currency} - {$payment->status} - {$payment->stripe_customer_id}</div>";
-}
-
-// Check if webhook file exists
-if (file_exists(__DIR__ . '/stripe-webhook.php')) {
-    echo "<div class='check success'>✓ stripe-webhook.php exists</div>";
-} else {
-    echo "<div class='check error'>✗ MISSING: stripe-webhook.php</div>";
-}
-echo "</div>";
-
-// ==================== 7. ADMIN PANEL ====================
-echo "<div class='section'>";
-echo "<h2>7️⃣ ADMIN PANEL</h2>";
-
-$admin_files = [
-    'platform-admin-dashboard.php' => 'Admin Dashboard',
-    'platform-admin-users.php' => 'Admin Users Panel'
-];
-
-foreach ($admin_files as $file => $name) {
-    if (file_exists(__DIR__ . '/' . $file)) {
-        $content = file_get_contents(__DIR__ . '/' . $file);
-        
-        // Check for modern features
-        $has_stats = strpos($content, 'stat-total-users') !== false;
-        $has_search = strpos($content, 'searchInput') !== false;
-        $has_delete = strpos($content, 'deleteUser') !== false;
-        $has_activate = strpos($content, 'activateSubscription') !== false;
-        
-        echo "<div class='check success'>✓ {$name}</div>";
-        echo "<div style='margin-left: 20px;'>";
-        echo $has_stats ? "<div class='check success'>  ✓ Statistics</div>" : "<div class='check error'>  ✗ No statistics</div>";
-        echo $has_search ? "<div class='check success'>  ✓ Search</div>" : "<div class='check error'>  ✗ No search</div>";
-        echo $has_delete ? "<div class='check success'>  ✓ Delete function</div>" : "<div class='check error'>  ✗ No delete</div>";
-        echo $has_activate ? "<div class='check success'>  ✓ Activate subscription</div>" : "<div class='check error'>  ✗ No activate</div>";
-        echo "</div>";
-    } else {
-        echo "<div class='check error'>✗ MISSING: {$name}</div>";
-    }
-}
-echo "</div>";
-
-// ==================== 8. AUTHENTICATION ====================
-echo "<div class='section'>";
-echo "<h2>8️⃣ AUTHENTICATION SYSTEM</h2>";
-
-if (file_exists(__DIR__ . '/platform-auth.php')) {
-    $auth_content = file_get_contents(__DIR__ . '/platform-auth.php');
-    
-    $uses_register = strpos($auth_content, '$rtf_user_system->register') !== false;
-    $uses_auth = strpos($auth_content, '$rtf_user_system->authenticate') !== false;
-    $has_stripe = strpos($auth_content, 'Stripe\\Checkout\\Session::create') !== false;
-    
-    echo "<div class='check success'>✓ platform-auth.php exists</div>";
-    echo $uses_register ? "<div class='check success'>✓ Uses \$rtf_user_system->register()</div>" : "<div class='check error'>✗ NOT using register() method</div>";
-    echo $uses_auth ? "<div class='check success'>✓ Uses \$rtf_user_system->authenticate()</div>" : "<div class='check error'>✗ NOT using authenticate() method</div>";
-    echo $has_stripe ? "<div class='check success'>✓ Stripe checkout integration</div>" : "<div class='check error'>✗ No Stripe integration</div>";
-} else {
-    echo "<div class='check error'>✗ MISSING: platform-auth.php</div>";
-}
-echo "</div>";
-
-// ==================== 9. FINAL STATUS ====================
-echo "<div class='section'>";
-echo "<h2>9️⃣ SAMLET STATUS</h2>";
-
-$issues = [];
-
-if (!class_exists('RtfUserSystem')) $issues[] = "RtfUserSystem class ikke fundet";
-if (!$rtf_user_system) $issues[] = "Global instance ikke initialiseret";
-if ($wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}rtf_platform_users'") === null) $issues[] = "rtf_platform_users tabel mangler";
-if (!function_exists('rtf_api_admin_delete_user')) $issues[] = "Admin API handlers mangler";
-
-if (empty($issues)) {
-    echo "<div class='check success' style='font-size: 1.2em; padding: 20px;'>";
-    echo "✅ ✅ ✅ ALLE SYSTEMER FUNGERER KORREKT ✅ ✅ ✅";
-    echo "</div>";
-    echo "<div class='check success'>";
-    echo "• RtfUserSystem class loaded<br>";
-    echo "• Database tabeller OK<br>";
-    echo "• REST API endpoints registreret<br>";
-    echo "• Admin panel moderne og funktionelt<br>";
-    echo "• Stripe integration komplet<br>";
-    echo "• Authentication bruger ny system<br>";
-    echo "</div>";
-} else {
-    echo "<div class='check error' style='font-size: 1.2em; padding: 20px;'>";
-    echo "⚠️ PROBLEMER FUNDET:";
-    echo "</div>";
-    foreach ($issues as $issue) {
-        echo "<div class='check error'>✗ {$issue}</div>";
-    }
-}
-echo "</div>";
-
-echo "<hr>";
-echo "<p style='color: #64748b;'>Test færdig: " . date('Y-m-d H:i:s') . "</p>";
 ?>
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ret til Familie - System Verification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #2563eb;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border-left: 4px solid #2563eb;
+        }
+        .section h2 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        .check-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .check-item:last-child {
+            border-bottom: none;
+        }
+        .check-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .success {
+            background: #10b981;
+            color: white;
+        }
+        .warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .error {
+            background: #ef4444;
+            color: white;
+        }
+        .check-label {
+            flex: 1;
+            color: #334155;
+            font-size: 1.05em;
+        }
+        .check-value {
+            color: #64748b;
+            font-family: monospace;
+            font-size: 0.95em;
+        }
+        .summary {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .summary h2 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 20px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9em;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 System Verification</h1>
+        <p class="subtitle">Ret til Familie Platform - Live Readiness Check</p>
+
+        <?php
+        $checks = [];
+        $success_count = 0;
+        $warning_count = 0;
+        $error_count = 0;
+
+        // CHECK 1: Stripe Configuration
+        $stripe_ok = defined('RTF_STRIPE_SECRET_KEY') && 
+                     !empty(RTF_STRIPE_SECRET_KEY) && 
+                     defined('RTF_STRIPE_PRICE_ID') && 
+                     !empty(RTF_STRIPE_PRICE_ID);
+        
+        $checks[] = [
+            'status' => $stripe_ok ? 'success' : 'error',
+            'label' => 'Stripe Konfiguration',
+            'value' => $stripe_ok ? 'Konfigureret ✓' : 'MANGLER!'
+        ];
+        if ($stripe_ok) $success_count++; else $error_count++;
+
+        // CHECK 2: Stripe Library
+        $stripe_loaded = class_exists('\Stripe\Stripe');
+        $checks[] = [
+            'status' => $stripe_loaded ? 'success' : 'error',
+            'label' => 'Stripe Library',
+            'value' => $stripe_loaded ? 'Loaded ✓' : 'NOT LOADED!'
+        ];
+        if ($stripe_loaded) $success_count++; else $error_count++;
+
+        // CHECK 3: Database Tables
+        $tables_required = ['rtf_platform_users', 'rtf_platform_posts', 'rtf_platform_privacy'];
+        $tables_exist = 0;
+        foreach ($tables_required as $table) {
+            $exists = $wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}{$table}'");
+            if ($exists) $tables_exist++;
+        }
+        $tables_ok = $tables_exist === count($tables_required);
+        $checks[] = [
+            'status' => $tables_ok ? 'success' : 'error',
+            'label' => 'Database Tabeller',
+            'value' => "$tables_exist/" . count($tables_required) . " OK"
+        ];
+        if ($tables_ok) $success_count++; else $error_count++;
+
+        // CHECK 4: User Count
+        $user_count = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}rtf_platform_users");
+        $users_ok = $user_count > 0;
+        $checks[] = [
+            'status' => $users_ok ? ($user_count == 1 ? 'success' : 'warning') : 'error',
+            'label' => 'Brugere i database',
+            'value' => $user_count . ' bruger' . ($user_count != 1 ? 'e' : '')
+        ];
+        if ($users_ok) {
+            if ($user_count == 1) $success_count++;
+            else $warning_count++;
+        } else {
+            $error_count++;
+        }
+
+        // CHECK 5: Patrick's Account
+        $patrick = $wpdb->get_row("SELECT * FROM {$wpdb->prefix}rtf_platform_users WHERE email = 'Patrickfoerslev@gmail.com'");
+        $patrick_ok = $patrick !== null;
+        $checks[] = [
+            'status' => $patrick_ok ? 'success' : 'error',
+            'label' => 'Patrick\'s Admin Konto',
+            'value' => $patrick_ok ? "Findes (ID: {$patrick->id})" : 'MANGLER!'
+        ];
+        if ($patrick_ok) $success_count++; else $error_count++;
+
+        // CHECK 6: Patrick Admin Status
+        if ($patrick_ok) {
+            $admin_ok = $patrick->is_admin == 1;
+            $checks[] = [
+                'status' => $admin_ok ? 'success' : 'warning',
+                'label' => 'Patrick Admin Rettigheder',
+                'value' => $admin_ok ? 'Admin ✓' : 'Ikke admin'
+            ];
+            if ($admin_ok) $success_count++; else $warning_count++;
+        }
+
+        // CHECK 7: Patrick Subscription
+        if ($patrick_ok) {
+            $sub_ok = $patrick->subscription_status === 'active';
+            $checks[] = [
+                'status' => $sub_ok ? 'success' : 'warning',
+                'label' => 'Patrick Abonnement',
+                'value' => $patrick->subscription_status
+            ];
+            if ($sub_ok) $success_count++; else $warning_count++;
+        }
+
+        // CHECK 8: Vendor Directory
+        $vendor_exists = file_exists(get_template_directory() . '/vendor/autoload.php');
+        $checks[] = [
+            'status' => $vendor_exists ? 'success' : 'error',
+            'label' => 'Composer Vendor',
+            'value' => $vendor_exists ? 'Findes ✓' : 'MANGLER - Kør composer install'
+        ];
+        if ($vendor_exists) $success_count++; else $error_count++;
+
+        // CHECK 9: Kate AI Files
+        $kate_exists = file_exists(get_template_directory() . '/kate-ai/kate-ai.php');
+        $checks[] = [
+            'status' => $kate_exists ? 'success' : 'warning',
+            'label' => 'Kate AI System',
+            'value' => $kate_exists ? 'Installeret ✓' : 'Ikke fundet'
+        ];
+        if ($kate_exists) $success_count++; else $warning_count++;
+
+        // CHECK 10: Intents File
+        $intents_path = get_template_directory() . '/kate-ai/data/intents.json';
+        $intents_exists = file_exists($intents_path);
+        if ($intents_exists) {
+            $intents_data = json_decode(file_get_contents($intents_path), true);
+            $intent_count = is_array($intents_data) ? count($intents_data) : 0;
+        } else {
+            $intent_count = 0;
+        }
+        $intents_ok = $intent_count > 30;
+        $checks[] = [
+            'status' => $intents_ok ? 'success' : 'warning',
+            'label' => 'Kate AI Intents',
+            'value' => $intent_count . ' intents'
+        ];
+        if ($intents_ok) $success_count++; else $warning_count++;
+
+        $total_checks = count($checks);
+        $overall_status = $error_count === 0 ? 'success' : ($error_count < 3 ? 'warning' : 'error');
+        ?>
+
+        <div class="summary">
+            <h2>System Status: 
+                <?php if ($overall_status === 'success'): ?>
+                    ✅ KLAR TIL LIVE
+                <?php elseif ($overall_status === 'warning'): ?>
+                    ⚠️ NÆSTEN KLAR
+                <?php else: ?>
+                    ❌ IKKE KLAR
+                <?php endif; ?>
+            </h2>
+            <div class="summary-stats">
+                <div class="stat">
+                    <div class="stat-number" style="color: #10b981;"><?php echo $success_count; ?></div>
+                    <div class="stat-label">Success</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" style="color: #f59e0b;"><?php echo $warning_count; ?></div>
+                    <div class="stat-label">Warnings</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" style="color: #ef4444;"><?php echo $error_count; ?></div>
+                    <div class="stat-label">Errors</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📋 System Checks (<?php echo $total_checks; ?>)</h2>
+            <?php foreach ($checks as $check): ?>
+                <div class="check-item">
+                    <div class="check-icon <?php echo $check['status']; ?>">
+                        <?php 
+                        if ($check['status'] === 'success') echo '✓';
+                        elseif ($check['status'] === 'warning') echo '!';
+                        else echo '✗';
+                        ?>
+                    </div>
+                    <div class="check-label"><?php echo $check['label']; ?></div>
+                    <div class="check-value"><?php echo $check['value']; ?></div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if ($patrick_ok): ?>
+        <div class="section">
+            <h2>👤 Patrick's Profil</h2>
+            <div class="code-block">
+ID: <?php echo $patrick->id; ?>
+
+Username: <?php echo $patrick->username; ?>
+
+Email: <?php echo $patrick->email; ?>
+
+Full Name: <?php echo $patrick->full_name; ?>
+
+Admin: <?php echo $patrick->is_admin ? 'JA ✓' : 'NEJ'; ?>
+
+Subscription: <?php echo $patrick->subscription_status; ?>
+
+Created: <?php echo $patrick->created_at; ?>
+
+Last Login: <?php echo $patrick->last_login ?? 'Aldrig'; ?>
+            </div>
+        </div>
+        <?php endif; ?>
+
+        <div class="section">
+            <h2>🔗 Vigtige Links</h2>
+            <div style="margin-top: 15px;">
+                <a href="<?php echo home_url('/platform-auth/'); ?>" class="btn">🔐 Platform Login</a>
+                <a href="<?php echo home_url('/platform-profil/'); ?>" class="btn">👤 Min Profil</a>
+                <a href="<?php echo home_url('/platform-admin-dashboard/'); ?>" class="btn">⚙️ Admin Panel</a>
+            </div>
+        </div>
+
+        <?php if ($error_count > 0): ?>
+        <div class="section" style="border-left-color: #ef4444;">
+            <h2 style="color: #ef4444;">❌ Kritiske Fejl Fundet</h2>
+            <p style="color: #64748b; margin-top: 10px;">
+                Der er <?php echo $error_count; ?> kritiske fejl der skal rettes før live deployment.
+                Tjek loggen og ret fejlene.
+            </p>
+        </div>
+        <?php elseif ($warning_count > 0): ?>
+        <div class="section" style="border-left-color: #f59e0b;">
+            <h2 style="color: #f59e0b;">⚠️ Advarsler</h2>
+            <p style="color: #64748b; margin-top: 10px;">
+                Der er <?php echo $warning_count; ?> advarsler. Systemet kan køre, men bør optimeres.
+            </p>
+        </div>
+        <?php else: ?>
+        <div class="section" style="border-left-color: #10b981;">
+            <h2 style="color: #10b981;">✅ Alt er Klart!</h2>
+            <p style="color: #64748b; margin-top: 10px;">
+                Systemet er klar til live deployment. Alle checks er bestået!
+            </p>
+        </div>
+        <?php endif; ?>
+
+    </div>
+</body>
+</html>

@@ -205,7 +205,7 @@ get_header();
             loadingIndicator.style.display = 'block';
             
             try {
-                const response = await fetch('/wp-json/kate/v1/chat', {
+                const response = await fetch('/wp-json/kate/v1/message', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {

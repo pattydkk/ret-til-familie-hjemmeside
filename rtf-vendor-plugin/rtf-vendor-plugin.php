@@ -30,9 +30,22 @@ require_once RTF_VENDOR_PLUGIN_DIR . 'github-updater.php';
  * This makes all vendor libraries available globally
  */
 function rtf_vendor_load_dependencies() {
-    $autoload_path = RTF_VENDOR_PLUGIN_DIR . 'vendor/autoload.php';
+    // Try multiple paths for vendor/autoload.php
+    $autoload_paths = [
+        RTF_VENDOR_PLUGIN_DIR . 'vendor/autoload.php',  // In plugin folder
+        get_template_directory() . '/vendor/autoload.php',  // In theme folder
+        ABSPATH . 'wp-content/themes/rtf-platform/vendor/autoload.php'  // Absolute path
+    ];
     
-    if (file_exists($autoload_path)) {
+    $autoload_path = false;
+    foreach ($autoload_paths as $path) {
+        if (file_exists($path)) {
+            $autoload_path = $path;
+            break;
+        }
+    }
+    
+    if ($autoload_path) {
         require_once $autoload_path;
         
         // Log successful load
@@ -64,7 +77,8 @@ function rtf_vendor_load_dependencies() {
     } else {
         // Vendor folder missing - show admin notice
         add_action('admin_notices', 'rtf_vendor_missing_notice');
-        error_log('RTF Vendor Plugin: vendor/autoload.php not found at ' . $autoload_path);
+        error_log('RTF Vendor Plugin: vendor/autoload.php not found in any location');
+        error_log('RTF Vendor Plugin: Tried paths: ' . implode(', ', $autoload_paths));
     }
 }
 

@@ -461,7 +461,7 @@ Kate AI **forstår disse forskelle** og giver kun den relevante lovgivning baser
 
 **Developer**: Patrick F. Hansen  
 **Default Admin**: patrickfoerslev@gmail.com / Ph1357911  
-**Support Email**: kontakt@rettiltifamilie.dk  
+**Support Email**: kontakt@rettilfamilie.com  
 **Support Phone**: +45 123 456 78  
 **GitHub**: hansenhr89dkk/ret-til-familie-hjemmeside  
 

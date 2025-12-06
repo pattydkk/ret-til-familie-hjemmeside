@@ -239,7 +239,7 @@ Password: rtf2024admin
 Email: socialfagligafd.rtf@outlook.dk
 
 **Platform Support:**  
-Email: support@rettilfamilie.dk
+Email: support@rettilfamilie.com
 
 ---
 
