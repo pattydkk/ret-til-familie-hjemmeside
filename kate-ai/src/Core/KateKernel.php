@@ -85,22 +85,31 @@ class KateKernel {
         // Get or create session
         $session = $this->dialogueManager->getSession($sessionId);
         
-        // Detect intent
+        // Detect intent (with spelling correction and conversational support)
         $intentResult = $this->intentDetector->detectIntent($message);
         $intentId = $intentResult['intent_id'];
         $confidence = $intentResult['confidence'];
         
+        // Check if conversational
+        $isConversational = isset($intentResult['is_conversational']) && $intentResult['is_conversational'];
+        
         // Get context from session
         $sessionContext = $this->dialogueManager->getContext($sessionId);
         
-        // Add original message to context for web search
+        // Add original message to context for web search and conversational
         $sessionContext['original_message'] = $message;
+        $sessionContext['is_conversational'] = $isConversational;
+        
+        // DETECT USER MOOD for empathy support
+        $conversationalModule = new ConversationalModule();
+        $userMood = $conversationalModule->detectMood($message);
+        $sessionContext['user_mood'] = $userMood;
         
         // Add law database access with user's country
         $sessionContext['law_database'] = $this->lawDatabase;
         $sessionContext['user_country'] = $userCountry;
         
-        // Build response
+        // Build response (with 98% confidence safety net)
         $startTime = microtime(true);
         $response = $this->responseBuilder->buildResponse($intentId, $confidence, $sessionContext);
         $responseTime = round((microtime(true) - $startTime) * 1000); // ms

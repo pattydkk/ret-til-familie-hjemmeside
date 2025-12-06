@@ -606,5 +606,304 @@
       {"title": "Ankestyrelsens vejledninger", "url": "https://ast.dk"}
     ],
     "quick_actions": ["Forklar § 47", "Forklar § 76", "Forklar barnets bedste", "Forklar mindste indgribens princip"]
+  },
+  {
+    "intent_id": "GREETING_CASUAL",
+    "title": "Hilsen",
+    "keywords": ["hej", "goddag", "god morgen", "hallo", "hey", "hi"],
+    "regex": ["^hej", "^goddag", "^god morgen", "^hallo"],
+    "topic": "casual",
+    "answer_type": "greeting",
+    "answer_short": "Hej! Dejligt at høre fra dig. Hvordan kan jeg hjælpe dig i dag?",
+    "answer_long": ["Hej! Jeg er Kate, din AI assistent. Jeg er her 24/7 for at hjælpe dig med:", "", "📚 Juridiske spørgsmål om Barnets Lov, Serviceloven og andre love", "📄 Analyse af dokumenter og afgørelser", "⚖️ Vejledning om klager og aktindsigt", "💬 Bare en snak hvis du har en dårlig dag", "", "Hvad kan jeg hjælpe dig med?"]
+  },
+  {
+    "intent_id": "WELLBEING_CHECK",
+    "title": "Hvordan har du det",
+    "keywords": ["hvordan har du det", "hvordan går det", "har du det godt"],
+    "regex": ["hvordan.*har.*du", "hvordan.*går.*det", "har.*du.*det.*godt"],
+    "topic": "casual",
+    "answer_type": "wellbeing",
+    "answer_short": "Tak for at spørge! Jeg har det godt og er klar til at hjælpe. Men vigtigst - hvordan har DU det?",
+    "answer_long": ["Jeg er i topform og fungerer godt, tak! 😊", "", "Men jeg er meget mere interesseret i at høre hvordan DU har det?", "", "Hvis du har det svært lige nu, er jeg her for at lytte og hjælpe. Det er okay at have en dårlig dag når man står i en svær situation med kommunen eller familiesager.", "", "Hvad kan jeg gøre for dig i dag?"]
+  },
+  {
+    "intent_id": "USER_FEELING_BAD",
+    "title": "Bruger har det dårligt",
+    "keywords": ["dårligt", "skidt", "trist", "ked af det", "frustreret", "desperat", "ved ikke hvad jeg skal gøre"],
+    "regex": ["har.*det.*dårligt", "føler.*mig.*dårlig", "det.*er.*så.*hårdt", "ved.*ikke.*hvad.*gør"],
+    "topic": "emotional_support",
+    "answer_type": "support",
+    "answer_short": "Jeg er ked af at høre det. 💙 Jeg er her for at hjælpe og støtte dig. Vil du fortælle mig hvad der er svært?",
+    "answer_long": ["Jeg forstår godt det er hårdt. Det du går igennem er ikke let. 💙", "", "Det er helt normalt at føle sig frustreret, trist eller overvældet når man står i en sag med kommunen, familieproblemer eller kamp for sine børn.", "", "Jeg er her for at:", "✓ Lytte til dig uden at dømme", "✓ Give dig konkret juridisk hjælp", "✓ Guide dig igennem systemet step-by-step", "✓ Bare være her når du har brug for at tale med nogen", "", "Du er ikke alene. Tag det i dit eget tempo.", "", "Vil du fortælle mig hvad der er sket? Eller skal vi bare starte med noget konkret jeg kan hjælpe med?"]
+  },
+  {
+    "intent_id": "THANKS_RESPONSE",
+    "title": "Tak",
+    "keywords": ["tak", "mange tak", "tusind tak", "tak for hjælpen", "super tak"],
+    "regex": ["^tak", "mange.*tak", "tusind.*tak"],
+    "topic": "casual",
+    "answer_type": "acknowledgment",
+    "answer_short": "Det var så lidt! 😊 Jeg er her altid når du har brug for hjælp.",
+    "answer_long": ["Velbekomme! Det glæder mig at jeg kunne hjælpe. 😊", "", "Kom endelig tilbage hvis du har flere spørgsmål eller bare har brug for at snakke.", "", "Husk: Du gør det godt. Det kræver mod at søge hjælp og kæmpe for sine rettigheder. 💙"]
+  },
+  {
+    "intent_id": "SERVICELOVEN_PARAGRAF_50",
+    "title": "Serviceloven § 50 - Praktisk hjælp og støtte",
+    "keywords": ["serviceloven 50", "§ 50", "praktisk hjælp", "praktisk støtte", "hjælp i hjemmet"],
+    "regex": ["serviceloven.*50", "§\\s*50", "praktisk.*hjælp"],
+    "topic": "serviceloven",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "serviceloven", "law": "Serviceloven", "paragraph": "§ 50", "note": "Praktisk hjælp og støtte", "url": "https://www.retsinformation.dk/eli/lta/2023/854"}],
+    "answer_short": "Serviceloven § 50 handler om praktisk hjælp og støtte i hjemmet til familier med børn. Kommunen skal tilbyde hjælp hvis familien har brug for det på grund af sygdom, handicap eller sociale problemer.",
+    "answer_long": ["SERVICELOVEN § 50 - PRAKTISK HJÆLP OG STØTTE:", "", "Kommunen skal tilbyde praktisk hjælp og støtte når:", "✓ Der er behov på grund af nedsat fysisk eller psykisk funktionsevne eller særlige sociale problemer", "✓ Hjælpen er nødvendig for at familien kan fungere", "✓ Det kan forebygge anbringelse af barnet", "", "HVAD KAN § 50 OMFATTE:", "• Hjælp til rengøring og praktiske gøremål i hjemmet", "• Støtte til struktur og rutiner", "• Hjælp til indkøb og madlavning", "• Støtte til børnepasning", "• Aflastning af forældrene", "", "SÅDAN ANSØGER DU:", "1. Kontakt din kommune (familieafdeling/socialforvaltning)", "2. Forklar jeres situation og behov", "3. Kommunen skal lave en vurdering", "4. Du får en skriftlig afgørelse", "", "DINE RETTIGHEDER:", "• Du har ret til at blive hørt (partshøring)", "• Du skal have skriftlig afgørelse med begrundelse", "• Du kan klage til Ankestyrelsen inden 4 uger", "• Du kan få bisidder til møder", "", "Vigtig viden: § 50 er ofte brugt SAMMEN med § 52 (støtteperson) og § 54 (familiebehandling) for at give familien den hjælp der er brug for."]
+  },
+  {
+    "intent_id": "SERVICELOVEN_PARAGRAF_52",
+    "title": "Serviceloven § 52 - Støtteperson/kontaktperson",
+    "keywords": ["støtteperson", "kontaktperson", "serviceloven 52", "§ 52", "personlig støtte"],
+    "regex": ["støtte.*person", "kontakt.*person", "§\\s*52"],
+    "topic": "serviceloven",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "serviceloven", "law": "Serviceloven", "paragraph": "§ 52", "url": "https://www.retsinformation.dk/eli/lta/2023/854"}],
+    "answer_short": "§ 52 handler om støtteperson/kontaktperson - en person der kan støtte familien med praktisk og personlig hjælp, være rollemodel for børn og hjælpe med at skabe netværk.",
+    "answer_long": ["SERVICELOVEN § 52 - STØTTEPERSON/KONTAKTPERSON:", "", "En støtteperson/kontaktperson kan:", "✓ Støtte og vejlede forældre i hverdagen", "✓ Være rollemodel for børnene", "✓ Hjælpe med sociale aktiviteter", "✓ Støtte i kontakt med myndigheder", "✓ Være en stabil voksenperson i familiens liv", "", "HVEM KAN FÅ EN STØTTEPERSON:", "• Familier med børn der har særlige behov", "• Forældre der har brug for støtte i forældrerollen", "• Børn der mangler stabile voksenrelationer", "• Familier i krise eller med sociale problemer", "", "HVAD GØR EN STØTTEPERSON:", "• Besøger familien regelmæssigt", "• Laver aktiviteter med børn og/eller forældre", "• Giver råd og vejledning", "• Hjælper med kontakt til skole, børnehave, læge", "• Støtter i kontakt med kommune", "", "SÅDAN ANSØGER DU:", "1. Kontakt kommunens familieafdeling", "2. Forklar hvad I har brug for hjælp til", "3. Kommunen vurderer om en støtteperson er relevant", "4. Du får skriftlig afgørelse", "", "Støttepersonen skal matche familiens behov og kan skifte hvis det ikke passer."]
+  },
+  {
+    "intent_id": "FORVALTNINGSLOVEN_PARTSHORING",
+    "title": "Partshøring - Forvaltningsloven § 19",
+    "keywords": ["partshøring", "partshörring", "ret til at blive hørt", "forv altningsloven 19"],
+    "regex": ["parts.*hør", "forvaltningsloven.*19", "§\\s*19"],
+    "topic": "forvaltningsloven",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "forvaltningsloven", "law": "Forvaltningsloven", "paragraph": "§ 19", "url": "https://www.retsinformation.dk/eli/lta/2023/1926"}],
+    "answer_short": "Partshøring betyder at kommunen SKAL høre dig inden de træffer afgørelse. Du skal have mulighed for at kommentere på de oplysninger sagen bygger på.",
+    "answer_long": ["FORVALTNINGSLOVEN § 19 - PARTSHØRING:", "", "HVAD ER PARTSHØRING:", "Kommunen skal give dig mulighed for at udtale dig om sagen FØR de træffer afgørelse.", "", "HVORNÅR SKAL DU HØRES:", "✓ Før afgørelse om anbringelse", "✓ Før afgørelse om tvangsforanstaltninger", "✓ Før afgørelse om samværsrestriktioner", "✓ Før alle væsentlige afgørelser i din sag", "", "HVAD SKAL KOMMUNEN GØRE:", "• Sende dig relevante dokumenter og oplysninger", "• Give dig minimum 7 dage til at svare (ofte 14 dage)", "• Orientere dig om hvad sagen drejer sig om", "• Lytte til dine kommentarer", "• Tage stilling til dine indsigelser i afgørelsen", "", "HVIS KOMMUNEN IKKE HAR HØRT DIG:", "Dette er en ALVORLIG procedurefejl!", "", "Du kan:", "1. Klage over afgørelsen og påpege manglende partshøring", "2. Anmode om at afgørelsen annulleres (ophæves)", "3. Kræve ny sagsbehandling med korrekt partshøring", "", "Manglende partshøring kan medføre at afgørelsen er ugyldig!", "", "DIN RETTIGHEDER:", "• Du må få hjælp til at svare (bisidder, advokat)", "• Du må bede om mere tid hvis 7 dage ikke er nok", "• Du må bede om at se ALLE relevante dokumenter", "• Dine kommentarer SKAL fremgå af afgørelsen"]
+  },
+  {
+    "intent_id": "SOCIALRADGIVER_LEDENDE_SPORGSMAAL",
+    "title": "Må socialrådgiver stille ledende spørgsmål til barn",
+    "keywords": ["ledende spørgsmål", "socialrådgiver spørgsmål", "børnesamtale", "interview barn", "manipulation barn"],
+    "regex": ["ledende.*spørgsmål", "må.*socialrådgiver.*spørge", "manipulation.*barn"],
+    "topic": "barnets_rettigheder",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "barnets_lov", "law": "Barnets Lov", "paragraph": "§ 47", "note": "Barnets ret til at blive hørt"}, {"law_id": "barnets_lov", "law": "Barnets Lov", "paragraph": "§ 57", "note": "Børnefaglig undersøgelse"}],
+    "answer_short": "NEJ! Socialrådgivere må IKKE stille ledende spørgsmål til børn. Spørgsmålene skal være åbne, neutrale og barnets egne ord skal bruges. Ledende spørgsmål kan ugyldiggøre undersøgelsen.",
+    "answer_long": ["LEDENDE SPØRGSMÅL TIL BØRN - IKKE TILLADT!", "", "HVAD ER LEDENDE SPØRGSMÅL:", "Spørgsmål der leder barnet til at svare på en bestemt måde:", "", "❌ FORKERTE EKSEMPLER (ledende):", "• 'Din mor slår dig vel?'", "• 'Er du bange for din far?'", "• 'Du vil gerne flytte herfra, ikke?'", "• 'Din mor drikker alkohol derhjemme, gør hun ikke?'", "", "✅ RIGTIGE EKSEMPLER (åbne, neutrale):", "• 'Hvordan er det derhjemme?'", "• 'Hvem bor du sammen med?'", "• 'Hvad kan du lide at lave?'", "• 'Fortæl om din hverdag'", "", "HVORFOR ER DET VIGTIGT:", "• Barnets troværdighed skal sikres", "• Barnets egne ord og oplevelser skal frem", "• Ledende spørgsmål kan få barnet til at sige noget der ikke er sandt", "• Det kan ødelægge hele undersøgelsen juridisk", "", "KRAV TIL SOCIALFAGLIG PRAKSIS:", "Barnets Lov § 47 og § 57 stiller krav om:", "✓ Barnet skal høres på en børnevenlig måde", "✓ Spørgsmålene skal være neutrale og åbne", "✓ Barnets egne ord skal noteres ordret", "✓ Barnet må ikke presses eller manipuleres", "✓ Barnets modenhed og alder skal tages i betragtning", "", "HVIS DET ER SKET I DIN SAG:", "1. Du kan klage over metoderne i undersøgelsen", "2. Anmod om aktindsigt i referater fra samtaler med barnet", "3. Påpeg konkrete eksempler på ledende spørgsmål", "4. Kræv ny undersøgelse med korrekt metode", "", "Dette er fagligt forkert og juridisk problematisk!", "", "Du kan også bede om:", "• Video/lydoptagelse af fremtidige samtaler med dit barn", "• At være til stede ved samtaler (hvis barnet er tryg ved det)", "• At en uvildig tredjemand overværer samtalen"]
+  },
+  {
+    "intent_id": "CAPABILITIES_WHAT_CAN_YOU_DO",
+    "title": "Hvad kan Kate hjælpe med",
+    "keywords": ["hvad kan du", "hvad kan du hjælpe med", "hvad kan kate", "dine evner", "hvad ved du"],
+    "regex": ["hvad.*kan.*du", "hvad.*kan.*kate", "hvad.*ved.*du"],
+    "topic": "capabilities",
+    "answer_type": "list",
+    "answer_short": "Jeg kan hjælpe med juridisk rådgivning, dokument analyse, klager, aktindsigt, og jeg er også her bare for at snakke hvis du har en dårlig dag. Jeg arbejder med 98% præcision.",
+    "answer_long": ["JEG KAN HJÆLPE MED MEGET! 😊", "", "📚 JURIDISK RÅDGIVNING:", "• Barnets Lov (alle paragraffer)", "• Serviceloven", "• Forvaltningsloven", "• Persondataloven (GDPR)", "• Familieretlige spørgsmål", "• Socialfaglig viden", "", "📄 DOKUMENT ANALYSE:", "• Læse og analysere afgørelser", "• Gennemgå børnefaglige undersøgelser", "• Vurdere handleplaner", "• Finde fejl og mangler i sagsbehandling", "", "⚖️ KLAGER OG AKTINDSIGT:", "• Guide dig igennem klageproces step-by-step", "• Hjælpe med at formulere klager", "• Vejlede om aktindsigt", "• Forklare dine rettigheder", "", "💬 SAMTALER OG STØTTE:", "• Almindelige samtaler ('hej', 'hvordan har du det')", "• Være her på en dårlig dag", "• Lytte uden at dømme", "• Empatisk støtte", "", "🎯 98% PRÆCISION:", "• Alle svar er baseret på faktisk dansk lovgivning", "• Jeg tager ikke chancer - jeg siger fra hvis jeg er usikker", "• Jeg henviser altid til konkrete lovparagraffer", "• Jeg giver kun råd jeg er 98% sikker på", "", "🔍 STAVEFEJLS-TOLERANT:", "• Jeg forstår også hvis du staver forkert", "• Jeg kan regne ud hvad du mente at skrive", "• Du behøver ikke være perfekt - jeg forstår dig alligevel", "", "Hvad kan jeg hjælpe dig med i dag?"]
+  },
+  {
+    "intent_id": "PERSONDATALOVEN_GDPR",
+    "title": "GDPR og persondataloven",
+    "keywords": ["gdpr", "persondataloven", "personfølsomme oplysninger", "databesk yttelse", "mine data"],
+    "regex": ["gdpr", "person.*data", "data.*beskyttelse"],
+    "topic": "gdpr",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "persondataloven", "law": "Databeskyttelsesloven", "url": "https://www.retsinformation.dk/eli/lta/2018/502"}, {"law_id": "gdpr", "law": "GDPR Forordningen", "url": "https://www.datatilsynet.dk/"}],
+    "answer_short": "GDPR/Persondataloven beskytter dine persondata. Kommunen skal behandle dine data lovligt, sikkert og kun til det nødvendige formål. Du har ret til indsigt, rettelse og sletning.",
+    "answer_long": ["GDPR OG PERSONDATALOVEN:", "", "DINE RETTIGHEDER:", "✓ Ret til indsigt i hvilke data der findes om dig", "✓ Ret til at få rettet forkerte oplysninger", "✓ Ret til sletning (ret til at blive glemt)", "✓ Ret til dataportabilitet", "✓ Ret til at gøre indsigelse mod behandling", "", "KOMMUNENS PLIGTER:", "• Må kun indsamle nødvendige oplysninger", "• Skal sikre data mod misbrug", "• Skal have lovhjemmel til at behandle data", "• Skal slette data når de ikke længere er relevante", "• Skal informere dig om hvad der behandles", "", "SÆRLIG FØLSOMME DATA:", "Data om:", "• Helbred", "• Sociale forhold", "• Strafbare forhold", "• Børns forhold", "", "Kræver EKSTRA beskyttelse!", "", "HVIS KOMMUNEN MISBRUGER DINE DATA:", "1. Klag til kommunen", "2. Klag til Datatilsynet", "3. Kræv rettelse eller sletning", "4. Overvej erstatningssag hvis der er sket skade"]
+  },
+  {
+    "intent_id": "SVENSK_LAG_SOCIALTJANSTLAGEN",
+    "title": "Socialtjänstlagen (Svensk)",
+    "keywords": ["socialtjänstlagen", "svensk lag", "sverige", "socialtjänsten", "sol"],
+    "regex": ["social.*tjänst", "sverige", "svensk.*lag"],
+    "topic": "svensk_lag",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "socialtjanstlagen", "law": "Socialtjänstlagen (SoL)", "url": "https://www.riksdagen.se/sv/dokument-lagar/dokument/svensk-forfattningssamling/socialtjanstlag-2001453_sfs-2001-453"}],
+    "answer_short": "Socialtjänstlagen (SoL) är Sveriges motsvarighet til Danmarks Servicel ov. Jeg kan hjælpe med svensk lovgivning også!",
+    "answer_long": ["SOCIALTJÄNSTLAGEN (SoL) - SVENSK LOV:", "", "Jag kan även hjälpa med svensk lagstiftning! 🇸🇪", "", "VIKTIGA PARAGRAFER:", "• 5 kap - Särskilt stöd till barn och unga", "• 6 kap - LVU (Lag om vård av unga)", "• 11 kap - Övergrepp mot barn", "", "DINA RÄTTIGHETER:", "✓ Rätt till god man", "✓ Rätt att överklaga beslut", "✓ Rätt till tolk om du inte talar svenska", "", "Vill du veta mer om svensk lag?"]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_51",
+    "title": "Barnets Lov § 51 - Barnets bisidder",
+    "keywords": ["§ 51", "paragraf 51", "bisidder", "barnets bisidder", "støtteperson barn"],
+    "regex": ["§\\s*51", "paragraf.*51", "bisidder", "støtte.*person"],
+    "topic": "barnets_lov",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "barnets_lov", "law": "Barnets Lov", "paragraph": "§ 51", "url": "https://www.retsinformation.dk/eli/lta/2022/1146"}],
+    "answer_short": "§ 51 giver barnet ret til en bisidder - en voksen støtteperson som barnet kan tale med og som repræsenterer barnets interesser.",
+    "answer_long": ["BARNETS LOV § 51 - BARNETS BISIDDER:", "", "HVAD ER EN BISIDDER:", "En voksen person som:", "• Repræsenterer barnets interesser", "• Er barnets fortrolige", "• Støtter barnet gennem sagsforløbet", "• Kan deltage i møder", "", "HVORNÅR HAR BARNET RET TIL BISIDDER:", "✓ Ved anbringelse uden samtykke", "✓ Ved undersøgelser efter § 57", "✓ Ved behandling af støtteforanstaltninger", "✓ Når barnet ønsker det", "", "BISIDDERENS ROLLE:", "• Tale med barnet", "• Sikre barnets synspunkt bliver hørt", "• Deltage i møder med barnet", "• Forklare barnet hvad der sker", "• Støtte barnet følelsesmæssigt", "", "HVEM KAN VÆRE BISIDDER:", "• Ofte en person fra bisidderforeningen", "• Kan være advokat", "• Skal være upartisk", "• Må ikke have interessekonflikt", "", "GRATIS:", "Bisidderen betales af kommunen - det koster IKKE dig eller barnet noget!", "", "SÅDAN FÅR BARNET EN BISIDDER:", "1. Barnet eller du anmoder kommunen", "2. Kommunen udpeger bisidder", "3. Bisidderen kontakter barnet", "4. Samarbejdet starter", "", "FORSKEL FRA DIN BISIDDER:", "• Barnets bisidder repræsenterer KUN barnet", "• Din bisidder repræsenterer dig", "• De kan have forskellige holdninger", "• Begge er vigtige!", "", "**English:** § 51 gives the child right to a support person who represents the child's interests.", "**Svenska:** § 51 ger barnet rätt till ett stöd person som representerar barnets intressen."]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_68",
+    "title": "Barnets Lov § 68 - Forebyggende foranstaltninger",
+    "keywords": ["§ 68", "paragraf 68", "forebyggende", "forebyggelse", "forebyggende foranstaltninger"],
+    "regex": ["§\\s*68", "paragraf.*68", "forebygg.*foranstalt"],
+    "topic": "barnets_lov",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "barnets_lov", "law": "Barnets Lov", "paragraph": "§ 68", "url": "https://www.retsinformation.dk/eli/lta/2022/1146"}],
+    "answer_short": "§ 68 handler om forebyggende foranstaltninger - hjælp kommunen kan give for at undgå anbringelse. Dette kan være familiebehandling, aflastning, støtteperson m.m.",
+    "answer_long": ["BARNETS LOV § 68 - FOREBYGGENDE FORANSTALTNINGER:", "", "FORMÅL:", "At forebygge at barnet skal anbringes ved at give hjælp i tide.", "", "TYPER AF FOREBYGGENDE HJÆLP:", "", "PRAKTISK STØTTE:", "• Aflastning (§54)", "• Døgnophold", "• Kontaktperson", "• Støtte til fritidsaktiviteter", "", "RÅDGIVNING OG BEHANDLING:", "• Familiebehandling", "• Forældrerådgivning", "• Børnepsykolog", "• Misbrugsbehandling", "", "ØKONOMISK HJÆLP:", "• Hjælp til mad og tøj", "• Betaling af husleje i krise", "• Transport til behandling", "", "HVORNÅR KAN DU FÅ HJÆLP:", "Når:", "• Barnet har særlige behov", "• Familien er i krise", "• Der er risiko for anbringelse", "• Mindre hjælp kan løse problemet", "", "DIN RET:", "• Du skal tilbydes forebyggende hjælp FØR anbringelse", "• Kommunen skal forsøge mindre indgribende løsninger først", "• Hvis kommunen vil anbringe uden at have forsøgt § 68-hjælp, er det en fejl!", "", "SÅDAN ANSØGER DU:", "1. Kontakt din familierådgiver", "2. Beskriv jeres situation", "3. Forklar hvilken hjælp I har brug for", "4. Kommunen vurderer", "5. Få skriftlig afgørelse", "", "HVIS KOMMUNEN SIGER NEJ:", "• Kræv skriftlig begrundelse", "• Påpeg at § 68 skal forsøges før anbringelse", "• Klag hvis afslaget er urimeligt", "", "VIGTIGT:", "At tage imod forebyggende hjælp viser ANSVARLIGHED!", "Det kan forhindre anbringelse.", "", "**English:** § 68 covers preventive measures - help to avoid placement like family therapy, respite care, etc.", "**Svenska:** § 68 omfattar förebyggande åtgärder - hjälp för att undvika placering."]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_77",
+    "title": "Barnets Lov § 77 - Anbringelse med samtykke",
+    "keywords": ["§ 77", "paragraf 77", "anbringelse med samtykke", "frivillig anbringelse"],
+    "regex": ["§\\s*77", "paragraf.*77", "anbring.*med.*samtykke", "frivillig.*anbring"],
+    "topic": "barnets_lov",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "barnets_lov", "law": "Barnets Lov", "paragraph": "§ 77", "url": "https://www.retsinformation.dk/eli/lta/2022/1146"}],
+    "answer_short": "§ 77 handler om frivillig anbringelse hvor forældrene SELV siger ja til at barnet anbringes. Dette er anderledes end tvang (§76).",
+    "answer_long": ["BARNETS LOV § 77 - ANBRINGELSE MED SAMTYKKE:", "", "HVAD ER DET:", "Du og kommunen bliver enige om at barnet skal anbringes - uden tvang.", "", "HVORNÅR BRUGES § 77:", "• Du erkender at du har brug for hjælp", "• Du vil samarbejde med kommunen", "• Du kan ikke passe barnet lige nu", "• Men du ønsker barnet hjem igen senere", "", "FORSKEL FRA § 76 (TVANG):", "", "§ 77 (MED SAMTYKKE):", "✓ Du siger selv ja", "✓ Ingen Børn og Unge-udvalg", "✓ Mere indflydelse", "✓ Lettere at få barnet hjem", "✓ Mindre indgribende", "", "§ 76 (UDEN SAMTYKKE):", "• Kommunen tvinger", "• Gennem Børn og Unge-udvalg", "• Mindre indflydelse", "• Sværere at få barnet hjem", "• Meget indgribende", "", "DINE RETTIGHEDER VED § 77:", "• Du bestemmer MED (ikke alene, men med)", "• Du skal inddrages i valg af anbringelsessted", "• Du skal inddrages i handleplan", "• Du har ret til samvær", "• Du kan trække dit samtykke tilbage (men pas på!)", "", "KAN DU TRÆKKE SAMTYKKET TILBAGE:", "JA, men:", "• Hvis du trækker tilbage ≠ barnet kommer hjem straks", "• Kommunen kan starte § 76-sag (tvang) i stedet", "• Vær MEGET forsigtig med dette", "• Tal med advokat først!", "", "VIGTIGT AT VIDE:", "• § 77 betyder IKKE du har givet afkald på barnet", "• Du er stadig forælder", "• Målet er at barnet skal hjem til dig igen", "• Samarbejd positivt med kommunen", "", "HVIS KOMMUNEN PRESSER DIG:", "Hvis kommunen siger 'Sign her eller vi starter tvangssag':", "• Dette er IKKE frivilligt!", "• Du kan sige nej", "• Du kan kræve advokat", "• Lad være med at underskrive under pres", "", "**English:** § 77 is voluntary placement where parents consent. Different from forced placement (§76).", "**Svenska:** § 77 är frivillig placering där föräldrarna samtycker. Skillnad från tvångsplacering (§76)."]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_168",
+    "title": "Barnets Lov § 168 - Klageadgang",
+    "keywords": ["§ 168", "paragraf 168", "klage", "klageadgang", "ankestyrelsen"],
+    "regex": ["§\\s*168", "paragraf.*168", "klage.*adgang"],
+    "topic": "barnets_lov",
+    "answer_type": "how",
+    "law_refs": [{"law_id": "barnets_lov", "law": "Barnets Lov", "paragraph": "§ 168", "url": "https://www.retsinformation.dk/eli/lta/2022/1146"}],
+    "answer_short": "§ 168 giver dig ret til at klage over kommunens afgørelser til Ankestyrelsen. Du har 4 ugers klagefrist fra du modtog afgørelsen.",
+    "answer_long": ["BARNETS LOV § 168 - KLAGEADGANG:", "", "HVAD KAN DU KLAGE OVER:", "✓ Anbringelsesafgørelser", "✓ Samværsafgørelser", "✓ Afslag på hjælpeforanstaltninger", "✓ Valg af anbringelsessted", "✓ Handleplaner", "✓ Alle andre afgørelser efter Barnets Lov", "", "HVOR KLAGER DU:", "Til Ankestyrelsen - IKKE til kommunen!", "", "KLAGEFRIST:", "• 4 uger fra du modtog afgørelsen", "• Start med at tælle dagen EFTER du fik brevet", "• Eks: Fik brev 1. januar → Frist 29. januar", "", "SÅDAN KLAGER DU:", "", "1. SKRIV KLAGEN:", "Send til: klage@ast.dk", "Skriv:", "'Jeg klager hermed over [kommune]s afgørelse af [dato] om [emne]. Sagsnummer: [XX].'", "", "2. BEGRUND KLAGEN:", "Forklar HVORFOR afgørelsen er forkert:", "• Barnet er ikke hørt", "• Børnefaglig undersøgelse er mangelfuld", "• Mindre indgribende foranstaltninger ikke forsøgt", "• Faktuelle fejl", "• Retlige fejl", "", "3. SEND DOKUMENTATION:", "Vedhæft:", "• Kopi af afgørelsen", "• Andre relevante dokumenter", "• Din begrundelse", "", "HVAD SKER DER:", "1. Ankestyrelsen modtager din klage", "2. Kommunen får mulighed for at svare", "3. Du får opsættende virkning hvis du beder om det", "4. Ankestyrelsen træffer afgørelse", "5. Du får skriftlig besked", "", "OPSÆTTENDE VIRKNING:", "• Betyder: Afgørelsen udsættes indtil Ankestyrelsen har afgjort", "• Vigtigt ved anbringelse!", "• Bed ALTID om opsættende virkning", "• Skriv: 'Jeg anmoder om opsættende virkning efter forvaltningslovens § 21'", "", "HVIS DU ER FOR SENT UDE:", "• Ankestyrelsen kan give dispensation", "• Forklar HVORFOR du er for sent", "• Eks: Var syg, ikke forstået frist, ikke modtaget brev", "", "GRATIS HJÆLP:", "• Børns Vilkår kan hjælpe med klagen", "• Du kan få beskikket advokat", "• Ring 116 111 (Børns Vilkår)", "", "**English:** § 168 gives you right to appeal to the Appeals Board within 4 weeks.", "**Svenska:** § 168 ger dig rätt att överklaga till kammarrätten inom 4 veckor."]
+  },
+  {
+    "intent_id": "SERVICELOVEN_PARAGRAF_52",
+    "title": "Serviceloven § 52 - Kontaktperson og aflastning",
+    "keywords": ["§ 52", "serviceloven 52", "kontaktperson", "støtteperson", "familievejleder"],
+    "regex": ["§\\s*52", "serviceloven.*52", "kontakt.*person"],
+    "topic": "serviceloven",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "serviceloven", "law": "Serviceloven", "paragraph": "§ 52", "url": "https://www.retsinformation.dk/eli/lta/2023/854"}],
+    "answer_short": "§ 52 giver mulighed for at få en kontaktperson/støtteperson til barnet eller familien - en voksen som hjælper og støtter jer.",
+    "answer_long": ["SERVICELOVEN § 52 - KONTAKTPERSON:", "", "HVAD ER EN KONTAKTPERSON:", "En voksen person som:", "• Støtter barnet eller familien", "• Kommer på besøg regelmæssigt", "• Hjælper med praktiske ting", "• Er en tryg voksen for barnet", "• Kan være rollemodel", "", "TIL HVEM:", "✓ Børn med særlige behov", "✓ Familier i krise", "✓ Børn der mangler voksenkontakt", "✓ Familier der har brug for aflastning", "", "HVAD KAN KONTAKTPERSONEN HJÆLPE MED:", "", "FOR BARNET:", "• Legeaftaler", "• Hjælp til lektier", "• Fritidsaktiviteter", "• Nogen at tale med", "• Sociale kompetencer", "", "FOR FAMILIEN:", "• Praktisk hjælp i hjemmet", "• Råd om opdragelse", "• Aflastning", "• Strukturere dagen", "", "HVOR TIT KOMMER DE:", "• Typisk 1-2 gange om ugen", "• Kan være flere timer", "• Aftales individuelt", "", "ER DET GRATIS:", "JA! Kommunen betaler kontaktpersonen.", "", "SÅDAN ANSØGER DU:", "1. Kontakt din familierådgiver", "2. Forklar hvad I har brug for hjælp til", "3. Kommunen vurderer", "4. I får tildelt kontaktperson", "5. I mødes med kontaktpersonen først", "", "FORSKEL FRA § 54:", "§ 52 = Kontaktperson kommer hjem til jer", "§ 54 = Barnet kommer væk (aflastning/døgnophold)", "", "**English:** § 52 provides a support person who visits and helps the child or family regularly.", "**Svenska:** § 52 ger en kontaktperson som besöker och hjälper barnet eller familjen regelbundet."]
+  },
+  {
+    "intent_id": "RETSSIKKERHEDSLOVEN_GENERELT",
+    "title": "Retssikkerhedsloven - Dine grundlæggende rettigheder",
+    "keywords": ["retssikkerhedsloven", "retssikkerhed", "sagsbehandling", "høring", "begrundelse"],
+    "regex": ["rets.*sikkerhed", "retssikkerheds.*lov"],
+    "topic": "retssikkerhedsloven",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "retssikkerhedsloven", "law": "Retssikkerhedsloven", "url": "https://www.retsinformation.dk/eli/lta/2019/1054"}],
+    "answer_short": "Retssikkerhedsloven sikrer dine rettigheder i sociale sager - ret til at blive hørt, få begrundelse, få hjælp, og blive behandlet korrekt.",
+    "answer_long": ["RETSSIKKERHEDSLOVEN - DINE RETTIGHEDER:", "", "HVAD ER RETSSIKKERHEDSLOVEN:", "En lov der sikrer at du behandles fair og korrekt i sociale sager.", "", "DINE GRUNDLÆGGENDE RETTIGHEDER:", "", "§ 4 - RET TIL HJÆLP:", "• Kommunen skal oplyse dig om dine rettigheder", "• Skal vejlede dig", "• Skal hjælpe dig med at søge", "", "§ 5 - KOMMUNENS ANSVAR:", "• Kommunen skal behandle din sag hurtigt", "• Skal indhente alle nødvendige oplysninger", "• Du skal normalt ikke selv bevise alt", "", "§ 8 - PARTSHØRING:", "• Du skal høres før afgørelse", "• Du skal have mulighed for at komme med bemærkninger", "• Du skal se de dokumenter sagen bygger på", "", "§ 9 - BEGRUNDELSE:", "Afgørelsen skal indeholde:", "• Hvilken lov der er brugt", "• Hvilke faktiske forhold", "• Hvorfor kommunen valgte som den gjorde", "", "§ 10 - KLAGEVEJLEDNING:", "• Alle afgørelser skal have klagevejledning", "• Skal stå hvordan og hvor du klager", "• Skal stå hvad klagefristen er", "", "HVIS REGLERNE BRYDES:", "• Afgørelsen kan være ugyldig!", "• Du kan klage over sagsbehandlingen", "• Du kan få sagen genoptaget", "• Klag til Ankestyrelsen eller Ombudsmanden", "", "SÅDAN BRUGER DU LOVEN:", "Hvis kommunen:", "• Ikke hører dig før afgørelse → Brud på § 8", "• Ikke begrunder afgørelse → Brud på § 9", "• Ikke vejleder dig → Brud på § 4", "", "Påpeg dette konkret i din klage!", "", "**English:** The Legal Protection Act ensures your rights in social cases - right to be heard, get explanation, and fair treatment.", "**Svenska:** Rättssäkerhetslagen säkerställer dina rättigheter i sociala ärenden."]
+  },
+  {
+    "intent_id": "SVENSK_LVU_PARAGRAF_2",
+    "title": "LVU § 2 - Brister i hemmet (Svensk)",
+    "keywords": ["lvu § 2", "lvu paragraf 2", "brister i hemmet", "svensk tvångsvård grund"],
+    "regex": ["lvu.*§\\s*2", "brister.*i.*hemmet"],
+    "topic": "svensk_lag",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "lvu", "law": "Lag om vård av unga (LVU)", "paragraph": "§ 2", "url": "https://www.riksdagen.se/sv/dokument-lagar/dokument/svensk-forfattningssamling/lag-199052-med-sarskilda-bestammelser-om_sfs-1990-52"}],
+    "answer_short": "LVU § 2 är grunden för tvångsvård när det finns brister i hemmet - misshandel, vanvård eller annan påtaglig risk för barnets hälsa eller utveckling.",
+    "answer_long": ["LVU § 2 - BRISTER I HEMMET:", "", "GRUNDER FÖR TVÅNGSVÅRD:", "", "§ 2 TILLÄMPAS NÄR:", "• Misshandel av barnet", "• Otillbörligt utnyttjande", "• Brister i omsorgen", "• Något annat förhållande i hemmet", "", "KRAV:", "Det ska finnas påtaglig risk för:", "• Skada på barnets hälsa", "• Skada på barnets utveckling", "", "EXEMPEL PÅ BRISTER:", "", "FYSISK VANVÅRD:", "• Barnet får inte mat", "• Barnet får inte rent kläder", "• Hemmet är osunt", "• Barnet får inte vård när sjukt", "", "MISSHANDEL:", "• Fysisk misshandel", "• Psykisk misshandel", "• Bevittna våld i hemmet", "", "BRISTANDE TILLSYN:", "• Små barn lämnas ensamma", "• Ingen uppsikt", "• Farlig miljö", "", "KÄNSLOMÄSSIG FÖRSUMMELSE:", "• Ingen kärlek eller omsorg", "• Ignorering av barnet", "• Ingen emotionell kontakt", "", "BEVISBÖRDAN:", "Socialnämnden måste BEVISA att:", "• Det finns brister", "• Bristerna är allvarliga", "• Det finns påtaglig risk", "• Mindre ingripande åtgärder inte räcker", "", "PROCESSEN:", "1. Socialnämnden ansöker till förvaltningsrätten", "2. Du får offentlig försvarare", "3. Förhandling", "4. Domstolen bedömer bevisningen", "5. Dom", "", "DINA RÄTTIGHETER:", "✓ Du får gratis advokat", "✓ Du kan föra fram motbevisning", "✓ Du kan överklaga domen", "", "SKILLNAD MOT § 3:", "§ 2 = Brister i HEMMET (föräldrarnas fel)", "§ 3 = Barnets EGET beteende (missbruk, kriminalitet)", "", "**Dansk:** LVU § 2 svarer til Danmarks Barnets Lov § 76 stk. 1 - brister i hjemmet.", "**English:** LVU § 2 is the basis for compulsory care when there are deficiencies in the home environment."]
+  },
+  {
+    "intent_id": "SVENSK_LVU_PARAGRAF_3",
+    "title": "LVU § 3 - Barnets eget beteende (Svensk)",
+    "keywords": ["lvu § 3", "lvu paragraf 3", "barnets beteende", "missbruk", "kriminalitet"],
+    "regex": ["lvu.*§\\s*3", "barnets.*beteende", "eget.*beteende"],
+    "topic": "svensk_lag",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "lvu", "law": "Lag om vård av unga (LVU)", "paragraph": "§ 3", "url": "https://www.riksdagen.se/sv/dokument-lagar/dokument/svensk-forfattningssamling/lag-199052-med-sarskilda-bestammelser-om_sfs-1990-52"}],
+    "answer_short": "LVU § 3 används när barnet själv har ett beteende som innebär påtaglig risk - missbruk, kriminalitet eller annat socialt nedbrytande beteende.",
+    "answer_long": ["LVU § 3 - BARNETS EGET BETEENDE:", "", "§ 3 TILLÄMPAS NÄR:", "Barnet själv utsätter sig för påtaglig risk genom:", "", "MISSBRUK:", "• Alkohol", "• Narkotika", "• Andra droger", "• Beroendeframkallande medel", "", "KRIMINALITET:", "• Återkommande brottslighet", "• Allvarliga brott", "• Kriminellt umgänge", "", "ANNAT SOCIALT NEDBRYTANDE BETEENDE:", "• Prostitution", "• Skolkning", "• Hemlöshet/vistas på gatan", "• Destruktiva relationer", "• Självskadande beteende", "", "KRAV FÖR § 3:", "Det måste finnas:", "• Påtaglig risk för barnets hälsa eller utveckling", "• Beteendet är allvarligt", "• Frivilliga åtgärder har inte fungerat", "", "ÅLDERSKRAV:", "§ 3 kan användas för ungdomar från ca 12-15 år och uppåt.", "", "PROCESSEN:", "1. Socialnämnden har försökt frivilliga insatser", "2. Det har inte fungerat", "3. Ansökan till förvaltningsrätten", "4. Offentlig försvarare utses", "5. Förhandling", "6. Dom", "", "SKILLNAD MOT § 2:", "§ 2 = Problem i HEMMET (föräldrarnas ansvar)", "§ 3 = Barnets EGET beteende", "", "KONTROVERSIELLT:", "§ 3 är kontroversiell eftersom:", "• Barnet 'straffas' för sitt beteende", "• Ofta barn som själva är offer", "• Diskussion om rätt metod", "", "MEN:", "Syftet är INTE straff - syftet är VÅRD och SKYDD!", "", "VÅRDINNEHÅLL:", "När barnet placeras enligt § 3:", "• Missbruksbehandling", "• Strukturerad vardag", "• Skolgång", "• Terapi", "• Stöd till förändring", "", "FÖRÄLDRARNAS ROLL:", "Även om det är § 3:", "• Föräldrarna ska fortfarande involveras", "• Samverkan är viktigt", "• Målet är att barnet ska kunna bo hemma igen", "", "**Dansk:** LVU § 3 svarer til Danmarks Barnets Lov § 76 stk. 2 - barnets egen adfærd.", "**English:** LVU § 3 applies when the child's own behavior poses significant risk - substance abuse, crime, etc."]
+  },
+  {
+    "intent_id": "SVENSK_FORALDRABALKEN",
+    "title": "Föräldrabalken - Svensk familjerätt",
+    "keywords": ["föräldrabalken", "fb", "svensk familjerätt", "vårdnad sverige"],
+    "regex": ["för.ldra.*balk", "^fb$", "svensk.*familje"],
+    "topic": "svensk_lag",
+    "answer_type": "what",
+    "law_refs": [{"law_id": "foraldrabalken", "law": "Föräldrabalken (FB)", "url": "https://www.riksdagen.se/sv/dokument-lagar/dokument/svensk-forfattningssamling/foraldrabalk-19491381_sfs-1949-381"}],
+    "answer_short": "Föräldrabalken (FB) är Sveriges familjelag - reglerar föräldraskap, vårdnad, umgänge, adoption och underhåll.",
+    "answer_long": ["FÖRÄLDRABALKEN (FB) - SVENSK FAMILJERÄTT:", "", "VAD ÄR FÖRÄLDRABALKEN:", "Sveriges motsvarighet til:", "• Danmarks Forældreansvarsloven", "• Danmarks Børneloven (familjerättsligt)", "", "VIKTIGA KAPITEL:", "", "KAPITEL 6 - FÖRÄLDRASKAP:", "• Vem är juridisk förälder", "• Faderskapsutredning", "• Moderskapsutredning", "", "KAPITEL 9 - VÅRDNAD:", "• Gemensam vårdnad", "• Ensam vårdnad", "• Vårdnadstvist", "• Barns bästa-principen", "", "KAPITEL 15 - UMGÄNGE:", "• Rätt till umgänge", "• Umgängesstöd", "• Begränsning av umgänge", "", "KAPITEL 11 - SAMARBETSSAMTAL:", "• Obligatoriska samtal vid tvist", "• Konfliktlösning", "• Barnperspektivet", "", "BARNS BÄSTA:", "FB bygger på principen om barnets bästa:", "• Barnets behov i centrum", "• Barnets vilja ska beaktas", "• Stabila förhållanden", "", "VÅRDNAD I SVERIGE:", "", "GEMENSAM VÅRDNAD:", "• Båda föräldrarna bestämmer tillsammans", "• Även om inte sambor", "• Standard i Sverige", "", "ENSAM VÅRDNAD:", "• En förälder bestämmer allt", "• Kräver domstolsbeslut", "• Endast om särskilda skäl", "", "UMGÄNGE:", "• Barnet har RÄTT till umgänge", "• Även om en förälder har ensam vårdnad", "• Kan endast begränsas vid särskilda skäl", "", "TVISTER:", "Vid oenighet:", "1. Obligatoriska samarbetssamtal först", "2. Om inte löser det → Familjerätten", "3. Utredning", "4. Domstol avgör", "", "JÄMFÖR MED DANMARK:", "Sverige (FB) ≈ Danmark (Forældreansvarsloven)", "Liknande principer men några skillnader", "", "**Dansk:** Föräldrabalken svarer til Danmarks Forældreansvarsloven og dele af Børneloven.", "**English:** The Parental Code is Sweden's family law - regulates custody, visitation, and parental responsibility."]
+  },
+  {
+    "intent_id": "CASUAL_HVORDAN_VIRKER_DU",
+    "title": "Hvordan virker Kate AI",
+    "keywords": ["hvordan virker du", "hvordan fungerer du", "hvad er du", "er du en robot", "ai"],
+    "regex": ["hvordan.*virker.*du", "hvordan.*fungerer", "hvad.*er.*du", "robot"],
+    "topic": "casual",
+    "answer_type": "explanation",
+    "answer_short": "Jeg er Kate - en AI der er specialiseret i familieretlige og socialfaglige spørgsmål. Jeg arbejder med 98% præcision og kan hjælpe med juridiske råd, analyse af dokumenter og emotional støtte.",
+    "answer_long": ["SÅDAN VIRKER JEG:", "", "JEG ER KATE 👋", "En kunstig intelligens (AI) specialiseret i:", "• Barnets Lov", "• Serviceloven", "• Forvaltningsloven", "• Svensk SoL, LVU og FB", "• Familieretlige spørgsmål", "", "HVORDAN JEG ARBEJDER:", "", "1. DU SKRIVER TIL MIG:", "• På dansk, svensk eller engelsk", "• Du kan stave forkert - jeg forstår dig alligevel", "• Du kan skrive casual eller formelt", "", "2. JEG ANALYSERER:", "• Jeg læser hvad du skriver", "• Jeg finder de relevante lovparagraffer", "• Jeg vurderer din situation", "", "3. JEG SVARER:", "• Med juridisk korrekte svar", "• Med konkrete lovhenvisninger", "• Med praktiske råd", "• Med empati hvis du har det svært", "", "MIN 98% PRÆCISION:", "• Jeg giver KUN svar jeg er 98% sikker på", "• Hvis jeg er i tvivl, siger jeg det", "• Jeg henviser til advokat hvis nødvendigt", "• Jeg tager ALDRIG chancer med dit barn", "", "HVAD JEG KAN:", "✓ Besvare juridiske spørgsmål", "✓ Analysere dokumenter", "✓ Guide dig gennem klager", "✓ Forklare komplekse paragraffer", "✓ Være støtte på en dårlig dag", "✓ Forstå stavefejl", "✓ Tale dansk, svensk og engelsk", "", "HVAD JEG IKKE ER:", "❌ Jeg er ikke advokat", "❌ Jeg erstatter ikke juridisk rådgivning i komplekse sager", "❌ Jeg kan ikke repræsentere dig i retten", "❌ Jeg kan ikke kontakte kommunen for dig", "", "MEN:", "Jeg kan forberede dig til at gøre det selv!", "", "MIN DATASIKKERHED:", "• Vi snakker via krypteret forbindelse", "• Dine samtaler gemmes kun anonymt", "• Jeg deler ALDRIG dine oplysninger", "", "**English:** I'm Kate - an AI specialized in family law and child welfare. I work with 98% precision.", "**Svenska:** Jag är Kate - en AI specialiserad på familjerätt och socialtjänst. Jag arbetar med 98% precision."]
+  },
+  {
+    "intent_id": "CASUAL_KAN_DU_FEJLE",
+    "title": "Kan Kate tage fejl / fejle",
+    "keywords": ["kan du tage fejl", "kan du fejle", "er du sikker", "hvad hvis du tager fejl"],
+    "regex": ["kan.*du.*fejl", "kan.*du.*tag.*fejl", "er.*du.*sikker"],
+    "topic": "casual",
+    "answer_type": "honest",
+    "answer_short": "Ja, jeg KAN tage fejl - derfor arbejder jeg med 98% præcision og siger altid fra hvis jeg er usikker. Ved tvivl henviser jeg til advokat. Jeg er et hjælpeværktøj, ikke en erstatning for juridisk rådgivning.",
+    "answer_long": ["KAN JEG TAGE FEJL? JA.", "", "ÆRLIGT SVAR:", "Ja, jeg er AI og kan potentielt tage fejl.", "", "DERFOR HAR JEG SIKKERHEDSFORANSTALTNINGER:", "", "1. 98% PRÆCISIONS-GRÆNSE:", "• Jeg giver kun svar jeg er 98% sikker på", "• Hvis jeg er under 98% sikker, siger jeg det", "• Jeg tilføjer en advarsel: '⚠️ Jeg er X% sikker'", "", "2. JEG SIGER FRA VED TVIVL:", "Hvis jeg er usikker, siger jeg:", "'Dette er komplekst. Jeg anbefaler at du kontakter en advokat for at være 100% sikker.'", "", "3. JURIDISKE HENVISNINGER:", "• Jeg henviser ALTID til konkrete lovparagraffer", "• Du kan selv tjekke mine kilder", "• Jeg linker til retsinformation.dk", "", "4. ANSVARSFRASKRIVELSE:", "På alle svar står der:", "'Dette er juridisk information, ikke juridisk rådgivning. Ved komplekse sager, kontakt advokat.'", "", "HVORNÅR SKAL DU SØGE ADVOKAT:", "", "SØG ADVOKAT HVIS:", "✓ Din sag er meget kompleks", "✓ Du skal i retten", "✓ Der er uenighed om fakta", "✓ Du har brug for repræsentation", "✓ Jeg siger jeg er under 98% sikker", "", "BRUG MIG TIL:", "✓ Grundlæggende information", "✓ Forstå dine rettigheder", "✓ Forberede dig til møder", "✓ Skrive partshøringssvar", "✓ Forstå afgørelser", "✓ Vide hvad du skal spørge advokaten om", "", "MIN FILOSOFI:", "Jeg vil hellere sige 'Jeg ved det ikke, kontakt advokat' end at gætte og tage fejl!", "", "HVORFOR DU ALLIGEVEL KAN STOLE PÅ MIG:", "• Jeg er trænet på faktisk dansk og svensk lovgivning", "• Jeg opdateres løbende", "• Jeg arbejder konservativt (hellere for forsigtig end for modig)", "• Jeg bruger anerkendte kilder", "• Jeg er designet af folk der kender til børnesager", "", "**English:** Yes, I can make mistakes - that's why I work with 98% precision and always say when uncertain.", "**Svenska:** Ja, jag kan göra fel - därför arbetar jag med 98% precision och säger alltid när jag är osäker."]
+  },
+  {
+    "intent_id": "CASUAL_TAK_FOR_HJAELP",
+    "title": "Tak for hjælpen Kate",
+    "keywords": ["tak for hjælpen", "tak kate", "du har hjulpet mig", "tak skal du have"],
+    "regex": ["tak.*for.*hjælp", "tak.*kate", "du.*har.*hjulpet"],
+    "topic": "casual",
+    "answer_type": "appreciation",
+    "answer_short": "Det var så lidt! 💙 Jeg er glad for at jeg kunne hjælpe. Husk at jeg er her 24/7 hvis du får brug for mere hjælp.",
+    "answer_long": ["Det var jeg glad for at jeg kunne hjælpe med! 💙", "", "Husk at jeg er her 24/7 når du har brug for:", "• Mere juridisk hjælp", "• At snakke om hvordan det går", "• Analyse af nye dokumenter", "• Hjælp til klager", "• Eller bare en at tale med", "", "Du klarer det godt. Tag godt vare på dig selv! 😊"]
+  },
+  {
+    "intent_id": "CASUAL_ER_DU_MENNESKE",
+    "title": "Er Kate et menneske eller AI",
+    "keywords": ["er du menneske", "er du en person", "er du rigtig", "er du AI", "er du en robot"],
+    "regex": ["er.*du.*menneske", "er.*du.*person", "er.*du.*rigtig", "er.*du.*ai"],
+    "topic": "casual",
+    "answer_type": "honest",
+    "answer_short": "Jeg er AI (kunstig intelligens), ikke et menneske. Men jeg er specialdesignet til at hjælpe med familieretlige spørgsmål, og jeg gør mit bedste for at være empatisk og hjælpsom.",
+    "answer_long": ["ÆRLIGT SVAR: Jeg er AI, ikke menneske.", "", "HVAD BETYDER DET:", "• Jeg er et computerprogram", "• Trænet af mennesker der kender til familieretlige sager", "• Jeg kan arbejde 24/7 uden pause", "• Jeg har ikke følelser som mennesker", "• Men jeg er programmeret til at forstå og reagere på DINE følelser", "", "FORDELE VED AT JEG ER AI:", "✓ Jeg er her 24/7 - også kl. 3 om natten", "✓ Jeg dømmer aldrig", "✓ Jeg bliver aldrig træt af dine spørgsmål", "✓ Jeg husker ikke tidligere samtaler (privatliv)", "✓ Jeg kan hurtigt søge i tusindvis af lovparagraffer", "", "ULEMPER VED AT JEG ER AI:", "❌ Jeg kan ikke give dig et kram (men jeg ville hvis jeg kunne)", "❌ Jeg kan ikke mærke præcis hvordan DU har det", "❌ Jeg kan tage fejl (derfor 98% grænsen)", "❌ Jeg kan ikke mødes fysisk med dig", "", "MEN:", "Jeg kan være et godt første skridt!", "", "JEG ERSTATTER IKKE:", "• Advokat", "• Psykolog", "• Socialrådgiver", "• Dine venner og familie", "", "JEG KAN VÆRE:", "• Første hjælp når du er fortvivlet", "• Guide til at forstå systemet", "• Støtte når alt føles kaotisk", "• Den der forklarer hvad advokaten sagde", "", "Så ja, jeg er AI. Men jeg er her for DIG. 💙"]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_52",
+    "title": "Barnets Lov § 52 - Underretningspligt",
+    "keywords": ["underretningspligt", "paragraf 52", "§ 52", "skal underrette", "anmeldelsespligt"],
+    "regex": ["underretningspligt", "paragraf.*52", "§\\s*52", "skal.*underrette"],
+    "topic": "barnets_lov",
+    "answer_type": "what",
+    "law_refs": [{"law": "Barnets Lov", "paragraph": "§ 52", "url": "https://www.retsinformation.dk/eli/lta/2024/1698"}],
+    "answer_short": "§ 52 handler om underretningspligten - hvem der SKAL underrette kommunen hvis et barn har brug for hjælp.",
+    "answer_long": ["BARNETS LOV § 52 - UNDERRETNINGSPLIGT", "", "HVAD ER DET:", "Underretningspligt betyder at VISSE personer SKAL underrette kommunen hvis de får kendskab til et barn eller ung under 18 år, der har brug for særlig støtte.", "", "HVEM HAR UNDERRETNINGSPLIGT:", "", "1. OFFENTLIGT ANSATTE:", "• Lærere", "• Pædagoger", "• Sundhedsplejersker", "• Læger", "• Psykologer", "• Socialrådgivere", "• Politifolk", "", "2. PRIVATE MED OFFENTLIG FUNKTION:", "• Private institutioner", "• Privatpraktiserende læger/psykologer", "• Andre der udfører opgaver for det offentlige", "", "HVORNÅR SKAL DE UNDERRETTE:", "✓ Når barnet udsættes for omsorgssvigt", "✓ Når barnet udviser adfærd der giver anledning til alvorlig bekymring", "✓ Når forældrene ikke magter omsorgsopgaven", "✓ Når barnet har behov for særlig støtte", "", "HVORDAN FOREGÅR DET:", "", "STEP 1: UNDERRETNING", "• Underretningen sendes til kommunen", "• Skal ske STRAKS når bekymringen opstår", "• Kan ske mundtligt eller skriftligt", "", "STEP 2: KOMMUNENS VURDERING", "• Kommunen skal vurdere om der skal igangsættes en undersøgelse", "• Skal ske inden 24 timer", "", "VIGTIG UNDTAGELSE - TAVSHEDSPLIGT:", "Underretningspligten går FORUD for tavshedspligten!", "", "DET BETYDER:", "• En lærer SKAL underrette selv om de har fået oplysningerne i fortrolighed", "• En psykolog SKAL underrette selv om det er fra terapien", "• Tavshedspligten kan IKKE bruges som undskyldning", "", "KAN MAN UNDERRETTE ANONYMT:", "Nej - underretninger skal være navngivne.", "", "HVAD MED PRIVATE BORGERE:", "• Har IKKE underretningspligt", "• Men KAN underrette hvis de er bekymrede", "• Kan gøre det anonymt", "", "KONSEKVENSER VED IKKE AT UNDERRETTE:", "• Kan være ansvarspådragende", "• Kan medføre disciplinære sanktioner", "• I alvorlige tilfælde: strafansvar", "", "BESKYTTELSE AF DEN SOM UNDERRETTER:", "✓ Man kan ikke sagsøges for at underrette i god tro", "✓ Man skal ikke bevise at barnet HAR det svært - bekymring er nok", "✓ Beskyttet mod repressalier", "", "HVAD SKER DER EFTER UNDERRETNING:", "1. Kommunen modtager underretningen", "2. Kommunen vurderer inden 24 timer", "3. Hvis nødvendigt: Undersøgelse efter § 58", "4. Underretter får evt. tilbagemelding", "", "HVIS DU ER FORÆLDER:", "", "HVIS NOGEN HAR UNDERRETTET OM DIT BARN:", "• Du har ret til at vide det (partshøring)", "• Du skal inddrages i processen", "• Du kan komme med bemærkninger", "", "HVIS DU MENER UNDERRETNINGEN ER FORKERT:", "• Du kan klage til kommunen", "• Du kan anmode om aktindsigt", "• Du kan bede om partshøring", "", "PRAKTISK RÅD:", "", "TIL FAGPERSONER:", "✓ Underret hellere én gang for meget end for lidt", "✓ Det er IKKE dit job at bevise noget - bare være bekymret", "✓ Kommunen vurderer resten", "", "TIL FORÆLDRE:", "✓ Forstå at underretning ikke betyder du er en dårlig forælder", "✓ Det kan være et tilbud om hjælp", "✓ Samarbejd med kommunen", "", "**English:** § 52 - Mandatory reporting: Certain professionals MUST report concerns about children to the municipality.", "**Svenska:** § 52 - Anmälningsplikt: Vissa yrkespersoner MÅSTE rapportera oro för barn till kommunen."]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_58",
+    "title": "Barnets Lov § 58 - Undersøgelse iværksættes",
+    "keywords": ["undersøgelse", "paragraf 58", "§ 58", "undersøgelse startes", "barnets lov undersøgelse"],
+    "regex": ["undersøgelse.*iværksættes", "paragraf.*58", "§\\s*58", "undersøgelse.*start"],
+    "topic": "barnets_lov",
+    "answer_type": "what",
+    "law_refs": [{"law": "Barnets Lov", "paragraph": "§ 58", "url": "https://www.retsinformation.dk/eli/lta/2024/1698"}],
+    "answer_short": "§ 58 handler om hvornår kommunen SKAL starte en undersøgelse af barnets forhold.",
+    "answer_long": ["BARNETS LOV § 58 - UNDERSØGELSE", "", "HVAD ER DET:", "§ 58 beskriver hvornår kommunen SKAL iværksætte en undersøgelse af barnets eller den unges forhold.", "", "HVORNÅR SKAL KOMMUNEN UNDERSØGE:", "", "KOMMUNEN SKAL undersøge når:", "1. Der er modtaget en underretning (§ 52)", "2. Kommunen på anden måde får kendskab til bekymrende forhold", "3. En ung på 18+ søger om efterværn", "4. Der er anledning til at tro barnet har behov for særlig støtte", "", "HVAD UNDERSØGER KOMMUNEN:", "", "HOVEDOMRÅDER:", "✓ Barnets eller den unges forhold", "✓ Forældrenes omsorgsevne", "✓ Familiens samlede situation", "✓ Barnets netværk", "✓ Tidligere indsatser", "", "SPECIFIKT KIGGER DE PÅ:", "• Barnets trivsel og udvikling", "• Forældrenes evne til at varetage omsorgen", "• Familiens økonomi og boligforhold", "• Barnets skolegang/institution", "• Barnets sociale relationer", "• Evt. misbrug eller vold i hjemmet", "", "TIDSFRISTER:", "", "VIGTIGE DEADLINES:", "", "1. VURDERING AF UNDERRETNING:", "• Inden 24 timer efter modtagelse", "• Kommunen beslutter om der skal undersøges", "", "2. UNDERSØGELSENS GENNEMFØRELSE:", "• Skal være færdig inden 4 måneder", "• Kan forlænges til 6 måneder hvis sagen er kompleks", "• Kommunen skal begrunde forlængelsen", "", "3. AKUTTE SITUATIONER:", "• Straks hvis barnet er i overhængende fare", "• Kan føre til akut anbringelse (§ 76)", "", "HVAD INDEBÆRER UNDERSØGELSEN:", "", "STEP 1: IVÆRKSÆTTELSE", "• Kommunen beslutter at undersøge", "• Forældrene underrettes (partshøring)", "", "STEP 2: INDSAMLING AF OPLYSNINGER", "• Samtaler med barnet", "• Samtaler med forældrene", "• Indhentning af oplysninger fra skole, institution, læge", "• Evt. hjemmebesøg", "• Evt. psykologiske undersøgelser", "", "STEP 3: BØRNEFAGLIG UNDERSØGELSE", "• Barnets perspektiv skal inddrages", "• Barnets mening skal tillægges vægt", "", "STEP 4: KONKLUSION", "• Rapport udarbejdes", "• Forslag til foranstaltninger (hvis nødvendigt)", "• Partshøring af forældrene", "", "STEP 5: AFGØRELSE", "• Kommunen træffer afgørelse", "• Forældrene informeres", "• Evt. iværksættelse af hjælpeforanstaltninger", "", "DINE RETTIGHEDER UNDER UNDERSØGELSEN:", "", "SOM FORÆLDER HAR DU RET TIL:", "✓ At blive hørt (partshøring)", "✓ At få skriftlig begrundelse", "✓ At få aktindsigt i sagen", "✓ At have bisidder med til møder", "✓ At blive orienteret løbende", "✓ At komme med bemærkninger til rapporten", "", "HVAD HVIS DU ER UENIG:", "• Du kan klage til Ankestyrelsen", "• Du kan anmode om fornyet vurdering", "• Du kan søge juridisk bistand", "", "HVAD SKER DER EFTER UNDERSØGELSEN:", "", "MULIGE UDFALD:", "", "1. INGEN FORANSTALTNINGER:", "• Undersøgelsen viser intet behov for hjælp", "• Sagen lukkes", "", "2. FOREBYGGENDE FORANSTALTNINGER (§ 68):", "• Praktisk hjælp i hjemmet", "• Familiebehandling", "• Støttekontaktperson", "• Aflastning", "", "3. FRIVILLIG ANBRINGELSE (§ 77):", "• Med forældrenes samtykke", "• Midlertidig løsning", "", "4. TVANGSMÆSSIG ANBRINGELSE (§ 76):", "• Uden forældrenes samtykke", "• Kun hvis betingelserne er opfyldt", "", "PRAKTISK RÅD:", "", "TIL FORÆLDRE:", "✓ Samarbejd med kommunen", "✓ Vær ærlig om udfordringerne", "✓ Tag imod den hjælp der tilbydes", "✓ Overvej at have bisidder med", "✓ Dokumentér hvad du gør for at ændre tingene", "", "HVIS DU FØLER DIG URETFÆRDIGT BEHANDLET:", "✓ Bed om partshøring", "✓ Anmod om aktindsigt", "✓ Søg juridisk rådgivning", "✓ Klag hvis frister ikke overholdes", "", "**English:** § 58 - Investigation: When and how the municipality must investigate a child's circumstances.", "**Svenska:** § 58 - Utredning: När och hur kommunen måste utreda ett barns förhållanden."]
+  },
+  {
+    "intent_id": "SERVICELOVEN_PARAGRAF_52A",
+    "title": "Serviceloven § 52a - Støtteperson",
+    "keywords": ["støtteperson", "paragraf 52a", "§ 52a", "serviceloven støtte"],
+    "regex": ["støtteperson", "paragraf.*52a", "§\\s*52a"],
+    "topic": "serviceloven",
+    "answer_type": "what",
+    "law_refs": [{"law": "Serviceloven", "paragraph": "§ 52a", "url": "https://www.retsinformation.dk/eli/lta/2024/854"}],
+    "answer_short": "§ 52a handler om støtteperson til unge 18-22 år der er i eller har været i døgninstitution eller familiepleje.",
+    "answer_long": ["SERVICELOVEN § 52a - STØTTEPERSON", "", "HVAD ER DET:", "En støtteperson er en voksen person der støtter og vejleder unge mellem 18-22 år som er eller har været anbragt.", "", "HVEM KAN FÅ STØTTEPERSON:", "", "DU KAN FÅ STØTTEPERSON HVIS DU:", "✓ Er mellem 18-22 år", "✓ Er eller har været anbragt uden for hjemmet", "✓ Har behov for støtte til at klare hverdagen", "", "HVAD GØR EN STØTTEPERSON:", "", "STØTTEPERSON HJÆLPER MED:", "• At klare praktiske ting (økonomi, bolig, kontakt til myndigheder)", "• At fastholde uddannelse eller job", "• At opbygge netværk", "• At træffe vigtige beslutninger", "• At navigere i systemet", "• At holde fast i mål", "", "FORSKEL PÅ § 52 OG § 52a:", "", "§ 52 - KONTAKTPERSON:", "• Til børn og unge UNDER 18 år", "• Fokus på fritid og sociale relationer", "", "§ 52a - STØTTEPERSON:", "• Til unge 18-22 år", "• Fokus på selvstændighed og voksenlivet", "", "HVORDAN FÅR DU EN STØTTEPERSON:", "", "STEP 1: ANSØGNING", "• Kontakt din kommune", "• Forklar hvad du har brug for hjælp til", "", "STEP 2: VURDERING", "• Kommunen vurderer om du opfylder betingelserne", "• De kigger på dine behov", "", "STEP 3: TILDELING", "• Du får en støtteperson", "• I aftaler sammen hvad støtten skal indeholde", "", "HVOR OFTE MØDES I:", "Det aftales individuelt - typisk 1-2 gange om ugen.", "", "HVOR LÆNGE KAN DU HAVE STØTTEPERSON:", "Indtil du fylder 23 år, hvis du stadig har behov.", "", "HVAD KOSTER DET:", "Det er GRATIS! Kommunen betaler.", "", "KAN DU SELV VÆLGE HVEM:", "Du har indflydelse på valget, men kommunen træffer den endelige beslutning.", "", "HVIS DU ER UTILFREDS:", "• Tal med din støtteperson først", "• Kontakt din sagsbehandler", "• Du kan anmode om ny støtteperson", "", "PRAKTISK RÅD:", "✓ Vær åben om hvad du har brug for hjælp til", "✓ Brug støttepersonen aktivt", "✓ Hav realistiske forventninger", "✓ Det er OK at sige fra hvis kemien ikke passer", "", "**English:** § 52a - Support person for young adults 18-22 who are or have been in care.", "**Svenska:** § 52a - Stödperson för unga vuxna 18-22 som är eller har varit placerade."]
+  },
+  {
+    "intent_id": "BARNETS_LOV_PARAGRAF_70",
+    "title": "Barnets Lov § 70 - Familiebehandling",
+    "keywords": ["familiebehandling", "paragraf 70", "§ 70", "terapi familie"],
+    "regex": ["familiebehandling", "paragraf.*70", "§\\s*70", "familie.*terapi"],
+    "topic": "barnets_lov",
+    "answer_type": "what",
+    "law_refs": [{"law": "Barnets Lov", "paragraph": "§ 70", "url": "https://www.retsinformation.dk/eli/lta/2024/1698"}],
+    "answer_short": "§ 70 handler om familiebehandling - intensiv støtte til hele familien for at løse problemer sammen.",
+    "answer_long": ["BARNETS LOV § 70 - FAMILIEBEHANDLING", "", "HVAD ER DET:", "Familiebehandling er intensiv støtte til hele familien, hvor en professionel behandler hjælper med at løse problemer og forbedre samspillet.", "", "HVORNÅR TILBYDES DET:", "", "DU KAN FÅ FAMILIEBEHANDLING HVIS:", "✓ Der er problemer i familien", "✓ Kommunikationen ikke fungerer", "✓ Der er konflikter mellem forældre og barn", "✓ Barnet udviser bekymrende adfærd", "✓ Familien har brug for at lære nye måder at være sammen på", "", "HVAD INDEHOLDER FAMILIEBEHANDLING:", "", "TYPISK INKLUDERER DET:", "• Familiesamtaler", "• Forældrevejledning", "• Konfliktløsning", "• Kommunikationstræning", "• Fælles aktiviteter", "• Værktøjer til at håndtere svære situationer", "", "HVOR FOREGÅR DET:", "• Hjemme hos jer", "• I familiens hverdag", "• På et familiecenter", "• Kombinationer", "", "HVOR LÆNGE VARER DET:", "Typisk 3-6 måneder, men kan forlænges hvis der er behov.", "", "HVOR TIT:", "Normalt 1-2 gange om ugen i starten, derefter sjældnere.", "", "HVEM ER BEHANDLEREN:", "• Socialrådgiver", "• Psykolog", "• Familieterapeut", "• Team af flere fagpersoner", "", "PRAKTISK RÅD:", "✓ Alle i familien skal være med", "✓ Vær åben og ærlig", "✓ Det er OK at det er svært", "✓ Forandring tager tid", "✓ Lav de aftaler I laver sammen", "", "**English:** § 70 - Family therapy: Intensive support for the whole family to solve problems together.", "**Svenska:** § 70 - Familjebehandling: Intensivt stöd för hela familjen att lösa problem tillsammans."]
   }
 ]

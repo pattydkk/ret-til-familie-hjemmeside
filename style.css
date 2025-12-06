@@ -180,7 +180,7 @@ a:hover {
 
 .section-lead {
   font-size: 0.95rem;
-  color: var(--rtf-muted);
+  color: var(--rtf-text);
   max-width: 800px;
 }
 
@@ -205,7 +205,7 @@ a:hover {
 
 .hero-subtitle {
   font-size: 0.98rem;
-  color: var(--rtf-muted);
+  color: var(--rtf-text);
   max-width: 640px;
 }
 
@@ -280,7 +280,7 @@ a:hover {
 
 .hero-side p {
   font-size: 0.85rem;
-  color: var(--rtf-muted);
+  color: var(--rtf-text);
 }
 
 .hero-tags {
@@ -318,7 +318,7 @@ a:hover {
   background: radial-gradient(circle at top, #eff6ff 0%, #f4f5fb 45%, #e5e7eb 100%);
   padding: 0.9rem 1rem;
   font-size: 0.9rem;
-  color: var(--rtf-muted);
+  color: var(--rtf-text);
 }
 
 .info-box h3 {

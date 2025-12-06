@@ -3,6 +3,217 @@
  * Template Name: Platform Login/Registrering
  */
 
+// Start output buffering to prevent "headers already sent" errors
+ob_start();
+
+// Initialize error variable
+$error = null;
+
+// Handle login BEFORE any output
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
+    // CSRF protection
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'rtf_login')) {
+        wp_die('Security check failed');
+    }
+    
+    global $rtf_user_system;
+    $lang = rtf_get_lang();
+    
+    $username_or_email = sanitize_text_field($_POST['username']);
+    $password = $_POST['password'];
+    
+    $result = $rtf_user_system->authenticate($username_or_email, $password);
+    
+    if ($result['success']) {
+        $user = $result['user'];
+        session_regenerate_id(true);
+        $_SESSION['rtf_user_id'] = $user->id;
+        $_SESSION['rtf_username'] = $user->username;
+        
+        wp_redirect(home_url('/platform-profil/?lang=' . $lang));
+        exit;
+    } else {
+        if ($lang === 'da') {
+            $error = 'Forkert brugernavn/email eller adgangskode';
+        } elseif ($lang === 'sv') {
+            $error = 'Fel användarnamn/e-post eller lösenord';
+        } else {
+            $error = 'Wrong username/email or password';
+        }
+    }
+}
+
+// Handle registration BEFORE any output
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register') {
+    // CSRF protection
+    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'rtf_register')) {
+        wp_die('Security check failed');
+    }
+    
+    global $rtf_user_system;
+    $lang = rtf_get_lang();
+    
+    // Prepare registration data
+    $registration_data = [
+        'username' => $_POST['username'] ?? '',
+        'email' => $_POST['email'] ?? '',
+        'password' => $_POST['password'] ?? '',
+        'full_name' => $_POST['full_name'] ?? '',
+        'birthday' => $_POST['birthday'] ?? '',
+        'phone' => $_POST['phone'] ?? '',
+        'bio' => $_POST['bio'] ?? '',
+        'language_preference' => $_POST['language_preference'] ?? 'da_DK',
+        'is_admin' => isset($_POST['is_admin']) ? intval($_POST['is_admin']) : 0
+    ];
+    
+    // Register user
+    $result = $rtf_user_system->register($registration_data);
+    
+    if (!$result['success']) {
+        $error = $result['error'];
+        
+        // Translate common errors
+        if ($lang === 'da') {
+            if (strpos($error, 'Username already exists') !== false) $error = 'Brugernavn er allerede i brug';
+            elseif (strpos($error, 'Email already registered') !== false) $error = 'Email er allerede registreret';
+            elseif (strpos($error, 'Invalid email') !== false) $error = 'Ugyldig email adresse';
+            elseif (strpos($error, 'Password must be') !== false) $error = 'Adgangskode skal være mindst 8 tegn';
+            elseif (strpos($error, 'Username must be') !== false) $error = 'Brugernavn skal være 3-50 tegn (kun bogstaver, tal, underscore)';
+        } elseif ($lang === 'sv') {
+            if (strpos($error, 'Username already exists') !== false) $error = 'Användarnamn används redan';
+            elseif (strpos($error, 'Email already registered') !== false) $error = 'E-post är redan registrerad';
+            elseif (strpos($error, 'Invalid email') !== false) $error = 'Ogiltig e-postadress';
+            elseif (strpos($error, 'Password must be') !== false) $error = 'Lösenord måste vara minst 8 tecken';
+            elseif (strpos($error, 'Username must be') !== false) $error = 'Användarnamn måste vara 3-50 tecken (endast bokstäver, siffror, understreck)';
+        }
+        
+        error_log('RTF Registration Failed: ' . $result['error'] . ' for ' . $registration_data['email']);
+        
+    } else {
+        // Registration successful!
+        $user_id = $result['user_id'];
+        $email = $result['email'];
+        $username = $result['username'];
+        
+        session_regenerate_id(true);
+        $_SESSION['rtf_user_id'] = $user_id;
+        $_SESSION['rtf_username'] = $username;
+        
+        error_log("RTF Registration Success: User $username (ID: $user_id, Email: $email) created");
+        
+        // Check if admin creating user
+        $admin_create = isset($_POST['admin_create']) && $_POST['admin_create'] === '1';
+        
+        if ($admin_create) {
+            error_log("RTF: Admin created user $username - skipping Stripe");
+            wp_redirect(home_url('/platform-admin-dashboard/?lang=' . $lang . '&user_created=success'));
+            exit;
+        }
+        
+        // Normal user registration - redirect to Stripe
+        $stripe_init = get_template_directory() . '/stripe-php-13.18.0/init.php';
+        
+        if (!file_exists($stripe_init)) {
+            error_log("RTF Stripe Error: Library not found at " . $stripe_init);
+            
+            global $wpdb;
+            $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
+            unset($_SESSION['rtf_user_id']);
+            unset($_SESSION['rtf_username']);
+            
+            $error = ($lang === 'da') ? 'Betalingssystem ikke tilgængeligt. Kontakt support.' : 
+                     (($lang === 'sv') ? 'Betalningssystem inte tillgängligt. Kontakta support.' : 'Payment system unavailable.');
+        } else {
+            require_once($stripe_init);
+            
+            if (!defined('RTF_STRIPE_SECRET_KEY') || empty(RTF_STRIPE_SECRET_KEY)) {
+                error_log("RTF Stripe Error: Secret key not configured");
+                global $wpdb;
+                $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
+                unset($_SESSION['rtf_user_id']);
+                unset($_SESSION['rtf_username']);
+                $error = 'Betalingssystem konfigurationsfejl.';
+            } else if (!defined('RTF_STRIPE_PRICE_ID') || empty(RTF_STRIPE_PRICE_ID)) {
+                error_log("RTF Stripe Error: Price ID not configured");
+                global $wpdb;
+                $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
+                unset($_SESSION['rtf_user_id']);
+                unset($_SESSION['rtf_username']);
+                $error = 'Betalingssystem konfigurationsfejl.';
+            } else {
+                try {
+                    \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
+                    
+                    // Create Stripe Checkout Session with detailed metadata
+                    $checkout_session = \Stripe\Checkout\Session::create([
+                        'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success&session_id={CHECKOUT_SESSION_ID}'),
+                        'cancel_url' => home_url('/platform-auth/?lang=' . $lang . '&payment=cancelled&msg=payment_cancelled'),
+                        'payment_method_types' => ['card'],
+                        'mode' => 'subscription',
+                        'customer_email' => $email,
+                        'client_reference_id' => (string)$user_id,
+                        'line_items' => [[
+                            'price' => RTF_STRIPE_PRICE_ID,
+                            'quantity' => 1
+                        ]],
+                        'subscription_data' => [
+                            'metadata' => [
+                                'user_id' => (string)$user_id,
+                                'username' => $username,
+                                'email' => $email,
+                                'rtf_platform' => 'true'
+                            ]
+                        ],
+                        'metadata' => [
+                            'user_id' => (string)$user_id,
+                            'username' => $username,
+                            'email' => $email
+                        ]
+                    ]);
+                    
+                    error_log("RTF Stripe: ========================================");
+                    error_log("RTF Stripe: Checkout session created for new user");
+                    error_log("RTF Stripe: User ID: " . $user_id);
+                    error_log("RTF Stripe: Username: " . $username);
+                    error_log("RTF Stripe: Email: " . $email);
+                    error_log("RTF Stripe: Session ID: " . $checkout_session->id);
+                    error_log("RTF Stripe: Redirect URL: " . $checkout_session->url);
+                    error_log("RTF Stripe: Success URL: " . home_url('/platform-profil/?lang=' . $lang . '&payment=success'));
+                    error_log("RTF Stripe: ========================================");
+                    
+                    // Clear output buffer and redirect to Stripe Checkout
+                    ob_end_clean();
+                    wp_redirect($checkout_session->url);
+                    exit;
+                    
+                } catch (\Stripe\Exception\InvalidRequestException $e) {
+                    error_log("RTF Stripe Error: " . $e->getMessage());
+                    global $wpdb;
+                    $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
+                    unset($_SESSION['rtf_user_id']);
+                    unset($_SESSION['rtf_username']);
+                    $error = ($lang === 'da') ? 'Betalingssystem fejl: ' . $e->getMessage() : 'Payment error: ' . $e->getMessage();
+                } catch (\Stripe\Exception\AuthenticationException $e) {
+                    error_log("RTF Stripe Error: Authentication - " . $e->getMessage());
+                    global $wpdb;
+                    $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
+                    unset($_SESSION['rtf_user_id']);
+                    unset($_SESSION['rtf_username']);
+                    $error = 'Betalingssystem konfigurationsfejl.';
+                } catch (\Exception $e) {
+                    error_log("RTF Stripe CRITICAL: " . get_class($e) . " - " . $e->getMessage());
+                    global $wpdb;
+                    $wpdb->delete('rtf_platform_users', ['id' => $user_id], ['%d']);
+                    unset($_SESSION['rtf_user_id']);
+                    unset($_SESSION['rtf_username']);
+                    $error = ($lang === 'da') ? 'Kunne ikke oprette betalingssession.' : 'Could not create payment session.';
+                }
+            }
+        }
+    }
+}
+
+// NOW we can load the header
 get_header();
 $lang = rtf_get_lang();
 
@@ -74,160 +285,6 @@ $t = array(
     )
 );
 $txt = $t[$lang];
-
-// Handle login
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'login') {
-    // CSRF protection
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'rtf_login')) {
-        wp_die('Security check failed');
-    }
-    
-    global $rtf_user_system;
-    
-    $username_or_email = sanitize_text_field($_POST['username']);
-    $password = $_POST['password'];
-    
-    // Authenticate using robust system
-    $result = $rtf_user_system->authenticate($username_or_email, $password);
-    
-    if ($result['success']) {
-        // Login successful!
-        $user = $result['user'];
-        
-        // Create secure session
-        session_regenerate_id(true);
-        $_SESSION['rtf_user_id'] = $user->id;
-        $_SESSION['rtf_username'] = $user->username;
-        
-        // Redirect to profile
-        wp_redirect(home_url('/platform-profil/?lang=' . $lang));
-        exit;
-        
-    } else {
-        // Login failed
-        $error_msg = $result['error'];
-        
-        // Translate error
-        if ($lang === 'da') {
-            $error = 'Forkert brugernavn/email eller adgangskode';
-        } elseif ($lang === 'sv') {
-            $error = 'Fel användarnamn/e-post eller lösenord';
-        } else {
-            $error = 'Wrong username/email or password';
-        }
-    }
-}
-
-// Handle registration
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'register') {
-    // CSRF protection
-    if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'rtf_register')) {
-        wp_die('Security check failed');
-    }
-    
-    global $rtf_user_system;
-    
-    // Prepare registration data
-    $registration_data = [
-        'username' => $_POST['username'] ?? '',
-        'email' => $_POST['email'] ?? '',
-        'password' => $_POST['password'] ?? '',
-        'full_name' => $_POST['full_name'] ?? '',
-        'birthday' => $_POST['birthday'] ?? '',
-        'phone' => $_POST['phone'] ?? '',
-        'bio' => $_POST['bio'] ?? '',
-        'language_preference' => $_POST['language_preference'] ?? 'da_DK',
-        'is_admin' => isset($_POST['is_admin']) ? intval($_POST['is_admin']) : 0
-    ];
-    
-    // Register user using robust system
-    $result = $rtf_user_system->register($registration_data);
-    
-    if (!$result['success']) {
-        // Registration failed - show error
-        $error = $result['error'];
-        
-        // Translate common errors
-        if ($lang === 'da') {
-            if (strpos($error, 'Username already exists') !== false) $error = 'Brugernavn er allerede i brug';
-            elseif (strpos($error, 'Email already registered') !== false) $error = 'Email er allerede registreret';
-            elseif (strpos($error, 'Invalid email') !== false) $error = 'Ugyldig email adresse';
-            elseif (strpos($error, 'Password must be') !== false) $error = 'Adgangskode skal være mindst 8 tegn';
-            elseif (strpos($error, 'Username must be') !== false) $error = 'Brugernavn skal være 3-50 tegn (kun bogstaver, tal, underscore)';
-        } elseif ($lang === 'sv') {
-            if (strpos($error, 'Username already exists') !== false) $error = 'Användarnamn används redan';
-            elseif (strpos($error, 'Email already registered') !== false) $error = 'E-post är redan registrerad';
-            elseif (strpos($error, 'Invalid email') !== false) $error = 'Ogiltig e-postadress';
-            elseif (strpos($error, 'Password must be') !== false) $error = 'Lösenord måste vara minst 8 tecken';
-            elseif (strpos($error, 'Username must be') !== false) $error = 'Användarnamn måste vara 3-50 tecken (endast bokstäver, siffror, understreck)';
-        }
-        
-        error_log('RTF Registration Failed: ' . $result['error'] . ' for ' . $registration_data['email']);
-        
-    } else {
-        // Registration successful!
-        $user_id = $result['user_id'];
-        $email = $result['email'];
-        $username = $result['username'];
-        
-        // Create secure session
-        session_regenerate_id(true);
-        $_SESSION['rtf_user_id'] = $user_id;
-        $_SESSION['rtf_username'] = $username;
-        
-        error_log("RTF Registration Success: User $username (ID: $user_id, Email: $email) created");
-        
-        // Check if this is admin creating user (no payment needed)
-        $admin_create = isset($_POST['admin_create']) && $_POST['admin_create'] === '1';
-        
-        if ($admin_create) {
-            // Admin created user - redirect to admin panel
-            error_log("RTF: Admin created user $username - skipping Stripe");
-            wp_redirect(home_url('/platform-admin-dashboard/?lang=' . $lang . '&user_created=success'));
-            exit;
-        }
-        
-        // Normal user registration - redirect to Stripe checkout
-        require_once(__DIR__ . '/stripe-php-13.18.0/init.php');
-        \Stripe\Stripe::setApiKey(RTF_STRIPE_SECRET_KEY);
-        
-        try {
-            // Create Stripe checkout session
-            $checkout_session = \Stripe\Stripe\Checkout\Session::create([
-                'success_url' => home_url('/platform-profil/?lang=' . $lang . '&payment=success'),
-                'cancel_url' => home_url('/platform-subscription/?lang=' . $lang . '&payment=cancelled'),
-                'payment_method_types' => ['card'],
-                'mode' => 'subscription',
-                'customer_email' => $email, // CRITICAL: Email matches database
-                'client_reference_id' => (string)$user_id,
-                'line_items' => [[
-                    'price' => RTF_STRIPE_PRICE_ID,
-                    'quantity' => 1
-                ]],
-                'subscription_data' => [
-                    'metadata' => [
-                        'user_id' => (string)$user_id,
-                        'username' => $username,
-                        'email' => $email,
-                        'rtf_platform' => 'true'
-                    ]
-                ]
-            ]);
-            
-            error_log("RTF Stripe: Checkout session created for user $user_id - Session ID: " . $checkout_session->id);
-            error_log("RTF Stripe: Customer will be created on payment completion");
-                
-            // Redirect to Stripe checkout
-            wp_redirect($checkout_session->url);
-            exit;
-                
-        } catch (\Exception $e) {
-            error_log('RTF Stripe Checkout Error: ' . $e->getMessage());
-            error_log('RTF Stripe Error Details: User ID ' . $user_id . ', Email: ' . $email);
-            $error = $lang === 'da' ? 'Kunne ikke oprette betalingslink' : ($lang === 'sv' ? 'Kunde inte skapa betalningslänk' : 'Could not create payment link');
-        }
-    }
-}
 ?>
 
 <main class="platform-auth">

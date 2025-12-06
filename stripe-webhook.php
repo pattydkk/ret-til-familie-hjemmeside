@@ -2,46 +2,68 @@
 /**
  * Stripe Webhook Handler
  * Håndterer subscription events fra Stripe
+ * 
+ * URL: https://dit-domæne.dk/wp-content/themes/dit-theme-navn/stripe-webhook.php
+ * Events: checkout.session.completed, customer.subscription.updated, customer.subscription.deleted, invoice.payment_failed
  */
 
 require_once __DIR__ . '/stripe-php-13.18.0/init.php';
 
 // Load WordPress (theme file - need to go up to WordPress root)
 $wp_load_paths = [
-    __DIR__ . '/../../../wp-load.php',
-    __DIR__ . '/../../wp-load.php',
-    __DIR__ . '/../wp-load.php',
-    __DIR__ . '/wp-load.php'
+    __DIR__ . '/../../../wp-load.php',  // Standard: theme → themes → wp-content → wp-root
+    __DIR__ . '/../../wp-load.php',      // Alternative: themes → wp-content → wp-root
+    __DIR__ . '/../wp-load.php',         // Alternative: wp-content → wp-root
+    __DIR__ . '/wp-load.php',            // Last resort: same directory
+    dirname(__DIR__, 3) . '/wp-load.php' // PHP 7.0+ style
 ];
 
+$wp_loaded = false;
 foreach ($wp_load_paths as $path) {
     if (file_exists($path)) {
         require_once($path);
+        $wp_loaded = true;
+        error_log('RTF Webhook: WordPress loaded from: ' . $path);
         break;
     }
 }
 
-if (!function_exists('wp')) {
-    error_log('RTF Webhook ERROR: Could not load WordPress!');
+if (!$wp_loaded || !function_exists('wp')) {
+    error_log('RTF Webhook CRITICAL ERROR: Could not load WordPress!');
+    error_log('RTF Webhook: Tried paths: ' . implode(', ', $wp_load_paths));
     http_response_code(500);
-    exit();
+    exit('WordPress not loaded');
 }
 
 // Stripe configuration
-\Stripe\Stripe::setApiKey(defined('RTF_STRIPE_SECRET_KEY') ? RTF_STRIPE_SECRET_KEY : 'sk_test_placeholder');
+\Stripe\Stripe::setApiKey(defined('RTF_STRIPE_SECRET_KEY') ? RTF_STRIPE_SECRET_KEY : '');
 $endpoint_secret = defined('RTF_STRIPE_WEBHOOK_SECRET') ? RTF_STRIPE_WEBHOOK_SECRET : '';
+
+// Validate configuration
+if (empty(RTF_STRIPE_SECRET_KEY) || empty($endpoint_secret)) {
+    error_log('RTF Webhook ERROR: Stripe not configured! Check RTF_STRIPE_SECRET_KEY and RTF_STRIPE_WEBHOOK_SECRET');
+    http_response_code(500);
+    exit('Stripe not configured');
+}
 
 $payload = @file_get_contents('php://input');
 $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'] ?? '';
 
+error_log('RTF Webhook: ========================================');
+error_log('RTF Webhook: Received request from Stripe');
+error_log('RTF Webhook: Signature present: ' . (!empty($sig_header) ? 'YES' : 'NO'));
+
 try {
     $event = \Stripe\Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
+    error_log('RTF Webhook: Event verified successfully - Type: ' . $event->type);
 } catch(\UnexpectedValueException $e) {
+    error_log('RTF Webhook ERROR: Invalid payload - ' . $e->getMessage());
     http_response_code(400);
-    exit();
+    exit('Invalid payload');
 } catch(\Stripe\Exception\SignatureVerificationException $e) {
+    error_log('RTF Webhook ERROR: Invalid signature - ' . $e->getMessage());
     http_response_code(400);
-    exit();
+    exit('Invalid signature');
 }
 
 global $wpdb, $rtf_user_system;

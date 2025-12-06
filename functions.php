@@ -1848,6 +1848,16 @@ add_action('rest_api_init', function() {
         }
     ]);
     
+    // Admin create user endpoint
+    register_rest_route('kate/v1', '/admin/user', [
+        'methods' => 'POST',
+        'callback' => 'rtf_api_admin_create_user',
+        'permission_callback' => function() {
+            $user = rtf_get_current_user();
+            return $user && $user->is_admin;
+        }
+    ]);
+    
     // Admin update subscription endpoint
     register_rest_route('kate/v1', '/admin/subscription/(?P<id>\d+)', [
         'methods' => 'PUT',
@@ -2819,6 +2829,84 @@ function rtf_api_admin_get_users($request) {
     }
     
     return new WP_REST_Response(['success' => false, 'message' => 'Failed to fetch users'], 500);
+}
+
+/**
+ * Admin create user endpoint
+ */
+function rtf_api_admin_create_user($request) {
+    global $rtf_user_system;
+    
+    // Log the request
+    error_log('RTF: Admin create user API called');
+    
+    // Check admin permission
+    $current_user = rtf_get_current_user();
+    if (!$current_user || !$current_user->is_admin) {
+        error_log('RTF: Permission denied - not admin');
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Permission denied: Admin access required'
+        ], 403);
+    }
+    
+    error_log('RTF: Permission granted for admin: ' . $current_user->username);
+    
+    $body = json_decode($request->get_body(), true);
+    
+    if (!$body) {
+        error_log('RTF: Failed to decode JSON body');
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => 'Invalid JSON data'
+        ], 400);
+    }
+    
+    error_log('RTF: Received user data: ' . print_r($body, true));
+    
+    // Prepare registration data
+    $registration_data = [
+        'username' => $body['username'] ?? '',
+        'email' => $body['email'] ?? '',
+        'password' => $body['password'] ?? '',
+        'full_name' => $body['full_name'] ?? '',
+        'birthday' => $body['birthday'] ?? '2000-01-01',
+        'phone' => $body['phone'] ?? '',
+        'language_preference' => 'da_DK',
+        'is_admin' => isset($body['is_admin']) ? intval($body['is_admin']) : 0
+    ];
+    
+    error_log('RTF: Calling register with data: ' . print_r($registration_data, true));
+    
+    // Register user
+    $result = $rtf_user_system->register($registration_data);
+    
+    error_log('RTF: Register result: ' . print_r($result, true));
+    
+    if (!$result['success']) {
+        return new WP_REST_Response([
+            'success' => false,
+            'error' => $result['error']
+        ], 400);
+    }
+    
+    // If subscription status is provided and is active, update it
+    if (isset($body['subscription_status']) && $body['subscription_status'] === 'active') {
+        error_log('RTF: Activating subscription for user ' . $result['user_id']);
+        $sub_result = $rtf_user_system->admin_update_subscription(
+            $result['user_id'],
+            'active',
+            30
+        );
+        error_log('RTF: Subscription activation result: ' . print_r($sub_result, true));
+    }
+    
+    return new WP_REST_Response([
+        'success' => true,
+        'user_id' => $result['user_id'],
+        'username' => $result['username'],
+        'email' => $result['email']
+    ], 200);
 }
 
 /**

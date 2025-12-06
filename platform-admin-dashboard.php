@@ -594,6 +594,14 @@ body {
 </div>
 
 <script>
+// RTF Admin Dashboard - Version <?php echo time(); ?><?php echo rand(1000, 9999); ?>
+// FORCE NO CACHE - Browser must reload this!
+console.log('========================================');
+console.log('RTF Admin Dashboard Script Loaded');
+console.log('Timestamp:', <?php echo time(); ?>);
+console.log('Random:', <?php echo rand(1000, 9999); ?>);
+console.log('========================================');
+
 const t = <?php echo json_encode($t); ?>;
 let currentPage = 0;
 let totalUsers = 0;
@@ -661,7 +669,7 @@ async function loadUsers() {
     const status = document.getElementById('statusFilter').value;
     const offset = currentPage * limit;
     
-    const url = `/wp-json/kate/v1/admin/users?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&status=${status}`;
+    const url = `<?php echo home_url("/wp-json/kate/v1/admin/users"); ?>?limit=${limit}&offset=${offset}&search=${encodeURIComponent(search)}&status=${status}`;
     
     try {
         const response = await fetch(url, { credentials: 'same-origin' });
@@ -774,6 +782,8 @@ function closeModal() {
 }
 
 async function saveUser() {
+    console.log('saveUser() called');
+    
     const userId = document.getElementById('userId').value;
     const isEdit = !!userId;
     
@@ -788,38 +798,46 @@ async function saveUser() {
         is_admin: document.getElementById('is_admin').checked ? 1 : 0
     };
     
+    console.log('User data:', userData);
+    
     if (!userData.username || !userData.email || !userData.password || !userData.full_name) {
+        console.error('Validation failed: Missing required fields');
         alert('Udfyld venligst alle påkrævede felter');
         return;
     }
     
-    // Create user via admin endpoint
+    // Create user via REST API
     try {
-        const formData = new FormData();
-        formData.append('action', 'register');
-        formData.append('admin_create', '1'); // Flag for admin creation (no Stripe redirect)
-        formData.append('_wpnonce', '<?php echo wp_create_nonce("rtf_register"); ?>');
-        Object.keys(userData).forEach(key => formData.append(key, userData[key]));
-        
-        const response = await fetch('<?php echo home_url("/platform-auth?lang=" . $lang); ?>', {
+        const response = await fetch('<?php echo home_url("/wp-json/kate/v1/admin/user"); ?>', {
             method: 'POST',
-            body: formData
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>'
+            },
+            body: JSON.stringify(userData)
         });
         
-        const responseText = await response.text();
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
         
-        // Check if redirect happened (successful creation)
-        if (response.redirected || response.ok) {
-            alert('✓ Bruger oprettet!');
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response error:', errorText);
+            alert('✗ HTTP Error ' + response.status + ': ' + response.statusText);
+            return;
+        }
+        
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (data.success) {
+            alert('✓ Bruger oprettet: ' + data.username);
             closeModal();
             loadUsers();
         } else {
-            // Try to extract error from HTML response
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(responseText, 'text/html');
-            const errorDiv = doc.querySelector('.error-message');
-            const errorText = errorDiv ? errorDiv.textContent : responseText.substring(0, 200);
-            alert('✗ Fejl: ' + errorText);
+            alert('✗ Fejl: ' + (data.error || data.message || 'Kunne ikke oprette bruger'));
+            console.error('User creation error:', data);
         }
     } catch (error) {
         console.error('Save user error:', error);
@@ -832,10 +850,13 @@ async function activateSubscription(userId) {
     if (!days) return;
     
     try {
-        const response = await fetch(`/wp-json/kate/v1/admin/subscription/${userId}`, {
+        const response = await fetch(`<?php echo home_url("/wp-json/kate/v1/admin/subscription/"); ?>${userId}`, {
             method: 'PUT',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>'
+            },
             body: JSON.stringify({ 
                 status: 'active',
                 days_valid: parseInt(days)
@@ -868,10 +889,13 @@ async function deleteUser(userId, username) {
     }
     
     try {
-        const response = await fetch(`/wp-json/kate/v1/admin/user/${userId}`, {
+        const response = await fetch(`<?php echo home_url("/wp-json/kate/v1/admin/user/"); ?>${userId}`, {
             method: 'DELETE',
             credentials: 'same-origin',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-WP-Nonce': '<?php echo wp_create_nonce("wp_rest"); ?>'
+            }
         });
         
         if (!response.ok) {

@@ -5,14 +5,45 @@ class ResponseBuilder {
     private $knowledgeBase;
     private $config;
     private $webSearcher;
+    private $conversationalModule;
+    private $confidenceThreshold = 0.98; // 98% confidence requirement
     
     public function __construct(KnowledgeBase $knowledgeBase, Config $config, WebSearcher $webSearcher = null) {
         $this->knowledgeBase = $knowledgeBase;
         $this->config = $config;
         $this->webSearcher = $webSearcher;
+        $this->conversationalModule = new ConversationalModule();
     }
     
     public function buildResponse($intentId, $confidence, $context = []) {
+        // Handle conversational responses
+        if ($intentId === 'CONVERSATIONAL' && isset($context['is_conversational'])) {
+            $userMood = $this->conversationalModule->detectMood($context['original_message'] ?? '');
+            $conversationalContext = ['user_mood' => $userMood];
+            
+            $response = $this->conversationalModule->generateResponse(
+                $context['original_message'] ?? '', 
+                $conversationalContext
+            );
+            
+            return [
+                'intent_id' => 'CONVERSATIONAL',
+                'confidence' => 0.95,
+                'title' => 'Kate',
+                'summary' => $response,
+                'details' => [],
+                'law_refs' => [],
+                'links' => [],
+                'follow_up_questions' => [],
+                'is_conversational' => true,
+                'timestamp' => time()
+            ];
+        }
+        
+        // 98% CONFIDENCE SAFETY NET
+        // If confidence is below 98%, add disclaimer
+        $needsDisclaimer = $confidence < $this->confidenceThreshold;
+        
         // Handle unknown intent - try web search
         if ($intentId === 'INTENT_UNKNOWN' || $confidence < 0.3) {
             return $this->buildUnknownResponseWithSearch($context['original_message'] ?? '', $context);
@@ -83,6 +114,26 @@ class ResponseBuilder {
                 ];
             }
         }
+        
+        // ADD EMPATHY IF USER IS STRUGGLING
+        if (isset($context['user_mood']) && $context['user_mood'] === 'negative') {
+            $response['summary'] = $this->conversationalModule->addEmpathy(
+                $response['summary'], 
+                $context
+            );
+        }
+        
+        // 98% CONFIDENCE SAFETY NET
+        if ($needsDisclaimer) {
+            $response['confidence_notice'] = '⚠️ Jeg er ' . round($confidence * 100) . '% sikker på dette svar. ' .
+                'Hvis du har brug for 100% sikkerhed, bør du kontakte en advokat eller juridisk rådgiver. ' .
+                'Mit svar er baseret på gældende lovgivning, men din specifikke situation kan være anderledes.';
+        }
+        
+        // ALWAYS add disclaimer for legal advice
+        $response['disclaimer'] = $this->config->get('disclaimer') ?? 
+            '💡 Jeg giver juridisk information baseret på dansk lovgivning, men dette erstatter ikke professionel juridisk rådgivning. ' .
+            'Ved komplicerede sager anbefaler jeg at du kontakter en advokat.';
         
         // ENHANCED: Add web search supplement for better answers
         if ($this->webSearcher && isset($context['original_message'])) {

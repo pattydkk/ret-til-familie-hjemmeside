@@ -250,6 +250,20 @@ case 'ydelser':
         </p>
       </div>
 
+      <h2 style="margin-top:24px;">Paragraf 75 Stöd</h2>
+      <div class="info-box">
+        <p>
+          Vi erbjuder specialiserat stöd till medborgare som behöver hjälp enligt Socialstjänstlagen motsvarande 
+          den danska Servicelovens § 75 om ledsagning och socialpedagogiskt stöd för vuxna med betydande nedsatt 
+          fysisk eller psykisk funktionsförmåga. Detta omfattar rådgivning om ansökningar, klagomål samt hjälp 
+          att säkra rätt stöd och individuella anpassningar.
+        </p>
+        <p style="margin-top:6px;">
+          Vi hjälper dig förstå dina rättigheter, strukturera ansökningar och säkra att du får det stöd 
+          du har rätt till enligt lagen.
+        </p>
+      </div>
+
       <h2 style="margin-top:24px;">Borgarplattform & abonnemang</h2>
       <div class="info-box">
         <p>
@@ -342,6 +356,20 @@ case 'ydelser':
         </p>
       </div>
 
+      <h2 style="margin-top:24px;">Section 75 Support</h2>
+      <div class="info-box">
+        <p>
+          We offer specialized support for citizens who need assistance under the Danish Social Services Act § 75 
+          regarding accompaniment and social-educational support for adults with significantly reduced physical or 
+          mental functional ability. This includes guidance on applications, complaints, and help to secure the 
+          right support and individual accommodations.
+        </p>
+        <p style="margin-top:6px;">
+          We help you understand your rights, structure applications, and ensure you receive the support 
+          you are entitled to under the law.
+        </p>
+      </div>
+
       <h2 style="margin-top:24px;">Citizen Platform & subscription</h2>
       <div class="info-box">
         <p>
@@ -429,6 +457,20 @@ case 'ydelser':
         <p>
           Rådgivning om rettigheder, støtte, hjælpemidler og særlige indsatser til både børn og voksne med handicap,
           autisme eller ADHD. Vi hjælper med at forberede ansøgninger og strukturere det nødvendige materiale.
+        </p>
+      </div>
+
+      <h2 style="margin-top:24px;">Paragraf 75 Støtte</h2>
+      <div class="info-box">
+        <p>
+          Vi tilbyder specialiseret støtte til borgere, der har brug for hjælp efter Servicelovens § 75 om 
+          ledsagelse og socialpædagogisk støtte til voksne med betydelig nedsat fysisk eller psykisk funktionsevne. 
+          Dette omfatter rådgivning om ansøgninger, klager, samt hjælp til at sikre den rette støtte og individuelle 
+          tilpasninger.
+        </p>
+        <p style="margin-top:6px;">
+          Vi hjælper med at forstå dine rettigheder, strukturere ansøgninger og sikre, at du får den støtte, 
+          du har krav på efter loven.
         </p>
       </div>
 

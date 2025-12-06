@@ -11,6 +11,10 @@ if (!rtf_is_logged_in()) {
     exit;
 }
 
+// Check for payment success message
+$payment_success = isset($_GET['payment']) && $_GET['payment'] === 'success';
+$session_id = isset($_GET['session_id']) ? sanitize_text_field($_GET['session_id']) : null;
+
 // DEBUG: Force refresh user data if ?refresh=1
 if (isset($_GET['refresh']) && $_GET['refresh'] == '1') {
     // Clear any potential caches

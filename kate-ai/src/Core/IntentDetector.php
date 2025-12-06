@@ -5,16 +5,33 @@ class IntentDetector {
     private $knowledgeBase;
     private $normalizer;
     private $threshold;
+    private $spellingCorrector;
+    private $conversationalModule;
     
     public function __construct(KnowledgeBase $knowledgeBase, Normalizer $normalizer, $threshold = 0.3) {
         $this->knowledgeBase = $knowledgeBase;
         $this->normalizer = $normalizer;
         $this->threshold = $threshold;
+        $this->spellingCorrector = new SpellingCorrector();
+        $this->conversationalModule = new ConversationalModule();
     }
     
     public function detectIntent($message) {
-        $normalizedMessage = $this->normalizer->normalize($message);
-        $keywords = $this->normalizer->extractKeywords($message);
+        // First check if it's a casual conversation
+        if ($this->conversationalModule->isConversational($message)) {
+            return [
+                'intent_id' => 'CONVERSATIONAL',
+                'confidence' => 0.95,
+                'is_conversational' => true,
+                'message' => $message
+            ];
+        }
+        
+        // Correct spelling mistakes
+        $correctedMessage = $this->spellingCorrector->correct($message);
+        
+        $normalizedMessage = $this->normalizer->normalize($correctedMessage);
+        $keywords = $this->normalizer->extractKeywords($correctedMessage);
         
         $intents = $this->knowledgeBase->getAllIntents();
         $scores = [];
