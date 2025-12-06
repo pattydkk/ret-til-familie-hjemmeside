@@ -4,7 +4,24 @@ $rtf_lang = function_exists('rtf_get_lang') ? rtf_get_lang() : 'da';
 <html <?php language_attributes(); ?>>
 <head>
 <meta charset="<?php bloginfo('charset'); ?>">
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+
+<!-- PWA Meta Tags -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RtF Borger">
+<meta name="application-name" content="Ret til Familie">
+<meta name="msapplication-TileColor" content="#2563eb">
+<meta name="theme-color" content="#2563eb">
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="/manifest.json">
+
+<!-- Apple Touch Icons -->
+<link rel="apple-touch-icon" sizes="180x180" href="/wp-content/themes/ret-til-familie/assets/icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/wp-content/themes/ret-til-familie/assets/icon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/wp-content/themes/ret-til-familie/assets/icon-72x72.png">
 <?php
 $slug_for_meta = '';
 if (is_front_page()) {
@@ -121,4 +138,8 @@ wp_head();
     </div>
   </div>
 </header>
+
+<!-- PWA Initialization -->
+<script src="/pwa-init.js" defer></script>
+
 <main class="site-main">
