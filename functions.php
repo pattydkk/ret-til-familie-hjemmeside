@@ -62,18 +62,28 @@ define('RTF_GITHUB_BRANCH', 'main');
 // This MUST load before any Stripe/Kate AI code
 $vendor_autoload = get_template_directory() . '/vendor/autoload.php';
 if (file_exists($vendor_autoload)) {
-    require_once $vendor_autoload;
-    error_log('RTF Theme: Composer vendor loaded successfully');
-    
-    // Verify Stripe is available
-    if (class_exists('\Stripe\Stripe')) {
-        error_log('RTF Theme: Stripe library available');
-    } else {
-        error_log('RTF Theme ERROR: Stripe class not found after loading vendor!');
+    try {
+        require_once $vendor_autoload;
+        error_log('RTF Theme: Composer vendor loaded successfully');
+        
+        // Verify Stripe is available
+        if (class_exists('\Stripe\Stripe')) {
+            error_log('RTF Theme: Stripe library available');
+        } else {
+            error_log('RTF Theme ERROR: Stripe class not found after loading vendor!');
+        }
+    } catch (Exception $e) {
+        error_log('RTF Theme ERROR loading vendor: ' . $e->getMessage());
     }
 } else {
-    error_log('RTF Theme CRITICAL ERROR: vendor/autoload.php not found at: ' . $vendor_autoload);
-    error_log('RTF Theme: Run "composer install" in theme directory');
+    // SAFE MODE: Vendor not found - theme will work but Stripe/Kate AI disabled
+    error_log('RTF Theme WARNING: vendor/autoload.php not found - Stripe disabled');
+    error_log('RTF Theme: Run "composer install" in theme directory to enable full features');
+    
+    // Define fallback constant to prevent fatal errors
+    if (!defined('RTF_VENDOR_LOADED')) {
+        define('RTF_VENDOR_LOADED', false);
+    }
 }
 
 // Load critical dependencies

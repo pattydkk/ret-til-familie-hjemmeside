@@ -6276,5 +6276,377 @@
                             "**Dansk:** Tilsvarer Forvaltningsloven § 22 - begrundelsespligt.",
                             "**English:** Administrative decisions must be motivated - you have the right to know WHY."
                         ]
+    },
+    {
+        "intent_id":  "AKTINDSIGT_BARNETS_SAG",
+        "title":  "Aktindsigt i barnets sag",
+        "keywords":  [
+                         "aktindsigt",
+                         "se dokumenter",
+                         "læse sagsakter",
+                         "kopi af sag",
+                         "indsigt"
+                     ],
+        "regex":  [
+                      "aktindsigt",
+                      "se.*dokument",
+                      "kopi.*sag",
+                      "læse.*akt"
+                  ],
+        "topic":  "dansk_forvaltning",
+        "answer_type":  "how",
+        "law_refs":  [
+                         {
+                             "law":  "Forvaltningsloven",
+                             "paragraph":  "§ 9",
+                             "url":  "https://www.retsinformation.dk/eli/lta/2022/1891"
+                         },
+                         {
+                             "law":  "Offentlighedsloven",
+                             "paragraph":  "§ 7",
+                             "url":  "https://www.retsinformation.dk/eli/lta/2013/606"
+                         }
+                     ],
+        "answer_short":  "Du har som part ret til aktindsigt i alle dokumenter i din sag - både skriftlige og elektroniske.",
+        "answer_long":  [
+                            "AKTINDSIGT I BARNETS SAG",
+                            "",
+                            "**DU HAR RET TIL:**",
+                            "• Alle dokumenter i sagen",
+                            "• Notater fra møder",
+                            "• Børnefaglig undersøgelse",
+                            "• Handleplaner",
+                            "• E-mails og korrespondance",
+                            "",
+                            "**HVORDAN ANMODER DU:**",
+                            "Send skriftlig anmodning til kommunen med:",
+                            "- Hvilken sag det drejer sig om",
+                            "- At du ønsker fuld aktindsigt",
+                            "- Om du vil have kopi eller gennemsyn",
+                            "",
+                            "**SVARFRIST:**",
+                            "• 7 arbejdsdage (hovedregel)",
+                            "• Max 20 dage i særlige tilfælde",
+                            "",
+                            "**GEBYR:**",
+                            "• Gennemsyn: GRATIS",
+                            "• Kopier: Normalt GRATIS i børnesager",
+                            "",
+                            "**Svensk:** Motsvarar rätten till registerutdrag enligt OSL.",
+                            "**English:** Right to access all documents in your case file."
+                        ],
+        "follow_up":  [
+                          "Hvad koster aktindsigt?",
+                          "Kan jeg få afslag?"
+                      ]
+    },
+    {
+        "intent_id":  "SAMVAER_ANBRAGT_BARN",
+        "title":  "Samvær med anbragt barn",
+        "keywords":  [
+                         "samvær",
+                         "besøg",
+                         "kontakt med barn",
+                         "anbragt barn",
+                         "se mit barn"
+                     ],
+        "regex":  [
+                      "samvær.*anbragt",
+                      "besøg.*barn",
+                      "kontakt.*barn",
+                      "se.*barn"
+                  ],
+        "topic":  "dansk_anbringelse",
+        "answer_type":  "what",
+        "law_refs":  [
+                         {
+                             "law":  "Barnets Lov",
+                             "paragraph":  "§ 87",
+                             "url":  "https://www.retsinformation.dk/eli/lta/2022/1146"
+                         }
+                     ],
+        "answer_short":  "Du har som udgangspunkt ret til samvær med dit anbringelse barn. Kommunen fastsætter omfanget ud fra barnets tarv.",
+        "answer_long":  [
+                            "SAMVÆR MED ANBRAGT BARN",
+                            "",
+                            "**DIN RET:**",
+                            "• Regelmæssigt samvær",
+                            "• Telefonkontakt",
+                            "• Brevkontakt",
+                            "• Videokald",
+                            "",
+                            "**HVEM BESTEMMER:**",
+                            "Kommunen fastsætter:",
+                            "- Hyppighed",
+                            "- Varighed",
+                            "- Sted",
+                            "- Om overvåget",
+                            "",
+                            "**TYPISK SAMVÆR:**",
+                            "• 2-4 timer hver 14. dag",
+                            "• Kan være mere ved god kontakt",
+                            "• Weekendsamvær muligt",
+                            "• Feriesamvær",
+                            "",
+                            "**BEGRÆNSNING:**",
+                            "Samvær kan begrænses hvis:",
+                            "- Det skader barnet",
+                            "- Forælderen ikke møder op",
+                            "- Der er vold/trusler",
+                            "",
+                            "**KLAGE:**",
+                            "• Til Ankestyrelsen",
+                            "• Inden 4 uger",
+                            "",
+                            "**Svensk:** Motsvarar umgänge enligt 14 § LVU.",
+                            "**English:** Right to contact with placed child."
+                        ],
+        "follow_up":  [
+                          "Kan samvær helt afbrydes?",
+                          "Hvad hvis barnet ikke vil?"
+                      ]
+    },
+    {
+        "intent_id":  "KLAGE_ANKESTYRELSEN",
+        "title":  "Klage til Ankestyrelsen",
+        "keywords":  [
+                         "klage",
+                         "ankestyrelsen",
+                         "anke",
+                         "klage kommunen",
+                         "hvordan klager jeg"
+                     ],
+        "regex":  [
+                      "klage.*ankestyrelsen",
+                      "anke.*afgørelse",
+                      "hvordan.*klage"
+                  ],
+        "topic":  "dansk_forvaltning",
+        "answer_type":  "how",
+        "law_refs":  [
+                         {
+                             "law":  "Barnets Lov",
+                             "paragraph":  "§ 167"
+                         }
+                     ],
+        "answer_short":  "Du kan klage til Ankestyrelsen over kommunens afgørelser - fristen er 4 uger fra du modtog afgørelsen.",
+        "answer_long":  [
+                            "KLAGE TIL ANKESTYRELSEN",
+                            "",
+                            "**HVAD KAN KLAGES:**",
+                            "• Anbringelse",
+                            "• Afslag på hjælp",
+                            "• Samvær",
+                            "• Handleplaner",
+                            "• Hjemgivelse",
+                            "",
+                            "**KLAGEFRIST:**",
+                            "• 4 uger fra afgørelsen",
+                            "• Sendes til kommunen (ikke Ankestyrelsen direkte)",
+                            "",
+                            "**HVORDAN:**",
+                            "Send til kommunen med:",
+                            "1. Hvilken afgørelse (dato + journalnr.)",
+                            "2. Hvad du er uenig i",
+                            "3. Hvilken afgørelse du ønsker",
+                            "4. Dokumentation",
+                            "",
+                            "**OPSÆTTENDE VIRKNING:**",
+                            "• Normalt IKKE automatisk",
+                            "• Kan ansøges om",
+                            "",
+                            "**SAGSBEHANDLINGSTID:**",
+                            "• 3-6 måneder typisk",
+                            "",
+                            "**Svensk:** Motsvarar överklagande till förvaltningsrätten.",
+                            "**English:** Appeal to National Board of Social Services."
+                        ],
+        "follow_up":  [
+                          "Hvad hvis jeg kommer for sent?",
+                          "Får jeg fri proces?"
+                      ]
+    },
+    {
+        "intent_id":  "BISIDDER_BØRNESAG",
+        "title":  "Bisidder i børnesag",
+        "keywords":  [
+                         "bisidder",
+                         "støtteperson",
+                         "have nogen med",
+                         "advokat",
+                         "hjælp til møde"
+                     ],
+        "regex":  [
+                      "bisidder",
+                      "støtteperson",
+                      "nogen.*med",
+                      "hjælp.*møde"
+                  ],
+        "topic":  "dansk_forvaltning",
+        "answer_type":  "what",
+        "law_refs":  [
+                         {
+                             "law":  "Forvaltningsloven",
+                             "paragraph":  "§ 8"
+                         }
+                     ],
+        "answer_short":  "Du har ret til at medbringe en bisidder til møder - det kan være ven, familie eller advokat.",
+        "answer_long":  [
+                            "BISIDDER I BØRNESAG",
+                            "",
+                            "**DIN RET:**",
+                            "• Medbringe bisidder til møder",
+                            "• Lade bisidder tale",
+                            "• Få mødet udsat hvis bisidder forhindret",
+                            "",
+                            "**HVEM:**",
+                            "• Ven eller familie",
+                            "• Socialrådgiver",
+                            "• Advokat",
+                            "• Frivillig fra Børns Vilkår",
+                            "",
+                            "**PRAKTISK:**",
+                            "✓ Giv kommunen besked på forhånd",
+                            "✓ Bisidder må tage notater",
+                            "✓ Bisidder kan stille spørgsmål",
+                            "",
+                            "**Svensk:** Motsvarar rätten till stödperson.",
+                            "**English:** Right to bring supporter to meetings."
+                        ],
+        "follow_up":  [
+                          "Betaler kommunen for bisidder?",
+                          "Kan jeg have advokat?"
+                      ]
+    },
+    {
+        "intent_id":  "HANDLEPLAN_ANBRAGT_BARN",
+        "title":  "Handleplan for anbragt barn",
+        "keywords":  [
+                         "handleplan",
+                         "plan for barn",
+                         "mål",
+                         "hvad er målet",
+                         "formål med anbringelse"
+                     ],
+        "regex":  [
+                      "handleplan",
+                      "plan.*barn",
+                      "mål.*anbring",
+                      "formål"
+                  ],
+        "topic":  "dansk_anbringelse",
+        "answer_type":  "what",
+        "law_refs":  [
+                         {
+                             "law":  "Barnets Lov",
+                             "paragraph":  "§ 140"
+                         }
+                     ],
+        "answer_short":  "Handleplanen beskriver formålet med anbringelsen, konkrete mål og hvordan de skal nås.",
+        "answer_long":  [
+                            "HANDLEPLAN FOR ANBRAGT BARN",
+                            "",
+                            "**HVAD ER DET:**",
+                            "En plan der beskriver:",
+                            "• Formål med anbringelsen",
+                            "• Konkrete mål",
+                            "• Hvordan målene nås",
+                            "• Indsatser og tiltag",
+                            "• Tidshorisont",
+                            "",
+                            "**HVORNÅR LAVES DEN:**",
+                            "• Senest 4 måneder efter anbringelse",
+                            "• Revideres mindst hver 6. måned",
+                            "",
+                            "**DU SKAL HØRES:**",
+                            "• Du har ret til at blive hørt",
+                            "• Dine synspunkter skal indgå",
+                            "• Barnet skal også høres",
+                            "",
+                            "**HVAD SKAL DEN INDEHOLDE:**",
+                            "✓ Formål (fx hjemgivelse)",
+                            "✓ Konkrete mål",
+                            "✓ Indsatser",
+                            "✓ Samværsplan",
+                            "✓ Skoleplan",
+                            "✓ Sundhedsplan",
+                            "✓ Opfølgning",
+                            "",
+                            "**HVIS DU ER UENIG:**",
+                            "• Giv skriftlig kommentar",
+                            "• Bed om møde",
+                            "• Klage til Ankestyrelsen",
+                            "",
+                            "**Svensk:** Motsvarar vårdplan enligt 13 § LVU.",
+                            "**English:** Care plan for placed child."
+                        ],
+        "follow_up":  [
+                          "Kan jeg få ændret handleplanen?",
+                          "Hvem laver handleplanen?"
+                      ]
+    },
+    {
+        "intent_id":  "HJEMGIVELSE_FRA_ANBRINGELSE",
+        "title":  "Hjemgivelse fra anbringelse",
+        "keywords":  [
+                         "hjemgivelse",
+                         "få barn hjem",
+                         "anbringelse ophøre",
+                         "tilbage til hjem"
+                     ],
+        "regex":  [
+                      "hjemgivelse",
+                      "barn.*hjem",
+                      "anbring.*ophør",
+                      "tilbage.*hjem"
+                  ],
+        "topic":  "dansk_anbringelse",
+        "answer_type":  "how",
+        "law_refs":  [
+                         {
+                             "law":  "Barnets Lov",
+                             "paragraph":  "§ 78"
+                         }
+                     ],
+        "answer_short":  "Hjemgivelse sker når betingelserne for anbringelse ikke længere er til stede, eller når barnet fylder 18 år.",
+        "answer_long":  [
+                            "HJEMGIVELSE FRA ANBRINGELSE",
+                            "",
+                            "**HVORNÅR SKER DET:**",
+                            "• Når betingelserne for anbringelse bortfalder",
+                            "• Når du har udviklet dig positivt",
+                            "• Når hjemmet er stabilt",
+                            "• Ved 18 år (automatisk)",
+                            "",
+                            "**PROCES:**",
+                            "1. Du ansøger om hjemgivelse",
+                            "2. Kommunen vurderer",
+                            "3. Evt. gradvis hjemgivelse",
+                            "4. Opfølgning efter hjemgivelse",
+                            "",
+                            "**GRADVIS HJEMGIVELSE:**",
+                            "• Weekendbesøg",
+                            "• Længere ferier",
+                            "• Prøveperiode",
+                            "• Fuld hjemgivelse",
+                            "",
+                            "**STØTTE EFTER:**",
+                            "• Familiebehandling",
+                            "• Netværksarbejde",
+                            "• Økonomisk støtte",
+                            "• Opfølgning",
+                            "",
+                            "**HVIS AFSLAG:**",
+                            "• Bed om begrundelse",
+                            "• Hvad skal ændres?",
+                            "• Klage til Ankestyrelsen",
+                            "",
+                            "**Svensk:** Motsvarar upphörande av vård enligt LVU.",
+                            "**English:** Return home from placement."
+                        ],
+        "follow_up":  [
+                          "Hvad hvis kommunen siger nej?",
+                          "Kan det gå gradvist?"
+                      ]
     }
 ]
