@@ -32,6 +32,39 @@ define('RTF_THEME_DIR', get_template_directory());
 define('RTF_THEME_URI', get_template_directory_uri());
 
 // ============================================================================
+// 2B. COMPOSER AUTOLOAD & DEPENDENCIES
+// ============================================================================
+
+// Load Composer dependencies (Stripe, PHPWord, PDF Parser, mPDF)
+if (file_exists(RTF_THEME_DIR . '/vendor/autoload.php')) {
+    require_once RTF_THEME_DIR . '/vendor/autoload.php';
+    error_log('RTF: Composer autoload loaded successfully');
+} else {
+    error_log('RTF WARNING: Composer vendor/autoload.php not found. Run: composer install');
+}
+
+// Load RtfUserSystem class
+if (file_exists(RTF_THEME_DIR . '/includes/class-rtf-user-system.php')) {
+    require_once RTF_THEME_DIR . '/includes/class-rtf-user-system.php';
+}
+
+// Initialize global user system
+global $rtf_user_system;
+$rtf_user_system = null;
+
+// Initialize user system after WordPress is loaded
+function rtf_init_user_system() {
+    global $rtf_user_system;
+    if (class_exists('RtfUserSystem')) {
+        $rtf_user_system = new RtfUserSystem();
+        error_log('RTF: User system initialized successfully');
+    } else {
+        error_log('RTF ERROR: RtfUserSystem class not found');
+    }
+}
+add_action('init', 'rtf_init_user_system', 1);
+
+// ============================================================================
 // 3. THEME SETUP - BASIC WORDPRESS SUPPORT
 // ============================================================================
 
@@ -165,6 +198,72 @@ function rtf_require_admin() {
     }
 }
 
+/**
+ * Alias for rtf_is_admin() - Used in platform files
+ */
+function rtf_is_admin_user() {
+    return rtf_is_admin();
+}
+
+/**
+ * Require subscription (placeholder - always returns true for now)
+ */
+function rtf_require_subscription() {
+    // For now, just check if logged in
+    rtf_require_login();
+    // TODO: Add subscription check when payment system is implemented
+}
+
+/**
+ * Anonymize birthday for GDPR compliance
+ */
+function rtf_anonymize_birthday($birthday) {
+    if (empty($birthday)) {
+        return '';
+    }
+    $date = new DateTime($birthday);
+    return $date->format('d. F'); // Only day and month
+}
+
+/**
+ * Format date to Danish format
+ */
+function rtf_format_date($datetime) {
+    if (empty($datetime)) {
+        return '';
+    }
+    $date = new DateTime($datetime);
+    $months_da = ['januar', 'februar', 'marts', 'april', 'maj', 'juni', 'juli', 'august', 'september', 'oktober', 'november', 'december'];
+    return $date->format('d') . '. ' . $months_da[(int)$date->format('n') - 1] . ' ' . $date->format('Y');
+}
+
+/**
+ * Get time ago string (e.g. "5 minutes ago")
+ */
+function rtf_time_ago($datetime) {
+    if (empty($datetime)) {
+        return '';
+    }
+    
+    $time = strtotime($datetime);
+    $diff = time() - $time;
+    
+    if ($diff < 60) {
+        return 'lige nu';
+    } elseif ($diff < 3600) {
+        $mins = floor($diff / 60);
+        return $mins . ' minut' . ($mins > 1 ? 'ter' : '') . ' siden';
+    } elseif ($diff < 86400) {
+        $hours = floor($diff / 3600);
+        return $hours . ' time' . ($hours > 1 ? 'r' : '') . ' siden';
+    } elseif ($diff < 604800) {
+        $days = floor($diff / 86400);
+        return $days . ' dag' . ($days > 1 ? 'e' : '') . ' siden';
+    } else {
+        return rtf_format_date($datetime);
+    }
+}
+
 // ============================================================================
 // 7. TRANSLATIONS - SIMPLE ARRAY BASED
 // ============================================================================
@@ -265,31 +364,174 @@ function rtf_init_database() {
     
     require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     
-    // Main users table
+    // 1. Main users table
     $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_users (
         id bigint(20) NOT NULL AUTO_INCREMENT,
         email varchar(255) NOT NULL,
         password varchar(255) NOT NULL,
-        first_name varchar(100) NOT NULL,
-        last_name varchar(100) NOT NULL,
+        username varchar(100) NOT NULL,
+        full_name varchar(255) NOT NULL,
+        first_name varchar(100) DEFAULT NULL,
+        last_name varchar(100) DEFAULT NULL,
         phone varchar(20) DEFAULT NULL,
         birthdate date DEFAULT NULL,
+        birthday date DEFAULT NULL,
+        bio text DEFAULT NULL,
         profile_image text DEFAULT NULL,
+        language_preference varchar(10) DEFAULT 'da_DK',
+        country varchar(10) DEFAULT 'DK',
+        stripe_customer_id varchar(255) DEFAULT NULL,
         is_admin tinyint(1) DEFAULT 0,
         is_active tinyint(1) DEFAULT 1,
         subscription_status varchar(50) DEFAULT 'inactive',
+        subscription_end_date datetime DEFAULT NULL,
         created_at datetime DEFAULT CURRENT_TIMESTAMP,
         last_login datetime DEFAULT NULL,
         PRIMARY KEY (id),
-        UNIQUE KEY email (email)
+        UNIQUE KEY email (email),
+        UNIQUE KEY username (username)
     ) $charset_collate;";
+    dbDelta($sql);
     
+    // 2. Privacy settings table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_privacy (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        gdpr_anonymize_birthday tinyint(1) DEFAULT 0,
+        profile_visibility varchar(20) DEFAULT 'public',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 3. Posts table (wall posts)
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_posts (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        content text NOT NULL,
+        likes int DEFAULT 0,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 4. News table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_news (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        title varchar(255) NOT NULL,
+        content text NOT NULL,
+        author_id bigint(20) NOT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY author_id (author_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 5. Friends table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_friends (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        friend_id bigint(20) NOT NULL,
+        status varchar(20) DEFAULT 'pending',
+        friends_since datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY friend_id (friend_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 6. Shares table (for wall shares)
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_shares (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        source_type varchar(50) NOT NULL,
+        source_id bigint(20) NOT NULL,
+        item_id bigint(20) DEFAULT NULL,
+        item_type varchar(50) DEFAULT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        shared_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY source_id (source_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 7. Forum topics table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_forum_topics (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        title varchar(255) NOT NULL,
+        content text NOT NULL,
+        views int DEFAULT 0,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 8. Forum replies table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_forum_replies (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        topic_id bigint(20) NOT NULL,
+        user_id bigint(20) NOT NULL,
+        content text NOT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY topic_id (topic_id),
+        KEY user_id (user_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 9. Documents table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_documents (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        filename varchar(255) NOT NULL,
+        file_path text NOT NULL,
+        file_size bigint(20) DEFAULT 0,
+        is_public tinyint(1) DEFAULT 0,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 10. Images table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_images (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        filename varchar(255) NOT NULL,
+        file_path text NOT NULL,
+        caption text DEFAULT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 11. Stripe payments table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_stripe_payments (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) DEFAULT NULL,
+        stripe_customer_id varchar(255) DEFAULT NULL,
+        stripe_subscription_id varchar(255) DEFAULT NULL,
+        payment_intent_id varchar(255) DEFAULT NULL,
+        amount decimal(10,2) DEFAULT 0.00,
+        currency varchar(3) DEFAULT 'DKK',
+        status varchar(50) DEFAULT 'completed',
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY stripe_customer_id (stripe_customer_id)
+    ) $charset_collate;";
     dbDelta($sql);
     
     // Mark as initialized
     update_option('rtf_db_initialized_v2', true);
     
-    error_log('RTF: Database initialized successfully');
+    error_log('RTF: Database initialized successfully with all tables');
 }
 
 // Run database setup on init (late priority)
