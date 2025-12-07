@@ -4,10 +4,9 @@
  * Reusable sidebar component for all platform pages
  */
 
-$current_user = wp_get_current_user();
-$user_id = $current_user->ID;
-$language = get_user_meta($user_id, 'language_preference', true) ?: 'da_DK';
-$is_danish = ($language === 'da_DK');
+// Use custom RTF user system instead of WordPress user system
+$current_user = rtf_get_current_user();
+$user_id = $current_user ? $current_user->id : 0;
 $lang = rtf_get_lang();
 
 // Translations

@@ -3,7 +3,7 @@
  * Template Name: Platform - Rapporter
  */
 
-if (!is_user_logged_in()) {
+if (!rtf_is_logged_in()) {
     wp_redirect(home_url('/platform-auth'));
     exit;
 }
@@ -12,12 +12,8 @@ rtf_require_subscription();
 
 get_header('platform');
 
-$current_user = wp_get_current_user();
-$user_id = $current_user->ID;
-$language = get_user_meta($user_id, 'language_preference', true) ?: 'da_DK';
-$is_danish = ($language === 'da_DK');
-$is_swedish = ($language === 'sv_SE');
-$is_english = ($language === 'en_US');
+$current_user = rtf_get_current_user();
+$lang = rtf_get_lang();
 
 $strings = [
     'da_DK' => [

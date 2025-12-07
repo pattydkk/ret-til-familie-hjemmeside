@@ -19,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     global $rtf_user_system;
     $lang = rtf_get_lang();
     
+    // Ensure user system is loaded
+    if (!$rtf_user_system) {
+        wp_die('User system not initialized. Please contact administrator.');
+    }
+    
     $username_or_email = sanitize_text_field($_POST['username']);
     $password = $_POST['password'];
     
@@ -52,6 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     
     global $rtf_user_system;
     $lang = rtf_get_lang();
+    
+    // Ensure user system is loaded
+    if (!$rtf_user_system) {
+        wp_die('User system not initialized. Please contact administrator.');
+    }
     
     // Prepare registration data
     $registration_data = [

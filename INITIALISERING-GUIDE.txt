@@ -1,0 +1,230 @@
+═══════════════════════════════════════════════════════════════
+   INITIALISERINGS-RÆKKEFØLGE - FORHINDRER WORDPRESS CRASH
+═══════════════════════════════════════════════════════════════
+
+Dette dokument forklarer hvordan systemet initialiseres sikkert
+for at forhindre WordPress crash.
+
+═══════════════════════════════════════════════════════════════
+🔐 SIKKERHEDSLAG
+═══════════════════════════════════════════════════════════════
+
+LEVEL 1: ABSPATH Check
+-----------------------
+if (!defined('ABSPATH')) {
+    exit; // Forhindrer direct file access
+}
+
+LEVEL 2: Emergency Mode
+------------------------
+if (defined('RTF_EMERGENCY_MODE') && RTF_EMERGENCY_MODE) {
+    // Load kun basic WordPress funktioner
+    // Stop alt andet for at forhindre crashes
+    return;
+}
+
+═══════════════════════════════════════════════════════════════
+📊 INITIALISERINGS-RÆKKEFØLGE (KRITISK!)
+═══════════════════════════════════════════════════════════════
+
+FASE 1: CONSTANTS (Øjeblikkeligt)
+----------------------------------
+✓ RTF_VERSION
+✓ RTF_THEME_DIR
+✓ RTF_THEME_URI
+
+Disse SKAL defineres FØRST før noget andet.
+
+FASE 2: COMPOSER AUTOLOAD (Med fejlhåndtering)
+-----------------------------------------------
+TRY:
+  ✓ Load vendor/autoload.php
+  ✓ Sæt $rtf_vendor_loaded = true
+CATCH:
+  ✗ Log fejl
+  ✗ Vis admin notice
+  ✗ STOP initialisering (return)
+  ✗ WordPress fortsætter men UDEN platform features
+
+Dette forhindrer fatal errors hvis vendor/ mangler!
+
+FASE 3: USER SYSTEM CLASS (Kun hvis vendor OK)
+-----------------------------------------------
+TRY:
+  ✓ Require class-rtf-user-system.php
+  ✓ Sæt $rtf_user_system_loaded = true
+CATCH:
+  ✗ Log fejl
+  ✗ Fortsæt uden user system
+
+FASE 4: THEME SETUP (WordPress Hook: after_setup_theme)
+--------------------------------------------------------
+✓ add_theme_support('title-tag')
+✓ add_theme_support('post-thumbnails')
+✓ add_image_size()
+✓ register_nav_menus()
+
+Prioritet: 10 (standard)
+
+FASE 5: USER SYSTEM INIT (WordPress Hook: init, prioritet 1)
+-------------------------------------------------------------
+TRY:
+  ✓ Instantiate new RtfUserSystem()
+  ✓ Sæt global $rtf_user_system
+CATCH:
+  ✗ Log fejl
+  ✗ $rtf_user_system forbliver null
+
+Prioritet: 1 (meget tidligt i init)
+
+FASE 6: SESSION START (WordPress Hook: init, prioritet 1)
+----------------------------------------------------------
+✓ Check session_status()
+✓ Start session hvis ikke allerede startet
+
+Prioritet: 1 (samme som user system)
+
+FASE 7: ENQUEUE ASSETS (WordPress Hook: wp_enqueue_scripts)
+------------------------------------------------------------
+✓ Bootstrap CSS
+✓ Font Awesome
+✓ Custom CSS
+✓ jQuery
+✓ Bootstrap JS
+
+Prioritet: 10 (standard)
+
+FASE 8: DATABASE INIT (WordPress Hook: init, prioritet 999)
+------------------------------------------------------------
+✓ Check if already initialized (get_option)
+✓ Verify WordPress is ready
+TRY:
+  ✓ Create all 11 tables
+  ✓ Mark as initialized
+CATCH:
+  ✗ Log fejl
+  ✗ Will retry on next page load
+
+Prioritet: 999 (SIDST i init - efter alt andet)
+
+═══════════════════════════════════════════════════════════════
+🎯 PWA INITIALISERING
+═══════════════════════════════════════════════════════════════
+
+PWA initialiseres i BROWSEREN, IKKE i PHP!
+
+I header.php:
+-------------
+1. <link rel="manifest" href="/manifest.json">
+2. <script src="/pwa-init.js" defer></script>
+
+PWA Scripts køres EFTER DOM er loaded:
+---------------------------------------
+1. pwa-init.js
+   ↓
+2. Check if service worker supported
+   ↓
+3. Register sw.js
+   ↓
+4. Service worker aktiveres
+   ↓
+5. Cache assets
+   ↓
+6. Enable offline mode
+
+═══════════════════════════════════════════════════════════════
+⚠️  HVAD SKER VED FEJL?
+═══════════════════════════════════════════════════════════════
+
+SCENARIO 1: vendor/ mangler
+----------------------------
+1. vendor/autoload.php findes ikke
+2. $rtf_vendor_loaded = false
+3. Admin notice vises i WordPress admin
+4. Theme loader KUN basic WordPress features
+5. Platform features er ikke tilgængelige
+6. WordPress crasher IKKE
+7. Upload vendor/ → Genindlæs → Alt virker
+
+SCENARIO 2: User system class fejler
+-------------------------------------
+1. class-rtf-user-system.php loader ikke
+2. $rtf_user_system = null
+3. Platform pages checker for $rtf_user_system
+4. Hvis null → Redirect til error page
+5. WordPress crasher IKKE
+
+SCENARIO 3: Database init fejler
+---------------------------------
+1. dbDelta() fails
+2. Fejl logges
+3. get_option('rtf_db_initialized_v2') = false
+4. Ved næste page load prøves igen
+5. WordPress crasher IKKE
+
+═══════════════════════════════════════════════════════════════
+✅ VERIFIKATION
+═══════════════════════════════════════════════════════════════
+
+Check WordPress error log for disse beskeder:
+
+SUCCESS beskeder:
+✓ "RTF SUCCESS: Composer autoload loaded"
+✓ "RTF SUCCESS: User system class loaded"
+✓ "RTF SUCCESS: User system initialized"
+✓ "RTF SUCCESS: Database initialized with all tables"
+
+WARNING beskeder (ikke kritiske):
+⚠ "RTF WARNING: vendor/autoload.php not found"
+⚠ "RTF WARNING: class-rtf-user-system.php not found"
+
+ERROR beskeder (kræver handling):
+✗ "RTF ERROR: Composer autoload failed"
+✗ "RTF ERROR: User system init failed"
+✗ "RTF ERROR: Database initialization failed"
+
+═══════════════════════════════════════════════════════════════
+🔧 FEJLHÅNDTERING
+═══════════════════════════════════════════════════════════════
+
+PROBLEM: "RTF WARNING: vendor/autoload.php not found"
+FIX: Upload vendor/ folder via FTP
+
+PROBLEM: "RTF ERROR: User system init failed"
+FIX: Check PHP error log for detaljer
+     Verify database connection virker
+
+PROBLEM: "RTF ERROR: Database initialization failed"
+FIX: Check MySQL user har CREATE TABLE rettigheder
+     Verify database connection settings i wp-config.php
+
+═══════════════════════════════════════════════════════════════
+📝 RÆKKEFØLGE RESUMÉ
+═══════════════════════════════════════════════════════════════
+
+1. Security checks (ABSPATH, Emergency mode)
+2. Define constants
+3. Load Composer (med fejlhåndtering)
+4. Load User System class (med fejlhåndtering)
+5. WordPress 'after_setup_theme' → Theme setup
+6. WordPress 'init' prioritet 1 → User system + Sessions
+7. WordPress 'wp_enqueue_scripts' → CSS/JS assets
+8. WordPress 'init' prioritet 999 → Database initialization
+9. Browser → PWA initialization
+
+ALT er fejlsikkert og forhindrer WordPress crash!
+
+═══════════════════════════════════════════════════════════════
+🚀 DEPLOYMENT TJEKLISTE
+═══════════════════════════════════════════════════════════════
+
+□ Upload alle theme filer
+□ Upload vendor/ folder (KRITISK!)
+□ Aktiver theme i WordPress
+□ Check error log for SUCCESS beskeder
+□ Test /platform-auth/ virker
+□ Verificer database tabeller er oprettet
+□ Test PWA install prompt vises på mobil
+□ Verificer Stripe keys er konfigureret
+
+Hvis ALT viser SUCCESS → System er LIVE! 🎉

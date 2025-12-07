@@ -5,13 +5,13 @@
  */
 
 // Tjek om brugeren er logget ind
-if (!is_user_logged_in()) {
+if (!rtf_is_logged_in()) {
     wp_redirect(home_url('/platform-auth'));
     exit;
 }
 
 // Hent sprog parameter
-$lang = isset($_GET['lang']) ? sanitize_text_field($_GET['lang']) : 'da';
+$lang = rtf_get_lang();
 
 // Hent user_id fra URL
 $view_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : 0;
@@ -22,8 +22,8 @@ if (!$view_user_id) {
 }
 
 global $wpdb;
-$current_user = wp_get_current_user();
-$viewing_own_profile = ($current_user->ID === $view_user_id);
+$current_user = rtf_get_current_user();
+$viewing_own_profile = ($current_user && $current_user->id === $view_user_id);
 
 // Redirect hvis bruger ser sin egen profil
 if ($viewing_own_profile) {

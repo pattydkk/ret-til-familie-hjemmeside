@@ -1,9 +1,10 @@
 <?php
 /**
- * Theme Name: Ret til Familie Platform
- * Version: 2.1.0 - Clean Build
- * Description: WordPress theme for family law platform
- * Requires PHP: 7.4
+ * Ret til Familie Platform - Theme Functions
+ * All theme setup, hooks, and custom functionality
+ * 
+ * @package Ret_til_Familie
+ * @version 2.1.0
  */
 
 // ============================================================================
@@ -32,43 +33,87 @@ define('RTF_THEME_DIR', get_template_directory());
 define('RTF_THEME_URI', get_template_directory_uri());
 
 // ============================================================================
-// 2B. COMPOSER AUTOLOAD & DEPENDENCIES
+// 2B. SAFE INITIALIZATION - PREVENTS WORDPRESS CRASH
 // ============================================================================
 
-// Load Composer dependencies (Stripe, PHPWord, PDF Parser, mPDF)
+/**
+ * STEP 1: Check and load Composer dependencies
+ * This prevents fatal errors if vendor/ folder is missing
+ */
+$rtf_vendor_loaded = false;
+$rtf_user_system_loaded = false;
+
 if (file_exists(RTF_THEME_DIR . '/vendor/autoload.php')) {
-    require_once RTF_THEME_DIR . '/vendor/autoload.php';
-    error_log('RTF: Composer autoload loaded successfully');
+    try {
+        require_once RTF_THEME_DIR . '/vendor/autoload.php';
+        $rtf_vendor_loaded = true;
+        error_log('RTF SUCCESS: Composer autoload loaded');
+    } catch (Exception $e) {
+        error_log('RTF ERROR: Composer autoload failed - ' . $e->getMessage());
+        $rtf_vendor_loaded = false;
+    }
 } else {
-    error_log('RTF WARNING: Composer vendor/autoload.php not found. Run: composer install');
-    // EMERGENCY: Return early if vendor not available to prevent fatal errors
+    error_log('RTF WARNING: vendor/autoload.php not found - Upload vendor/ folder or run: composer install');
+}
+
+// If vendor not loaded, enable safe mode
+if (!$rtf_vendor_loaded) {
+    add_action('admin_notices', function() {
+        echo '<div class="notice notice-error"><p><strong>Ret til Familie:</strong> vendor/ mappen mangler. Upload vendor/ via FTP eller kør "composer install" på serveren.</p></div>';
+    });
+    
+    // Enable basic WordPress functionality only
     add_action('after_setup_theme', function() {
         add_theme_support('title-tag');
         add_theme_support('post-thumbnails');
     });
+    
+    // Don't load rest of theme to prevent errors
     return;
 }
 
-// Load RtfUserSystem class
+/**
+ * STEP 2: Load User System Class
+ * Only if vendor was loaded successfully
+ */
 if (file_exists(RTF_THEME_DIR . '/includes/class-rtf-user-system.php')) {
-    require_once RTF_THEME_DIR . '/includes/class-rtf-user-system.php';
+    try {
+        require_once RTF_THEME_DIR . '/includes/class-rtf-user-system.php';
+        $rtf_user_system_loaded = true;
+        error_log('RTF SUCCESS: User system class loaded');
+    } catch (Exception $e) {
+        error_log('RTF ERROR: User system class failed - ' . $e->getMessage());
+        $rtf_user_system_loaded = false;
+    }
 } else {
-    error_log('RTF ERROR: class-rtf-user-system.php not found');
-    // Continue without user system - basic WordPress will work
+    error_log('RTF WARNING: class-rtf-user-system.php not found');
 }
 
-// Initialize global user system
+/**
+ * STEP 3: Initialize Global User System
+ * Deferred until WordPress 'init' hook for safe initialization
+ */
 global $rtf_user_system;
 $rtf_user_system = null;
 
-// Initialize user system after WordPress is loaded
 function rtf_init_user_system() {
-    global $rtf_user_system;
+    global $rtf_user_system, $rtf_user_system_loaded;
+    
+    if (!$rtf_user_system_loaded) {
+        error_log('RTF: User system not loaded, skipping initialization');
+        return;
+    }
+    
     if (class_exists('RtfUserSystem')) {
-        $rtf_user_system = new RtfUserSystem();
-        error_log('RTF: User system initialized successfully');
+        try {
+            $rtf_user_system = new RtfUserSystem();
+            error_log('RTF SUCCESS: User system initialized');
+        } catch (Exception $e) {
+            error_log('RTF ERROR: User system init failed - ' . $e->getMessage());
+            $rtf_user_system = null;
+        }
     } else {
-        error_log('RTF ERROR: RtfUserSystem class not found');
+        error_log('RTF ERROR: RtfUserSystem class does not exist');
     }
 }
 add_action('init', 'rtf_init_user_system', 1);
@@ -369,9 +414,17 @@ function rtf_init_database() {
     }
     
     global $wpdb;
-    $charset_collate = $wpdb->get_charset_collate();
     
-    require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+    // Safety check: Ensure WordPress is fully loaded
+    if (!function_exists('dbDelta') || !$wpdb) {
+        error_log('RTF: Database init skipped - WordPress not ready');
+        return;
+    }
+    
+    try {
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
     
     // 1. Main users table
     $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_users (
@@ -540,10 +593,14 @@ function rtf_init_database() {
     // Mark as initialized
     update_option('rtf_db_initialized_v2', true);
     
-    error_log('RTF: Database initialized successfully with all tables');
+    error_log('RTF SUCCESS: Database initialized with all tables');
+    
+    } catch (Exception $e) {
+        error_log('RTF ERROR: Database initialization failed - ' . $e->getMessage());
+    }
 }
 
-// Run database setup on init (late priority)
+// Run database setup on init (late priority - after user system)
 add_action('init', 'rtf_init_database', 999);
 
 // ============================================================================
