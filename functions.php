@@ -292,10 +292,23 @@ function rtf_setup() {
     if (!get_option('rtf_theme_activated', false)) {
         update_option('rtf_theme_activated', true);
         
-        // Trigger database and pages creation on first activation
-        rtf_create_platform_tables();
-        rtf_create_pages_menu_on_switch();
-        rtf_create_default_admin();
+        // CRITICAL: Schedule database creation for AFTER WordPress is fully loaded
+        // Don't run these immediately - they can crash if run too early!
+        add_action('init', function() {
+            // Only run once
+            if (!get_option('rtf_tables_created', false)) {
+                rtf_create_platform_tables();
+                update_option('rtf_tables_created', true);
+            }
+            if (!get_option('rtf_pages_created', false)) {
+                rtf_create_pages_menu_on_switch();
+                update_option('rtf_pages_created', true);
+            }
+            if (!get_option('rtf_admin_created', false)) {
+                rtf_create_default_admin();
+                update_option('rtf_admin_created', true);
+            }
+        }, 999); // Run late to ensure WordPress is fully ready
     }
 }
 add_action('after_setup_theme', 'rtf_setup');
@@ -376,7 +389,16 @@ add_action('init', 'rtf_start_session');
 // ============================================================================
 function rtf_create_platform_tables() {
     global $wpdb;
-    $charset_collate = $wpdb->get_charset_collate();
+    
+    // Safety check - ensure WordPress is loaded
+    if (!function_exists('dbDelta')) {
+        error_log('RTF Theme: dbDelta not available - cannot create tables');
+        return false;
+    }
+    
+    // Wrap entire function in try-catch to prevent crashes
+    try {
+        $charset_collate = $wpdb->get_charset_collate();
 
     // 1. Platform Users
     $table_users = $wpdb->prefix . 'rtf_platform_users';
@@ -1219,6 +1241,17 @@ function rtf_create_platform_tables() {
             'is_active' => 1
         ));
     }
+    
+    error_log('RTF Theme: Platform tables created successfully');
+    return true;
+    
+    } catch (Exception $e) {
+        error_log('RTF Theme: Failed to create platform tables - ' . $e->getMessage());
+        return false;
+    } catch (Error $e) {
+        error_log('RTF Theme: Fatal error creating platform tables - ' . $e->getMessage());
+        return false;
+    }
 }
 
 // ============================================================================
@@ -1233,6 +1266,15 @@ function rtf_create_default_pages() {
 }
 
 function rtf_create_pages_menu_on_switch() {
+    // Safety check - ensure WordPress is fully loaded
+    if (!function_exists('wp_insert_post') || !function_exists('wp_get_nav_menu_object')) {
+        error_log('RTF Theme: WordPress not ready - cannot create pages');
+        return false;
+    }
+    
+    // Wrap in try-catch to prevent crashes
+    try {
+    
     // Standard pages
     $pages = array(
         'forside'   => 'Forside',
@@ -1338,6 +1380,17 @@ function rtf_create_pages_menu_on_switch() {
 
     // Create database tables
     rtf_create_platform_tables();
+    
+    error_log('RTF Theme: Pages and menu created successfully');
+    return true;
+    
+    } catch (Exception $e) {
+        error_log('RTF Theme: Failed to create pages - ' . $e->getMessage());
+        return false;
+    } catch (Error $e) {
+        error_log('RTF Theme: Fatal error creating pages - ' . $e->getMessage());
+        return false;
+    }
 }
 add_action('after_switch_theme', 'rtf_create_pages_menu_on_switch');
 
@@ -1691,7 +1744,16 @@ add_action('wp_enqueue_scripts', 'rtf_scripts');
 // CREATE DEFAULT ADMIN USER
 // ============================================================================
 function rtf_create_default_admin() {
+    // Safety check - ensure WordPress database is available
     global $wpdb;
+    if (!$wpdb) {
+        error_log('RTF Theme: Database not available - cannot create admin');
+        return false;
+    }
+    
+    // Wrap in try-catch to prevent crashes
+    try {
+        
     $users_table = $wpdb->prefix . 'rtf_platform_users';
     $admins_table = $wpdb->prefix . 'rtf_platform_admins';
     $privacy_table = $wpdb->prefix . 'rtf_platform_privacy';
@@ -1765,6 +1827,15 @@ function rtf_create_default_admin() {
     ]);
     
     error_log('[RTF Platform] Default admin user created: patrickfoerslev@gmail.com');
+    return true;
+    
+    } catch (Exception $e) {
+        error_log('RTF Theme: Failed to create admin user - ' . $e->getMessage());
+        return false;
+    } catch (Error $e) {
+        error_log('RTF Theme: Fatal error creating admin user - ' . $e->getMessage());
+        return false;
+    }
 }
 
 // ============================================================================
