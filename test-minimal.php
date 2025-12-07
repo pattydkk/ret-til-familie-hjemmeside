@@ -1,3 +1,13 @@
+<?php
+// Load WordPress
+$wp_load_path = __DIR__ . '/wp-load.php';
+$wp_loaded = false;
+
+if (file_exists($wp_load_path)) {
+    require_once($wp_load_path);
+    $wp_loaded = defined('ABSPATH');
+}
+?>
 <!DOCTYPE html>
 <html lang="da">
 <head>
@@ -66,12 +76,14 @@
     <div class="test-box">
         <h2>Test 3: WordPress Load</h2>
         <?php
-        if (defined('ABSPATH')) {
+        if ($wp_loaded && defined('ABSPATH')) {
             echo '<p class="success">✅ WordPress loaded</p>';
             echo '<p>WordPress Path: ' . ABSPATH . '</p>';
-            echo '<p>DB Connected: ' . ($wpdb->dbh ? 'Ja' : 'Nej') . '</p>';
+            global $wpdb;
+            echo '<p>DB Connected: ' . ($wpdb && $wpdb->dbh ? 'Ja' : 'Nej') . '</p>';
         } else {
             echo '<p class="error">❌ WordPress ikke loaded</p>';
+            echo '<p>Denne test kræver at filen ligger i WordPress root folder</p>';
         }
         ?>
     </div>
@@ -98,24 +110,27 @@
     <div class="test-box">
         <h2>Test 5: Database Tables</h2>
         <?php
-        global $wpdb;
-        $tables = [
-            'rtf_platform_users',
-            'rtf_platform_posts',
-            'rtf_platform_messages',
-            'rtf_platform_chatrooms',
-        ];
-        
-        foreach ($tables as $table) {
-            $full_table = $wpdb->prefix . $table;
-            $exists = $wpdb->get_var("SHOW TABLES LIKE '$full_table'") === $full_table;
+        if ($wp_loaded && isset($wpdb)) {
+            $tables = [
+                'rtf_platform_users',
+                'rtf_platform_posts',
+                'rtf_platform_messages',
+                'rtf_platform_chatrooms',
+            ];
             
-            if ($exists) {
-                $count = $wpdb->get_var("SELECT COUNT(*) FROM $full_table");
-                echo '<p class="success">✅ ' . $table . ' (rows: ' . $count . ')</p>';
-            } else {
-                echo '<p class="error">❌ ' . $table . ' findes ikke</p>';
+            foreach ($tables as $table) {
+                $full_table = $wpdb->prefix . $table;
+                $exists = $wpdb->get_var("SHOW TABLES LIKE '$full_table'") === $full_table;
+                
+                if ($exists) {
+                    $count = $wpdb->get_var("SELECT COUNT(*) FROM $full_table");
+                    echo '<p class="success">✅ ' . $table . ' (rows: ' . $count . ')</p>';
+                } else {
+                    echo '<p class="error">❌ ' . $table . ' findes ikke</p>';
+                }
             }
+        } else {
+            echo '<p class="error">❌ WordPress ikke loaded - kan ikke tjekke database</p>';
         }
         ?>
     </div>
@@ -150,7 +165,7 @@
         // Check critical issues
         if (version_compare(PHP_VERSION, '7.4.0', '<')) $all_ok = false;
         if (session_status() !== PHP_SESSION_ACTIVE) $all_ok = false;
-        if (!defined('ABSPATH')) $all_ok = false;
+        if (!$wp_loaded || !defined('ABSPATH')) $all_ok = false;
         if (!function_exists('rtf_get_lang')) $all_ok = false;
         
         if ($all_ok): ?>
