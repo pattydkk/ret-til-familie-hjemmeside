@@ -36,12 +36,13 @@
 
 // Prevent direct access
 if (!defined('ABSPATH')) {
-    exit('WordPress not loaded');
+    return; // Don't crash WordPress - just stop loading theme
 }
 
 // Ensure WordPress functions are available
 if (!function_exists('get_template_directory')) {
-    exit('WordPress not properly initialized');
+    error_log('RTF Theme: WordPress not properly initialized');
+    return; // Don't crash WordPress - just stop loading theme
 }
 
 // EMERGENCY RECOVERY MODE - Enable to bypass all custom code if site is broken
@@ -360,8 +361,12 @@ function rtf_auto_install_composer_dependencies() {
 // SESSION START
 // ============================================================================
 function rtf_start_session() {
-    if (!session_id()) {
-        session_start();
+    if (session_status() === PHP_SESSION_NONE) {
+        try {
+            @session_start();
+        } catch (Exception $e) {
+            error_log('RTF Theme: Failed to start session - ' . $e->getMessage());
+        }
     }
 }
 add_action('init', 'rtf_start_session');
@@ -440,7 +445,10 @@ function rtf_create_platform_tables() {
     foreach ($columns_to_check as $col) {
         $column_check = $wpdb->get_results("SHOW COLUMNS FROM $table_users LIKE '{$col['name']}'");
         if (empty($column_check)) {
-            $wpdb->query("ALTER TABLE $table_users ADD COLUMN {$col['name']} {$col['definition']} AFTER {$col['after']}");
+            $result = $wpdb->query("ALTER TABLE $table_users ADD COLUMN {$col['name']} {$col['definition']} AFTER {$col['after']}");
+            if ($result === false) {
+                error_log("RTF Theme: Failed to add column {$col['name']} to $table_users: " . $wpdb->last_error);
+            }
         }
     }
 
@@ -476,11 +484,17 @@ function rtf_create_platform_tables() {
     // Add visibility column if it doesn't exist (for existing installations)
     $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_posts LIKE 'visibility'");
     if (empty($column_exists)) {
-        $wpdb->query("ALTER TABLE $table_posts ADD COLUMN visibility varchar(20) DEFAULT 'public' COMMENT 'private, public' AFTER likes");
+        $result = $wpdb->query("ALTER TABLE $table_posts ADD COLUMN visibility varchar(20) DEFAULT 'public' COMMENT 'private, public' AFTER likes");
+        if ($result === false) {
+            error_log("RTF Theme: Failed to add visibility column to $table_posts: " . $wpdb->last_error);
+        }
     }
     $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_posts WHERE Key_name = 'visibility'");
     if (empty($index_exists)) {
-        $wpdb->query("ALTER TABLE $table_posts ADD INDEX visibility (visibility)");
+        $result = $wpdb->query("ALTER TABLE $table_posts ADD INDEX visibility (visibility)");
+        if ($result === false) {
+            error_log("RTF Theme: Failed to add visibility index to $table_posts: " . $wpdb->last_error);
+        }
     }
 
     // 4. Images
@@ -502,11 +516,17 @@ function rtf_create_platform_tables() {
     // Add is_public column if it doesn't exist (for existing installations)
     $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_images LIKE 'is_public'");
     if (empty($column_exists)) {
-        $wpdb->query("ALTER TABLE $table_images ADD COLUMN is_public tinyint(1) DEFAULT 0 AFTER blur_faces");
+        $result = $wpdb->query("ALTER TABLE $table_images ADD COLUMN is_public tinyint(1) DEFAULT 0 AFTER blur_faces");
+        if ($result === false) {
+            error_log("RTF Theme: Failed to add is_public column to $table_images: " . $wpdb->last_error);
+        }
     }
     $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_images WHERE Key_name = 'is_public'");
     if (empty($index_exists)) {
-        $wpdb->query("ALTER TABLE $table_images ADD INDEX is_public (is_public)");
+        $result = $wpdb->query("ALTER TABLE $table_images ADD INDEX is_public (is_public)");
+        if ($result === false) {
+            error_log("RTF Theme: Failed to add is_public index to $table_images: " . $wpdb->last_error);
+        }
     }
 
     // 5. Documents
@@ -557,11 +577,17 @@ function rtf_create_platform_tables() {
     // ALTER TABLE for existing installations - News country
     $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_news LIKE 'country'");
     if (empty($column_exists)) {
-        $wpdb->query("ALTER TABLE $table_news ADD COLUMN country varchar(10) DEFAULT 'BOTH' COMMENT 'DK, SE, or BOTH' AFTER image_url");
+        $result = $wpdb->query("ALTER TABLE $table_news ADD COLUMN country varchar(10) DEFAULT 'BOTH' COMMENT 'DK, SE, or BOTH' AFTER image_url");
+        if ($result === false) {
+            error_log("RTF Theme: Failed to add country column to $table_news: " . $wpdb->last_error);
+        }
     }
     $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_news WHERE Key_name = 'country'");
     if (empty($index_exists)) {
-        $wpdb->query("ALTER TABLE $table_news ADD INDEX country (country)");
+        $result = $wpdb->query("ALTER TABLE $table_news ADD INDEX country (country)");
+        if ($result === false) {
+            error_log("RTF Theme: Failed to add country index to $table_news: " . $wpdb->last_error);
+        }
     }
 
     // 8. Forum Topics
@@ -602,14 +628,20 @@ function rtf_create_platform_tables() {
     foreach ($forum_columns_to_add as $column => $sql) {
         $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_forum_topics LIKE '$column'");
         if (empty($column_exists)) {
-            $wpdb->query($sql);
+            $result = $wpdb->query($sql);
+            if ($result === false) {
+                error_log("RTF Theme: Failed to add column $column to $table_forum_topics: " . $wpdb->last_error);
+            }
         }
     }
     $forum_indexes = array('country', 'category', 'subcategory', 'case_type');
     foreach ($forum_indexes as $index_name) {
         $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_forum_topics WHERE Key_name = '$index_name'");
         if (empty($index_exists)) {
-            $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX $index_name ($index_name)");
+            $result = $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX $index_name ($index_name)");
+            if ($result === false) {
+                error_log("RTF Theme: Failed to add index $index_name to $table_forum_topics: " . $wpdb->last_error);
+            }
         }
     }
 

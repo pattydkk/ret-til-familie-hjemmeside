@@ -3,7 +3,14 @@
  * Template Name: Platform - Kate AI
  */
 
-if (!session_id()) session_start();
+// Safe session start
+if (session_status() === PHP_SESSION_NONE) {
+    try {
+        @session_start();
+    } catch (Exception $e) {
+        error_log('Kate AI: Failed to start session - ' . $e->getMessage());
+    }
+}
 
 if (!rtf_is_logged_in()) {
     wp_redirect(home_url('/platform-auth'));
