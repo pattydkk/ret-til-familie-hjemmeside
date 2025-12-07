@@ -15,8 +15,8 @@ $rtf_lang = function_exists('rtf_get_lang') ? rtf_get_lang() : 'da';
 <meta name="msapplication-TileColor" content="#2563eb">
 <meta name="theme-color" content="#2563eb">
 
-<!-- PWA Manifest -->
-<link rel="manifest" href="/manifest.json">
+<!-- PWA Manifest - TEMPORARILY DISABLED FOR DEBUGGING -->
+<!-- <link rel="manifest" href="/manifest.json"> -->
 
 <!-- Apple Touch Icons -->
 <link rel="apple-touch-icon" sizes="180x180" href="/wp-content/themes/ret-til-familie/assets/icon-192x192.png">
@@ -139,7 +139,7 @@ wp_head();
   </div>
 </header>
 
-<!-- PWA Initialization -->
-<script src="/pwa-init.js" defer></script>
+<!-- PWA Initialization - TEMPORARILY DISABLED FOR DEBUGGING -->
+<!-- <script src="/pwa-init.js" defer></script> -->
 
 <main class="site-main">
