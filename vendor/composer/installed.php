@@ -3,11 +3,11 @@
         'name' => 'rettilfamilie/borger-platform',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6b2185827824733840344a1299d9075977e775ee',
+        'reference' => '138e86413e581d40ad14bfb166edf9b09a17648f',
         'type' => 'wordpress-theme',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'dev' => true,
+        'dev' => false,
     ),
     'versions' => array(
         'mpdf/mpdf' => array(
@@ -94,7 +94,7 @@
         'rettilfamilie/borger-platform' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6b2185827824733840344a1299d9075977e775ee',
+            'reference' => '138e86413e581d40ad14bfb166edf9b09a17648f',
             'type' => 'wordpress-theme',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
