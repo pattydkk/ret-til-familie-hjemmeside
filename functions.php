@@ -44,6 +44,19 @@ if (!function_exists('get_template_directory')) {
     exit('WordPress not properly initialized');
 }
 
+// EMERGENCY RECOVERY MODE - Enable to bypass all custom code if site is broken
+if (defined('RTF_EMERGENCY_MODE') && RTF_EMERGENCY_MODE) {
+    error_log('RTF Theme: EMERGENCY MODE ACTIVE - Loading minimal theme only');
+    
+    // Only load absolute minimum to keep WordPress running
+    add_action('after_setup_theme', function() {
+        add_theme_support('title-tag');
+        add_theme_support('post-thumbnails');
+    });
+    
+    return; // Stop loading rest of theme
+}
+
 // Theme version
 define('RTF_VERSION', '2.0.0');
 define('RTF_DB_VERSION', '2.0.0');
@@ -91,21 +104,35 @@ if (file_exists($vendor_autoload)) {
     }
 }
 
-// Load critical dependencies with error suppression
+// Load critical dependencies with proper error handling
 $translations_file = get_template_directory() . '/translations.php';
 $user_system_file = get_template_directory() . '/includes/class-rtf-user-system.php';
 
 if (file_exists($translations_file)) {
-    @require_once $translations_file;
+    try {
+        require_once $translations_file;
+    } catch (Exception $e) {
+        error_log('RTF Theme: Failed to load translations.php - ' . $e->getMessage());
+    } catch (Error $e) {
+        error_log('RTF Theme: Fatal error loading translations.php - ' . $e->getMessage());
+    }
 }
 
 if (file_exists($user_system_file)) {
-    @require_once $user_system_file;
-    
-    // Initialize global user system instance
-    if (class_exists('RtfUserSystem')) {
-        global $rtf_user_system;
-        $rtf_user_system = new RtfUserSystem();
+    try {
+        require_once $user_system_file;
+        
+        // Initialize global user system instance
+        if (class_exists('RtfUserSystem')) {
+            global $rtf_user_system;
+            $rtf_user_system = new RtfUserSystem();
+        } else {
+            error_log('RTF Theme: RtfUserSystem class not found after loading file');
+        }
+    } catch (Exception $e) {
+        error_log('RTF Theme: Failed to load user system - ' . $e->getMessage());
+    } catch (Error $e) {
+        error_log('RTF Theme: Fatal error loading user system - ' . $e->getMessage());
     }
 }
 
@@ -387,26 +414,35 @@ function rtf_create_platform_tables() {
         UNIQUE KEY username (username),
         UNIQUE KEY email (email),
         KEY language_preference (language_preference)
-    ) $charset_collate;
+    ) $charset_collate;";
     
-    // Add missing columns if they don't exist (for existing installations)
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS cover_image varchar(500) DEFAULT NULL AFTER profile_image\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL COMMENT 'custody, visitation, divorce, support, other' AFTER cover_image\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS age int DEFAULT NULL AFTER case_type\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS city varchar(100) DEFAULT NULL AFTER bio\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS postal_code varchar(20) DEFAULT NULL AFTER city\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS address varchar(255) DEFAULT NULL AFTER postal_code\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS website varchar(500) DEFAULT NULL AFTER address\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS occupation varchar(255) DEFAULT NULL AFTER website\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS facebook_url varchar(500) DEFAULT NULL AFTER occupation\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS twitter_url varchar(500) DEFAULT NULL AFTER facebook_url\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS instagram_url varchar(500) DEFAULT NULL AFTER twitter_url\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS linkedin_url varchar(500) DEFAULT NULL AFTER instagram_url\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS interests text DEFAULT NULL AFTER linkedin_url\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS email_notifications tinyint(1) DEFAULT 1 AFTER country\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS two_factor_enabled tinyint(1) DEFAULT 0 AFTER email_notifications\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS show_online_status tinyint(1) DEFAULT 1 AFTER two_factor_enabled\");
-    $wpdb->query(\"ALTER TABLE $table_users ADD COLUMN IF NOT EXISTS allow_friend_requests tinyint(1) DEFAULT 1 AFTER show_online_status\");";
+    // Check and add missing columns if they don't exist
+    $columns_to_check = [
+        ['name' => 'cover_image', 'definition' => 'varchar(500) DEFAULT NULL', 'after' => 'profile_image'],
+        ['name' => 'case_type', 'definition' => "varchar(100) DEFAULT NULL COMMENT 'custody, visitation, divorce, support, other'", 'after' => 'cover_image'],
+        ['name' => 'age', 'definition' => 'int DEFAULT NULL', 'after' => 'case_type'],
+        ['name' => 'city', 'definition' => 'varchar(100) DEFAULT NULL', 'after' => 'bio'],
+        ['name' => 'postal_code', 'definition' => 'varchar(20) DEFAULT NULL', 'after' => 'city'],
+        ['name' => 'address', 'definition' => 'varchar(255) DEFAULT NULL', 'after' => 'postal_code'],
+        ['name' => 'website', 'definition' => 'varchar(500) DEFAULT NULL', 'after' => 'address'],
+        ['name' => 'occupation', 'definition' => 'varchar(255) DEFAULT NULL', 'after' => 'website'],
+        ['name' => 'facebook_url', 'definition' => 'varchar(500) DEFAULT NULL', 'after' => 'occupation'],
+        ['name' => 'twitter_url', 'definition' => 'varchar(500) DEFAULT NULL', 'after' => 'facebook_url'],
+        ['name' => 'instagram_url', 'definition' => 'varchar(500) DEFAULT NULL', 'after' => 'twitter_url'],
+        ['name' => 'linkedin_url', 'definition' => 'varchar(500) DEFAULT NULL', 'after' => 'instagram_url'],
+        ['name' => 'interests', 'definition' => 'text DEFAULT NULL', 'after' => 'linkedin_url'],
+        ['name' => 'email_notifications', 'definition' => 'tinyint(1) DEFAULT 1', 'after' => 'country'],
+        ['name' => 'two_factor_enabled', 'definition' => 'tinyint(1) DEFAULT 0', 'after' => 'email_notifications'],
+        ['name' => 'show_online_status', 'definition' => 'tinyint(1) DEFAULT 1', 'after' => 'two_factor_enabled'],
+        ['name' => 'allow_friend_requests', 'definition' => 'tinyint(1) DEFAULT 1', 'after' => 'show_online_status']
+    ];
+    
+    foreach ($columns_to_check as $col) {
+        $column_check = $wpdb->get_results("SHOW COLUMNS FROM $table_users LIKE '{$col['name']}'");
+        if (empty($column_check)) {
+            $wpdb->query("ALTER TABLE $table_users ADD COLUMN {$col['name']} {$col['definition']} AFTER {$col['after']}");
+        }
+    }
 
     // 2. Privacy Settings
     $table_privacy = $wpdb->prefix . 'rtf_platform_privacy';
@@ -435,11 +471,17 @@ function rtf_create_platform_tables() {
         PRIMARY KEY (id),
         KEY user_id (user_id),
         KEY visibility (visibility)
-    ) $charset_collate;
+    ) $charset_collate;";
     
     // Add visibility column if it doesn't exist (for existing installations)
-    $wpdb->query(\"ALTER TABLE $table_posts ADD COLUMN IF NOT EXISTS visibility varchar(20) DEFAULT 'public' COMMENT 'private, public' AFTER likes\");
-    $wpdb->query(\"ALTER TABLE $table_posts ADD INDEX IF NOT EXISTS visibility (visibility)\");";
+    $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_posts LIKE 'visibility'");
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_posts ADD COLUMN visibility varchar(20) DEFAULT 'public' COMMENT 'private, public' AFTER likes");
+    }
+    $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_posts WHERE Key_name = 'visibility'");
+    if (empty($index_exists)) {
+        $wpdb->query("ALTER TABLE $table_posts ADD INDEX visibility (visibility)");
+    }
 
     // 4. Images
     $table_images = $wpdb->prefix . 'rtf_platform_images';
@@ -455,11 +497,17 @@ function rtf_create_platform_tables() {
         PRIMARY KEY (id),
         KEY user_id (user_id),
         KEY is_public (is_public)
-    ) $charset_collate;
+    ) $charset_collate;";
     
     // Add is_public column if it doesn't exist (for existing installations)
-    $wpdb->query(\"ALTER TABLE $table_images ADD COLUMN IF NOT EXISTS is_public tinyint(1) DEFAULT 0 AFTER blur_faces\");
-    $wpdb->query(\"ALTER TABLE $table_images ADD INDEX IF NOT EXISTS is_public (is_public)\");";
+    $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_images LIKE 'is_public'");
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_images ADD COLUMN is_public tinyint(1) DEFAULT 0 AFTER blur_faces");
+    }
+    $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_images WHERE Key_name = 'is_public'");
+    if (empty($index_exists)) {
+        $wpdb->query("ALTER TABLE $table_images ADD INDEX is_public (is_public)");
+    }
 
     // 5. Documents
     $table_documents = $wpdb->prefix . 'rtf_platform_documents';
@@ -507,8 +555,14 @@ function rtf_create_platform_tables() {
     ) $charset_collate;";
     
     // ALTER TABLE for existing installations - News country
-    $wpdb->query("ALTER TABLE $table_news ADD COLUMN IF NOT EXISTS country varchar(10) DEFAULT 'BOTH' COMMENT 'DK, SE, or BOTH' AFTER image_url");
-    $wpdb->query("ALTER TABLE $table_news ADD INDEX IF NOT EXISTS country (country)");
+    $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_news LIKE 'country'");
+    if (empty($column_exists)) {
+        $wpdb->query("ALTER TABLE $table_news ADD COLUMN country varchar(10) DEFAULT 'BOTH' COMMENT 'DK, SE, or BOTH' AFTER image_url");
+    }
+    $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_news WHERE Key_name = 'country'");
+    if (empty($index_exists)) {
+        $wpdb->query("ALTER TABLE $table_news ADD INDEX country (country)");
+    }
 
     // 8. Forum Topics
     $table_forum_topics = $wpdb->prefix . 'rtf_platform_forum_topics';
@@ -536,17 +590,28 @@ function rtf_create_platform_tables() {
     ) $charset_collate;";
     
     // ALTER TABLE for existing installations - Forum Topics metadata
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS country varchar(10) DEFAULT NULL AFTER content");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS city varchar(100) DEFAULT NULL AFTER country");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS category varchar(100) DEFAULT NULL COMMENT 'Main category' AFTER city");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS subcategory varchar(255) DEFAULT NULL COMMENT 'Specific subcategory' AFTER category");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS case_type varchar(100) DEFAULT NULL AFTER subcategory");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS image_url text DEFAULT NULL COMMENT 'Uploaded image URL' AFTER case_type");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD COLUMN IF NOT EXISTS gdpr_consent tinyint(1) DEFAULT 0 COMMENT 'GDPR consent' AFTER image_url");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS country (country)");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS category (category)");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS subcategory (subcategory)");
-    $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX IF NOT EXISTS case_type (case_type)");
+    $forum_columns_to_add = array(
+        'country' => "ALTER TABLE $table_forum_topics ADD COLUMN country varchar(10) DEFAULT NULL AFTER content",
+        'city' => "ALTER TABLE $table_forum_topics ADD COLUMN city varchar(100) DEFAULT NULL AFTER country",
+        'category' => "ALTER TABLE $table_forum_topics ADD COLUMN category varchar(100) DEFAULT NULL COMMENT 'Main category' AFTER city",
+        'subcategory' => "ALTER TABLE $table_forum_topics ADD COLUMN subcategory varchar(255) DEFAULT NULL COMMENT 'Specific subcategory' AFTER category",
+        'case_type' => "ALTER TABLE $table_forum_topics ADD COLUMN case_type varchar(100) DEFAULT NULL AFTER subcategory",
+        'image_url' => "ALTER TABLE $table_forum_topics ADD COLUMN image_url text DEFAULT NULL COMMENT 'Uploaded image URL' AFTER case_type",
+        'gdpr_consent' => "ALTER TABLE $table_forum_topics ADD COLUMN gdpr_consent tinyint(1) DEFAULT 0 COMMENT 'GDPR consent' AFTER image_url"
+    );
+    foreach ($forum_columns_to_add as $column => $sql) {
+        $column_exists = $wpdb->get_results("SHOW COLUMNS FROM $table_forum_topics LIKE '$column'");
+        if (empty($column_exists)) {
+            $wpdb->query($sql);
+        }
+    }
+    $forum_indexes = array('country', 'category', 'subcategory', 'case_type');
+    foreach ($forum_indexes as $index_name) {
+        $index_exists = $wpdb->get_results("SHOW INDEX FROM $table_forum_topics WHERE Key_name = '$index_name'");
+        if (empty($index_exists)) {
+            $wpdb->query("ALTER TABLE $table_forum_topics ADD INDEX $index_name ($index_name)");
+        }
+    }
 
     // 9. Forum Replies
     $table_forum_replies = $wpdb->prefix . 'rtf_platform_forum_replies';
@@ -1423,6 +1488,9 @@ function rtf_get_current_user() {
     }
     
     global $rtf_user_system;
+    if (!isset($_SESSION) || !isset($_SESSION['rtf_user_id'])) {
+        return null;
+    }
     return $rtf_user_system->get_user($_SESSION['rtf_user_id']);
 }
 
@@ -1446,7 +1514,10 @@ function rtf_require_subscription() {
     }
     
     global $rtf_user_system;
-    $user_id = $_SESSION['rtf_user_id'];
+    if (!isset($_SESSION) || !isset($_SESSION['rtf_user_id'])) {
+        return;
+    }
+    $user_id = intval($_SESSION['rtf_user_id']);
     
     // Check subscription using proper system method
     if (!$rtf_user_system->has_active_subscription($user_id)) {
@@ -2209,10 +2280,12 @@ function rtf_analyze_document_content($text) {
     }
     
     // Extract dates (dd-mm-yyyy or dd/mm/yyyy format)
+    $date_matches = array();
     preg_match_all('/\b(\d{1,2}[-\/]\d{1,2}[-\/]\d{4})\b/', $text, $date_matches);
-    $analysis['key_dates'] = array_unique($date_matches[0]);
+    $analysis['key_dates'] = isset($date_matches[0]) ? array_unique($date_matches[0]) : array();
     
     // Find mentioned laws
+    $law_matches = array();
     preg_match_all('/(?:§|paragraf)\s*(\d+)/i', $text, $law_matches);
     if (!empty($law_matches[1])) {
         $analysis['mentioned_laws'] = array_unique(array_map(function($n) {
@@ -3824,8 +3897,14 @@ function rtf_update_cases_table_schema() {
     }
     
     // Add indexes if they don't exist
-    $wpdb->query("ALTER TABLE $table ADD INDEX IF NOT EXISTS complaint_type (complaint_type)");
-    $wpdb->query("ALTER TABLE $table ADD INDEX IF NOT EXISTS decision_date (decision_date)");
+    $index_exists = $wpdb->get_results("SHOW INDEX FROM $table WHERE Key_name = 'complaint_type'");
+    if (empty($index_exists)) {
+        $wpdb->query("ALTER TABLE $table ADD INDEX complaint_type (complaint_type)");
+    }
+    $index_exists = $wpdb->get_results("SHOW INDEX FROM $table WHERE Key_name = 'decision_date'");
+    if (empty($index_exists)) {
+        $wpdb->query("ALTER TABLE $table ADD INDEX decision_date (decision_date)");
+    }
     
     // Update default status from 'open' to 'draft' for consistency
     $wpdb->query("ALTER TABLE $table MODIFY COLUMN status varchar(50) DEFAULT 'draft' COMMENT 'draft, submitted, pending, approved, rejected, closed'");
@@ -3833,3 +3912,34 @@ function rtf_update_cases_table_schema() {
 
 // Run schema update on admin init
 add_action('admin_init', 'rtf_update_cases_table_schema');
+
+// ============================================================================
+// GLOBAL ERROR HANDLER - Prevents WordPress from showing white screen
+// ============================================================================
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    // Don't handle errors if error reporting is turned off
+    if (!(error_reporting() & $errno)) {
+        return false;
+    }
+    
+    // Log error instead of displaying
+    $error_msg = "RTF Theme Error [$errno]: $errstr in $errfile on line $errline";
+    error_log($error_msg);
+    
+    // For fatal errors, don't break WordPress
+    if ($errno === E_ERROR || $errno === E_CORE_ERROR || $errno === E_COMPILE_ERROR) {
+        // Log but don't kill execution
+        error_log("RTF Theme: Fatal error caught - theme may not work correctly");
+        return true;
+    }
+    
+    // Let WordPress handle the error normally
+    return false;
+}, E_ALL);
+
+register_shutdown_function(function() {
+    $error = error_get_last();
+    if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+        error_log('RTF Theme: Fatal error during shutdown: ' . print_r($error, true));
+    }
+});
