@@ -602,6 +602,79 @@ function rtf_init_database() {
     ) $charset_collate;";
     dbDelta($sql);
     
+    // 12. Comments table (for posts, documents, etc.)
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_comments (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        post_id bigint(20) NOT NULL,
+        content text NOT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY post_id (post_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 13. Likes table (for posts, comments, documents)
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_likes (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        item_id bigint(20) NOT NULL,
+        item_type varchar(50) NOT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY item_id (item_id),
+        UNIQUE KEY unique_like (user_id, item_id, item_type)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 14. Messages table (direct messages between users)
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_messages (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        sender_id bigint(20) NOT NULL,
+        receiver_id bigint(20) NOT NULL,
+        message text NOT NULL,
+        is_read tinyint(1) DEFAULT 0,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        read_at datetime DEFAULT NULL,
+        PRIMARY KEY (id),
+        KEY sender_id (sender_id),
+        KEY receiver_id (receiver_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 15. Notifications table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_platform_notifications (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        type varchar(50) NOT NULL,
+        title varchar(255) NOT NULL,
+        message text DEFAULT NULL,
+        link varchar(255) DEFAULT NULL,
+        is_read tinyint(1) DEFAULT 0,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY is_read (is_read)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
+    // 16. Kate AI conversations table
+    $sql = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}rtf_ai_conversations (
+        id bigint(20) NOT NULL AUTO_INCREMENT,
+        user_id bigint(20) NOT NULL,
+        session_id varchar(255) NOT NULL,
+        message_type varchar(20) NOT NULL,
+        message text NOT NULL,
+        response text DEFAULT NULL,
+        created_at datetime DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        KEY user_id (user_id),
+        KEY session_id (session_id)
+    ) $charset_collate;";
+    dbDelta($sql);
+    
     // Mark as initialized
     update_option('rtf_db_initialized_v2', true);
     
