@@ -41,11 +41,20 @@ if (file_exists(RTF_THEME_DIR . '/vendor/autoload.php')) {
     error_log('RTF: Composer autoload loaded successfully');
 } else {
     error_log('RTF WARNING: Composer vendor/autoload.php not found. Run: composer install');
+    // EMERGENCY: Return early if vendor not available to prevent fatal errors
+    add_action('after_setup_theme', function() {
+        add_theme_support('title-tag');
+        add_theme_support('post-thumbnails');
+    });
+    return;
 }
 
 // Load RtfUserSystem class
 if (file_exists(RTF_THEME_DIR . '/includes/class-rtf-user-system.php')) {
     require_once RTF_THEME_DIR . '/includes/class-rtf-user-system.php';
+} else {
+    error_log('RTF ERROR: class-rtf-user-system.php not found');
+    // Continue without user system - basic WordPress will work
 }
 
 // Initialize global user system
