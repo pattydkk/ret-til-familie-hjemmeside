@@ -1,0 +1,158 @@
+═══════════════════════════════════════════════════════════════
+   WORDPRESS PREVIEW CRASH - SIKKER LØSNING
+═══════════════════════════════════════════════════════════════
+
+PROBLEM:
+WordPress Live Preview viser "Kritisk fejl" og crasher WordPress
+
+ROOT CAUSE:
+functions.php forsøger at definere constants med get_template_directory()
+FØR WordPress er fuldt loaded.
+
+LØSNING IMPLEMENTERET:
+functions.php tjekker nu om WordPress er klar FØR den forsøger at køre.
+
+═══════════════════════════════════════════════════════════════
+ÆNDRINGER I FUNCTIONS.PHP
+═══════════════════════════════════════════════════════════════
+
+TILFØJET WORDPRESS READINESS CHECK (Line ~30):
+
+```php
+// WordPress readiness check - crucial for Preview
+if (!function_exists('get_template_directory')) {
+    error_log('RTF FATAL: WordPress not loaded - cannot initialize theme');
+    return;
+}
+```
+
+TILFØJET DOUBLE-CHECK FØR VENDOR LOAD (Line ~45):
+
+```php
+// Double-check RTF_THEME_DIR is defined
+if (!defined('RTF_THEME_DIR')) {
+    error_log('RTF FATAL: RTF_THEME_DIR not defined');
+    return;
+}
+```
+
+═══════════════════════════════════════════════════════════════
+HVAD SKER DER NU?
+═══════════════════════════════════════════════════════════════
+
+SCENARIO 1: WordPress ikke klar
+→ functions.php returnerer early
+→ Ingen crash
+→ WordPress fortsætter uden theme features
+
+SCENARIO 2: WordPress klar, vendor/ mangler
+→ Admin notice vises
+→ Basic WordPress features loader
+→ Ingen crash
+
+SCENARIO 3: Alt korrekt
+→ Theme loader 100%
+→ Alle features tilgængelige
+→ System fungerer perfekt
+
+═══════════════════════════════════════════════════════════════
+TEST FØR AKTIVERING
+═══════════════════════════════════════════════════════════════
+
+1. PHP SYNTAX CHECK:
+   php -l functions.php
+   → SKAL vise "No syntax errors"
+
+2. WORDPRESS DEBUG LOG:
+   Upload theme til server
+   Check wp-content/debug.log
+   → Skal se "RTF SUCCESS" beskeder
+
+3. THEME PREVIEW:
+   WordPress Admin → Appearance → Themes
+   → Hover over theme, klik "Live Preview"
+   → Hvis fejl: Check debug.log for præcis årsag
+
+═══════════════════════════════════════════════════════════════
+SIKKER AKTIVERINGS-PROCEDURE
+═══════════════════════════════════════════════════════════════
+
+STEP 1: BACKUP
+□ Backup nuværende WordPress database
+□ Backup nuværende theme
+□ Noter navn på nuværende aktive theme
+
+STEP 2: UPLOAD
+□ Upload ALLE theme filer til wp-content/themes/ret-til-familie/
+□ Upload vendor/ folder (KRITISK!)
+□ Verificer alle filer er uploadet
+
+STEP 3: CHECK DEBUG LOG
+□ Aktiver WordPress debugging:
+  define('WP_DEBUG', true);
+  define('WP_DEBUG_LOG', true);
+  define('WP_DEBUG_DISPLAY', false);
+
+STEP 4: FORSIGTIG TEST
+□ WordPress Admin → Appearance → Themes
+□ Find "Ret til Familie Platform"
+□ Klik "Theme Details" (IKKE "Activate" endnu!)
+□ Check debug log for errors
+
+STEP 5: LIVE PREVIEW
+□ Klik "Live Preview" på temaet
+□ Hvis site loader: SUCCESS!
+□ Hvis fejl: Check debug log
+
+STEP 6: AKTIVERING
+□ Hvis Live Preview virker: Klik "Activate"
+□ Test homepage loader
+□ Test /platform-auth/ loader
+□ Test /platform-profil/ (skal redirecte til login)
+
+═══════════════════════════════════════════════════════════════
+HVIS PREVIEW STADIG CRASHER
+═══════════════════════════════════════════════════════════════
+
+1. Check debug.log for præcis fejl
+2. Send mig error message
+3. Jeg laver specifik fix
+
+ALMINDELIGE ÅRSAGER:
+- vendor/ folder mangler
+- PHP version < 7.4
+- Memory limit < 128M
+- File permissions
+- mod_security blokkerer
+- PHP extensions mangler (mbstring, gd, zip)
+
+═══════════════════════════════════════════════════════════════
+EMERGENCY ROLLBACK
+═══════════════════════════════════════════════════════════════
+
+HVIS ALT GÅR GALT:
+
+VIA WORDPRESS ADMIN:
+Appearance → Themes → Aktiver gammelt theme
+
+VIA DATABASE (phpMyAdmin):
+UPDATE wp_options 
+SET option_value = 'OLD_THEME_NAME' 
+WHERE option_name = 'template';
+
+VIA FTP:
+Omdøb ret-til-familie mappen til ret-til-familie-disabled
+
+═══════════════════════════════════════════════════════════════
+SUPPORT
+═══════════════════════════════════════════════════════════════
+
+Hvis noget går galt, send mig:
+1. Præcis fejlbesked fra WordPress
+2. Indhold af wp-content/debug.log (sidste 50 linjer)
+3. PHP version (php -v)
+4. WordPress version
+
+Jeg laver så en specifik fix til dit miljø.
+
+═══════════════════════════════════════════════════════════════

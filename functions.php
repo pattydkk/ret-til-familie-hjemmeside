@@ -28,6 +28,12 @@ if (defined('RTF_EMERGENCY_MODE') && RTF_EMERGENCY_MODE) {
 // 2. CONSTANTS
 // ============================================================================
 
+// WordPress readiness check - crucial for Preview
+if (!function_exists('get_template_directory')) {
+    error_log('RTF FATAL: WordPress not loaded - cannot initialize theme');
+    return;
+}
+
 define('RTF_VERSION', '2.1.0');
 define('RTF_THEME_DIR', get_template_directory());
 define('RTF_THEME_URI', get_template_directory_uri());
@@ -42,6 +48,12 @@ define('RTF_THEME_URI', get_template_directory_uri());
  */
 $rtf_vendor_loaded = false;
 $rtf_user_system_loaded = false;
+
+// Double-check RTF_THEME_DIR is defined
+if (!defined('RTF_THEME_DIR')) {
+    error_log('RTF FATAL: RTF_THEME_DIR not defined - WordPress functions unavailable');
+    return;
+}
 
 if (file_exists(RTF_THEME_DIR . '/vendor/autoload.php')) {
     try {
